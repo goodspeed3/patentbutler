@@ -1,6 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import { Route, Switch, Redirect, withRouter, Link } from 'react-router-dom';
 import Navbar from 'react-bootstrap/Navbar';
+import logo from './img/logo.svg'
 import './App.css';
 import UploadView from './components/UploadView';
 import OaOverview from './components/OaOverview';
@@ -12,12 +13,15 @@ class App extends Component {
     var SampleOfficeAction = {
       mailingDate: '2019-04-10T03:42:38.594Z',
       applicationNumber: '12/703143',
+      attyDocket: 'MSFT-01328US0',
       rejectionList: [
         {
+          typeText: '§ 101 Rejection',
           type: '101'
         },
         {
           type: '103',
+          typeText: '§ 103 Rejection',
           priorArtList: [
             {
               publicationNumber: 'US20040155962',
@@ -252,9 +256,16 @@ class App extends Component {
   render() {
     return (
       <Fragment>
-        <Navbar bg="dark" variant="dark">
+        <Navbar bg="light" variant="light">
           <Navbar.Brand fixed="top">
-            <Link to="/view">PatentEye</Link>
+            <Link to="/view">
+              <img
+                src={logo}
+                width="160"
+                className="d-inline-block align-top"
+                alt="logo"
+              />
+            </Link>
           </Navbar.Brand>
         </Navbar>
         <Switch>

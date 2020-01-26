@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import Table from 'react-bootstrap/Table';
+import { HashLink as Link } from 'react-router-hash-link';
+import './OaMetadata.css'
 class OaMetadata extends Component {
   constructor(props) {
     super(props);
@@ -8,31 +9,29 @@ class OaMetadata extends Component {
 
   render() {
     var metadata = this.props.uiData;
+
     return (
-      <Table striped bordered hover size="sm">
-        <tbody>
-          <tr>
-            <td>
-              <b>App #:</b>
-            </td>
-            <td>{metadata.applicationNumber}</td>
-          </tr>
-          <tr>
-            <td>
-              <b>Mailing Date:</b>
-            </td>
-            <td>
-              {new Date(metadata.mailingDate).toLocaleDateString('en-US')}
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>Due in:</b>
-            </td>
-            <td>5 days</td>
-          </tr>
-        </tbody>
-      </Table>
+      <div className='OaMetadata'>
+        <div className='metadata metadataTitle'>App No</div>
+        <div className='metadata'>{metadata.applicationNumber}</div>
+        <br />
+        <div className='metadata metadataTitle'>Atty Docket</div>
+        <div className='metadata'>{metadata.attyDocket}</div>
+        <br />
+        <div className='metadata metadataTitle'>Mailing Date</div>
+        <div className='metadata'>{new Date(metadata.mailingDate).toLocaleDateString('en-US')}</div>
+        <br />
+        <div className='metadata metadataTitle'>Due</div>
+        <div className='metadata'>5 days</div>
+        <br />
+        <div className='divider'></div>
+        <br />
+        {
+          metadata.rejectionList.map( (element) => {
+            return (<div className="rejectionType" key={element.type}><Link to={'/view#'+element.type}>{element.typeText}</Link></div>)
+          })
+        }
+      </div>
     );
   }
 }

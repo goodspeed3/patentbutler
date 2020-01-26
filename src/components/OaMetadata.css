@@ -1,0 +1,19 @@
+.OaMetadata {
+    text-align: center;
+    padding-top: 20px;
+    color: #253D52;
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.metadataTitle {
+    text-decoration-line: underline;
+}
+
+.divider {
+    border: 1px solid rgba(0, 0, 0, 0.22);
+}
+
+.rejectionType {
+    padding-bottom: 15px;
+}

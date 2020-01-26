@@ -5,6 +5,7 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import OaMetadata from './OaMetadata';
+import './OaOverview.css'
 
 class OaOverview extends Component {
   constructor(props) {
@@ -18,19 +19,15 @@ class OaOverview extends Component {
     return (
       <div>
         <Fragment>
-          <Container>
+          <Container fluid='true'>
             <Row>
-              <Col xs="8">
-                <Container>
-                  <Row>
-                    <OaMetadata uiData={this.state.uiData} />
-                  </Row>
-                  <Row>
-                    <ClaimArgumentList uiData={this.state.uiData} />
-                  </Row>
-                </Container>
+              <Col className='bookmark' sm="2" lg="1">
+                <OaMetadata uiData={this.state.uiData} />
               </Col>
-              <Col xs="4">
+              <Col sm="6">
+                <ClaimArgumentList uiData={this.state.uiData} />
+              </Col>
+              <Col sm="4">
                 <PriorArtOverview uiData={this.state.uiData} />
               </Col>
             </Row>

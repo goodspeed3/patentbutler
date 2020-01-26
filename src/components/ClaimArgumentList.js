@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 const reactStringReplace = require('react-string-replace');
@@ -16,14 +16,14 @@ class ClaimArgumentList extends Component {
   claimArgumentUi = claimArgumentList => {
     // console.log(claimArgumentList);
     return claimArgumentList.map(rejectionObject => (
-      <Fragment key={'r' + rejectionObject.type}>
-        <h2>
-          <b>{rejectionObject.type}</b>
+      <div key={'r' + rejectionObject.type}>
+        <h2 id={rejectionObject.type}>
+          <b>{rejectionObject.typeText}</b>
         </h2>
         {(rejectionObject.type === '102' || rejectionObject.type === '103') && (
           <div>{this.snippetListUi(rejectionObject.claimArgumentList)}</div>
         )}
-      </Fragment>
+      </div>
     ));
   };
 
@@ -31,7 +31,7 @@ class ClaimArgumentList extends Component {
     // console.log(rejectionObject);
     //using index b/c I'm assuming order of items does not change
     return rejectionObject.map((claimArgumentObject, index) => (
-      <Fragment key={'claimArgument' + index}>
+      <div key={'claimArgument' + index}>
         <h3>
           <b>Claim {claimArgumentObject.number}:</b>
         </h3>
@@ -42,7 +42,7 @@ class ClaimArgumentList extends Component {
             </p>
           ))}
         </div>
-      </Fragment>
+      </div>
     ));
   };
 
@@ -65,7 +65,7 @@ class ClaimArgumentList extends Component {
       re,
       (match, i) => (
         <Link
-          key={i}
+          key={'l'+ i}
           to={{
             pathname: '/subview/' + mappedCitations[match] + '/' + match,
             state: { updateMe: true }
