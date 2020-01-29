@@ -1,0 +1,24 @@
+.card {
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    border-radius: 15px;
+    overflow: hidden;
+    background-color: #FBFBFB;
+}
+
+.cardImg {
+    padding: 0.3rem;
+}
+.cardHeader {
+    font-weight: bold;
+    text-decoration-line: underline;
+    color: #253D52;
+    background-color: #E7F3FC;
+}
+.cardBody {
+    font-size: 0.9rem;
+}
+.cardAssignee {
+    color: #0D904F;
+}

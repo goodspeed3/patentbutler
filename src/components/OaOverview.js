@@ -24,10 +24,10 @@ class OaOverview extends Component {
               <Col className='bookmark' sm="2" lg="1">
                 <OaMetadata uiData={this.state.uiData} />
               </Col>
-              <Col sm="6">
+              <Col sm="7" lg='8'>
                 <ClaimArgumentList uiData={this.state.uiData} />
               </Col>
-              <Col sm="4">
+              <Col sm="3" lg='3'>
                 <PriorArtOverview uiData={this.state.uiData} />
               </Col>
             </Row>

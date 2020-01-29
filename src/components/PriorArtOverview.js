@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
-import Tooltip from 'react-bootstrap/Tooltip';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Card from 'react-bootstrap/Card';
+import './PriorArtOverview.css'
 
 class PriorArtOverview extends Component {
   constructor(props) {
@@ -44,42 +43,14 @@ class PriorArtOverview extends Component {
   displayOverview = listOfPriorArt => {
     // console.log(listOfPriorArt);
     return listOfPriorArt.map(priorArt => (
-      <Container key={'i' + priorArt.abbreviation}>
-        <Row>
-          <Col>
-            <h3>{priorArt.abbreviation}</h3>
-          </Col>
-          <Col>
-            <OverlayTrigger
-              trigger="click"
-              placement="bottom"
-              overlay={
-                <Tooltip id={`tooltip-bottom`}>{priorArt.abstract}</Tooltip>
-              }
-            >
-              <Button variant="primary">Abstract</Button>
-            </OverlayTrigger>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <b>Pub #</b>
-          </Col>
-          <Col md="auto">{priorArt.publicationNumber}</Col>
-        </Row>
-        <Row>
-          <Col>
-            <b>Title</b>
-          </Col>
-          <Col md="auto">{priorArt.title}</Col>
-        </Row>
-        <Row>
-          <Col>
-            <b>Assignee</b>
-          </Col>
-          <Col md="auto">{priorArt.assignee}</Col>
-        </Row>
-      </Container>
+      <Card className="card">
+        <Card.Header className='cardHeader'>{priorArt.abbreviation} ({priorArt.publicationNumber})</Card.Header>
+        <Card.Img className='cardImg' variant="top" src={priorArt.figureThumb} />
+        <Card.Body className='cardBody'>
+          <Card.Text className='cardAssignee'>{priorArt.assignee} &#183; {priorArt.priorityDate}</Card.Text>
+          <Card.Text>{priorArt.title}</Card.Text>
+        </Card.Body>
+      </Card>
     ));
   };
 }

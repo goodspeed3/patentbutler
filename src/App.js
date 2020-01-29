@@ -26,11 +26,13 @@ class App extends Component {
             {
               publicationNumber: 'US20040155962',
               abbreviation: 'Marks',
+              priorityDate: '8/12/04',
               abstract:
                 'Methods for real time motion capture for control of a video game character is provided. In one embodiment, a method initiates with defining a model of a control object. Then, a location of a marker on the model is identified. Next, movement associated with the control object is captured. Then, the movement associated with the control object is interpreted to change a position of the model. Next, movement of the character being presented on the display screen is controlled according to the change of position of the model. A computer readable media and a processing system enabling control of video character through real time motion capture are also provided.',
               title: 'Method and apparatus for real time motion capture',
               assignee: 'Sony Interactive Entertainment, Inc',
               inventorList: ['Richard Marks'],
+              figureThumb: process.env.PUBLIC_URL + '/pa_thumb1.png',
               figureList: [
                 {
                   reference: 'Fig. 1',
@@ -119,6 +121,8 @@ class App extends Component {
             {
               publicationNumber: 'US20080170123',
               abbreviation: 'Albertson',
+              priorityDate: '1/12/07',
+              figureThumb: process.env.PUBLIC_URL + '/pa_thumb2.png',
               abstract:
                 'A computer-implemented method, system, and program product includes a movement processing system for capturing a first three-dimensional movement of a user and capturing at least another three-dimensional movement of the user, wherein the three-dimensional movement is determined using at the at least one image capture device aimed at the body of the user. A projected movement system predicts a movement baseline based on the first three-dimensional movement of the user and predicts at least one subsequent movement range based on the at least another three-dimensional movement of the user. Based on a comparison of the movement baseline with the at least one subsequent movement, the projected movement systems predicts a projected movement of a user for tracking changes in a range of body movement of a user.',
               title:
