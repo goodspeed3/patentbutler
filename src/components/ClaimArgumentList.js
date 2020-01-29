@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-import { withRouter } from 'react-router-dom';
+import Link from 'react-router-dom/Link';
+import withRouter from 'react-router-dom/withRouter';
 const reactStringReplace = require('react-string-replace');
 
 class ClaimArgumentList extends Component {
