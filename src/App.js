@@ -168,68 +168,81 @@ class App extends Component {
               snippetList: [
                 {
                   snippetText:
-                    'comprising the processor-implemented steps of: tracking a body in a field of view of the motion capture system (e.g., tracking depth of an image and/or a marker associated with the image to provvide real time motion capture, [0002], Marks).',
+                    'comprising the processor-implemented steps of: tracking a body in a field of view of the motion capture system',
                   citationList: [
                     {
                       citation: '[0002]',
                       publicationNumber: 'US20040155962'
                     }
-                  ]
+                  ],
+                  examinerText: '(e.g., tracking depth of an image and/or a marker associated with the image to provvide real time motion capture, [0002], Marks).'
                 },
                 {
                   snippetText:
-                    'including determining a model of the body (e.g., identifying a depth image associated with an object being tracked.  Then, a model associatd with both an object presented on a display screen and the object being tracked is identified.  Next, the model is fit to the depth image to capture motion associated with the object being tracked, [0010], Marks); determining reference points of the model (e.g., the portion of the model includes the marker. Then, the location of the marker is associated with a point on the depth image. Next, the portion of the model is positioned based upon a configuration of the depth image, [0011], Marks); determining a size and position of a zone based on the reference points (e.g., the markers may take on various forms. For example, material having a certain shape, color, pattern, reflective capability, or some other distinguishing quality so that a video capture device can identify a point in space by the marker may be used, [0037], Marks),thezoneisa3-Dvolumeinthefieldofviewandhasacoordinatesystem which is defined relative to at least one of the reference points (e.g., the video capture device is configured to provide a depth image that can be used to fill in portion of the skeleton image and position the skeleton image in three dimensional space. Thus, markers 140a-140i provide data as to a starting location of an appendage or limb and the depth image from the video capture device can fill in the appendage or limb in three dimensional space,[0036], Marks)',
+                    'including determining a model of the body ',
                   citationList: [
                     {
                       citation: '[0010]',
                       publicationNumber: 'US20040155962'
                     },
+                  ],
+                  examinerText: '(e.g., identifying a depth image associated with an object being tracked.  Then, a model associatd with both an object presented on a display screen and the object being tracked is identified.  Next, the model is fit to the depth image to capture motion associated with the object being tracked, [0010], Marks);'
+                },            
+                {
+                  snippetText:
+                    'determining reference points of the model',
+                  citationList: [
                     {
                       citation: '[0011]',
                       publicationNumber: 'US20040155962'
                     },
+                  ],
+                  examinerText: '(e.g., the portion of the model includes the marker. Then, the location of the marker is associated with a point on the depth image. Next, the portion of the model is positioned based upon a configuration of the depth image, [0011], Marks)'
+                },                             
+                {
+                  snippetText:
+                    'determining a size and position of a zone based on the reference points ',
+                  citationList: [
                     {
                       citation: '[0037]',
                       publicationNumber: 'US20040155962'
                     },
+                  ],
+                  examinerText: '(e.g., the markers may take on various forms. For example, material having a certain shape, color, pattern, reflective capability, or some other distinguishing quality so that a video capture device can identify a point in space by the marker may be used, [0037], Marks)'
+                },                   
+                {
+                  snippetText:
+                    'thezoneisa3-Dvolumeinthefieldofviewandhasacoordinatesystem which is defined relative to at least one of the reference points ',
+                  citationList: [
                     {
                       citation: '[0036]',
                       publicationNumber: 'US20040155962'
                     }
-                  ]
-                },
+                  ],
+                  examinerText: '(e.g., the video capture device is configured to provide a depth image that can be used to fill in portion of the skeleton image and position the skeleton image in three dimensional space. Thus, markers 140a-140i provide data as to a starting location of an appendage or limb and the depth image from the video capture device can fill in the appendage or limb in three dimensional space,[0036], Marks)'
+                },                     
                 {
                   snippetText:
-                    'based on the tracking, translating the movement of the hand in the zone to a corresponding action on a display (e.g., identifying a depth image associated with an object being tracked. Then, a model associated with both an object presented on a display screen and the object being tracked is identified. Next, the model is fit to the depth image to capture motion associated with the object being tracked, [0010], Marks).based on the tracking, translating the movement of the hand in the zone to a corresponding action on a display',
+                    'based on the tracking, translating the movement of the hand in the zone to a corresponding action on a display',
                   citationList: [
                     {
                       citation: '[0010]',
                       publicationNumber: 'US20040155962'
                     },
-                    {
-                      citation: '[0011]',
-                      publicationNumber: 'US20040155962'
-                    },
-                    {
-                      citation: '[0037]',
-                      publicationNumber: 'US20040155962'
-                    },
-                    {
-                      citation: '[0036]',
-                      publicationNumber: 'US20040155962'
-                    }
-                  ]
-                },
+                  ],
+                  examinerText: '(e.g., identifying a depth image associated with an object being tracked. Then, a model associated with both an object presented on a display screen and the object being tracked is identified. Next, the model is fit to the depth image to capture motion associated with the object being tracked, [0010], Marks)'
+                },      
                 {
                   snippetText:
-                    'tracking movement of a hand of the body in the zone relative to the coordinate system of the zone (e.g., In the example, video processor 316, video processor 318, and sensor processor 319 each create and stream the properties, including positions, color, size, shape, and orientation, of the detected objects to a geometry processor 320. In one example, each processed frame streamed to geometry processor 320 may include, but is not limited to, a camera ID, a frame number, a time stamp, and combinations of two or more of X axis coordinates (xloc), ¥Y axis coordinates (y _loc), and 4 axis coordinates (zloc). It is important to note that xloc, y loc, and zloc may each include multiple sets of points and other data that identifY all the properties of an object, [0057], Albertson).',
+                    'tracking movement of a hand of the body in the zone relative to the coordinate system of the zone ',
                   citationList: [
                     {
                       citation: '[0057]',
                       publicationNumber: 'US20080170123'
                     }
-                  ]
-                }
+                  ],
+                  examinerText: '(e.g., In the example, video processor 316, video processor 318, and sensor processor 319 each create and stream the properties, including positions, color, size, shape, and orientation, of the detected objects to a geometry processor 320. In one example, each processed frame streamed to geometry processor 320 may include, but is not limited to, a camera ID, a frame number, a time stamp, and combinations of two or more of X axis coordinates (xloc), ¥Y axis coordinates (y _loc), and 4 axis coordinates (zloc). It is important to note that xloc, y loc, and zloc may each include multiple sets of points and other data that identifY all the properties of an object, [0057], Albertson).'
+                },                                      
               ],
               summary: ''
             },
@@ -238,14 +251,15 @@ class App extends Component {
               snippetList: [
                 {
                   snippetText:
-                    'wherein the zone is offset from a center of the body, and is curved according to a natural biomechanical range of movement of the body (e.g., the Skeleton image may be defined with varying precision, e.g., a variety of joint constraints. Of course, the more joints and limbs associated with the skeleton image or the model, correlates to more data required to be tracked. Here, markers 140a-140i are distributed over skeleton image 142. Markers 140a and 140d correspond to the wrist location; markers 140b and 140c correspond to an elbow location while marker 140c corresponds to the torso. Markers 140g and 1401 correspond to the knees and markers 140h and 140i correspond to the ankles, [0035], Marks)',
+                    'wherein the zone is offset from a center of the body, and is curved according to a natural biomechanical range of movement of the body',
                   citationList: [
                     {
                       citation: '[0035]',
                       publicationNumber: 'US20040155962'
                     }
-                  ]
-                }
+                  ],
+                  examinerText: '(e.g., the Skeleton image may be defined with varying precision, e.g., a variety of joint constraints. Of course, the more joints and limbs associated with the skeleton image or the model, correlates to more data required to be tracked. Here, markers 140a-140i are distributed over skeleton image 142. Markers 140a and 140d correspond to the wrist location; markers 140b and 140c correspond to an elbow location while marker 140c corresponds to the torso. Markers 140g and 1401 correspond to the knees and markers 140h and 140i correspond to the ankles, [0035], Marks)'
+                },                 
               ]
             }
           ]

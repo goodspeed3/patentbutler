@@ -40,7 +40,7 @@ class PriorArtOverview extends Component {
   displayOverview = listOfPriorArt => {
     // console.log(listOfPriorArt);
     return listOfPriorArt.map(priorArt => (
-      <Card className="card">
+      <Card key={priorArt.publicationNumber} className="card">
         <Card.Header className='cardHeader'>{priorArt.abbreviation} ({priorArt.publicationNumber})</Card.Header>
         <Card.Img className='cardImg' variant="top" src={priorArt.figureThumb} />
         <Card.Body className='cardBody'>

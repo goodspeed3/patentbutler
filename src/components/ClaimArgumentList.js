@@ -1,6 +1,12 @@
 import React, { Component } from 'react';
-import Link from 'react-router-dom/Link';
-import withRouter from 'react-router-dom/withRouter';
+import { HashLink as Link } from 'react-router-hash-link';
+import { withRouter } from 'react-router-dom';
+import Col from 'react-bootstrap/Col';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+
+import './ClaimArgumentList.css'
+
 const reactStringReplace = require('react-string-replace');
 
 class ClaimArgumentList extends Component {
@@ -16,9 +22,9 @@ class ClaimArgumentList extends Component {
   claimArgumentUi = claimArgumentList => {
     // console.log(claimArgumentList);
     return claimArgumentList.map(rejectionObject => (
-      <div key={'r' + rejectionObject.type}>
-        <h2 id={rejectionObject.type}>
-          <b>{rejectionObject.typeText}</b>
+      <div className="parentDiv" key={'r' + rejectionObject.type}>
+        <h2 className="rejectionTitle" id={rejectionObject.type}>
+          <b>Claim Rejection - {rejectionObject.typeText}</b>
         </h2>
         {(rejectionObject.type === '102' || rejectionObject.type === '103') && (
           <div>{this.snippetListUi(rejectionObject.claimArgumentList)}</div>
@@ -28,21 +34,29 @@ class ClaimArgumentList extends Component {
   };
 
   snippetListUi = rejectionObject => {
-    // console.log(rejectionObject);
+    console.log(rejectionObject);
     //using index b/c I'm assuming order of items does not change
     return rejectionObject.map((claimArgumentObject, index) => (
-      <div key={'claimArgument' + index}>
-        <h3>
-          <b>Claim {claimArgumentObject.number}:</b>
-        </h3>
-        <div>
-          {claimArgumentObject.snippetList.map((snippetObject, index) => (
-            <p key={'snippetText' + index}>
-              {this.linkifySnippetBlock(snippetObject)}
-            </p>
-          ))}
-        </div>
-      </div>
+      <Container className="claimBlock" key={'claimArgument' + index}>
+        <Row>
+          <Col>
+            <b>Claim {claimArgumentObject.number}:</b>
+          </Col>
+          <Col>
+            <b>Examiner Comments:</b>
+          </Col>
+        </Row>
+        {claimArgumentObject.snippetList.map((snippetObject, index) => (
+          <Row key={'snippetText' + index}>
+              <Col >
+                  {snippetObject.snippetText}
+              </Col>
+              <Col>
+                  {this.linkifySnippetBlock(snippetObject)}
+              </Col>
+          </Row>
+        ))}
+        </Container>
     ));
   };
 
@@ -61,7 +75,7 @@ class ClaimArgumentList extends Component {
 
     var re = new RegExp('(' + regMappedCitations.join('|') + ')', 'gi');
     var linkifiedText = reactStringReplace(
-      snippetObject.snippetText,
+      snippetObject.examinerText,
       re,
       (match, i) => (
         <Link
