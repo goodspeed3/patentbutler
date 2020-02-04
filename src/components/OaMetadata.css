@@ -4,6 +4,10 @@
     color: #253D52;
     font-size: 0.9rem;
     line-height: 1.3rem;
+    position: sticky;
+    position: -webkit-sticky;
+    /* same as navbar height */
+    top: 3.5rem; 
 }
 
 .metadataTitle {

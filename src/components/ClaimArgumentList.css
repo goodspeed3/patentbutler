@@ -1,7 +1,7 @@
 .rejectionTitle {
     text-align: center;
-    padding-bottom: 0.5rem;
-    padding-top: 0.5rem;
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
 }
 
 .parentDiv {
@@ -10,4 +10,12 @@
 
 .claimBlock {
     padding-bottom: 2rem;
+}
+
+.anchor {
+    display: block;
+    position: relative;
+    /* header height */
+    top: -3.5rem;
+    visibility: hidden;
 }

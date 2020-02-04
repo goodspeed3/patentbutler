@@ -274,7 +274,7 @@ class App extends Component {
   render() {
     return (
       <Fragment>
-        <Navbar bg="light" variant="light">
+        <Navbar className="headerBar" bg="light" variant="light">
           <Navbar.Brand fixed="top">
             <Link to="/view">
               <img

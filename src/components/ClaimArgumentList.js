@@ -23,7 +23,8 @@ class ClaimArgumentList extends Component {
     // console.log(claimArgumentList);
     return claimArgumentList.map(rejectionObject => (
       <div className="parentDiv" key={'r' + rejectionObject.type}>
-        <h2 className="rejectionTitle" id={rejectionObject.type}>
+        <div className="anchor" id={rejectionObject.type}></div>
+        <h2 className="rejectionTitle" >
           <b>Claim Rejection - {rejectionObject.typeText}</b>
         </h2>
         {(rejectionObject.type === '102' || rejectionObject.type === '103') && (
@@ -46,7 +47,9 @@ class ClaimArgumentList extends Component {
             <b>Examiner Comments:</b>
           </Col>
         </Row>
+        <hr />        
         {claimArgumentObject.snippetList.map((snippetObject, index) => (
+          <Container>
           <Row key={'snippetText' + index}>
               <Col >
                   {snippetObject.snippetText}
@@ -55,6 +58,8 @@ class ClaimArgumentList extends Component {
                   {this.linkifySnippetBlock(snippetObject)}
               </Col>
           </Row>
+          <hr />     
+          </Container>   
         ))}
         </Container>
     ));
