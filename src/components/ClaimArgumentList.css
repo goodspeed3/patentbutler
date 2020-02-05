@@ -15,7 +15,7 @@
 .anchor {
     display: block;
     position: relative;
-    /* header height */
+    /* navbar height */
     top: -3.5rem;
     visibility: hidden;
 }

@@ -34,8 +34,8 @@ class ClaimArgumentList extends Component {
     ));
   };
 
-  snippetListUi = rejectionObject => {
-    console.log(rejectionObject);
+  snippetListUi = (rejectionObject) => {
+    // console.log(rejectionObject);
     //using index b/c I'm assuming order of items does not change
     return rejectionObject.map((claimArgumentObject, index) => (
       <Container className="claimBlock" key={'claimArgument' + index}>
@@ -49,8 +49,8 @@ class ClaimArgumentList extends Component {
         </Row>
         <hr />        
         {claimArgumentObject.snippetList.map((snippetObject, index) => (
-          <Container>
-          <Row key={'snippetText' + index}>
+          <Container key={'snippetText' + index}>
+          <Row>
               <Col >
                   {snippetObject.snippetText}
               </Col>
@@ -65,7 +65,7 @@ class ClaimArgumentList extends Component {
     ));
   };
 
-  linkifySnippetBlock = snippetObject => {
+  linkifySnippetBlock = (snippetObject) => {
     var regMappedCitations = [];
     var mappedCitations = {};
     for (var i = 0; i < snippetObject.citationList.length; i++) {
@@ -87,7 +87,7 @@ class ClaimArgumentList extends Component {
           key={'l'+ i}
           to={{
             pathname: '/subview/' + mappedCitations[match] + '/' + match,
-            state: { updateMe: true }
+            // state: { updateMe: true }
           }}
         >
           {match}

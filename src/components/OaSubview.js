@@ -6,7 +6,9 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import OaMetadata from './OaMetadata';
-import ClaimArgumentList from './ClaimArgumentList';
+import ClaimArgumentSublist from './ClaimArgumentSublist';
+//Use OaOverview css
+import './OaOverview.css' 
 
 class OaSubview extends Component {
   constructor(props) {
@@ -24,19 +26,15 @@ class OaSubview extends Component {
     return (
       <div>
         <Fragment>
-          <Container>
+          <Container fluid='true'>
             <Row>
-              <Col>
-                <Container>
-                  <Row>
-                    <OaMetadata uiData={this.state.uiData} />
-                  </Row>
-                  <Row>
-                    <ClaimArgumentList uiData={this.state.uiData} />
-                  </Row>
-                </Container>
+              <Col className='bookmark' sm="2" lg="1">
+                <OaMetadata uiData={this.state.uiData} />
               </Col>
-              <Col>
+              <Col sm="7" lg='8'>
+                <ClaimArgumentSublist uiData={this.state.uiData} />
+              </Col>
+              <Col sm="3" lg='3'>
                 <PriorArtSubview uiData={this.state.uiData} />
               </Col>
               {/* <Col>
