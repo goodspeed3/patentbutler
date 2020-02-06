@@ -4,6 +4,7 @@ import { withRouter } from 'react-router-dom';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import Breadcrumb from 'react-bootstrap/Breadcrumb';
 
 // use same css as ClaimArgumentList
 import './ClaimArgumentList.css'
@@ -23,7 +24,13 @@ class ClaimArgumentSublist extends Component {
 
   render() {
     var oaArgumentList = this.state.uiData.rejectionList;
-    return <div>{this.claimArgumentUi(oaArgumentList)}</div>;
+    return (<div>
+      <Breadcrumb className='breadcrumb'>
+        <Breadcrumb.Item href="/view">Home</Breadcrumb.Item>
+        <Breadcrumb.Item active>{this.state.citation}</Breadcrumb.Item>
+      </Breadcrumb>      
+      
+      {this.claimArgumentUi(oaArgumentList)}</div>);
   }
   claimArgumentUi = oaArgumentList => {
     // console.log(oaArgumentList);

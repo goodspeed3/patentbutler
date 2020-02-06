@@ -19,3 +19,7 @@
     top: -3.5rem;
     visibility: hidden;
 }
+
+.breadcrumb {
+    background-color: #ffffff;
+}

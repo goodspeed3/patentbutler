@@ -31,10 +31,10 @@ class OaSubview extends Component {
               <Col className='bookmark' sm="2" lg="1">
                 <OaMetadata uiData={this.state.uiData} />
               </Col>
-              <Col sm="7" lg='8'>
+              <Col sm="5" lg='6'>
                 <ClaimArgumentSublist uiData={this.state.uiData} />
               </Col>
-              <Col sm="3" lg='3'>
+              <Col sm="5" lg='5'>
                 <PriorArtSubview uiData={this.state.uiData} />
               </Col>
               {/* <Col>
