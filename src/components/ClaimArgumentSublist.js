@@ -17,6 +17,9 @@ class ClaimArgumentSublist extends Component {
       citation: this.props.match.params.citation,
     };
   }
+  componentDidMount() {
+    window.scrollTo(0, 0);
+  }
 
   render() {
     var oaArgumentList = this.state.uiData.rejectionList;
@@ -30,7 +33,7 @@ class ClaimArgumentSublist extends Component {
     for (var i=0; i<oaArgumentList.length; i++) {
       var rejectionObj = oaArgumentList[i];
       var selectedRejection = this.findSnippetFromRejection(this.state.publicationNumber, this.state.citation, rejectionObj)
-      if (!selectedRejection) {
+      if (selectedRejection) {
         subset.push(selectedRejection)
       }
     }
@@ -39,7 +42,7 @@ class ClaimArgumentSublist extends Component {
       <div className="parentDiv" key={'r1' + rejectionObject.type}>
         <div className="anchor" id={rejectionObject.type}></div>
         <h2 className="rejectionTitle" >
-          <b>SUBLIST: Claim Rejection - {rejectionObject.typeText}</b>
+          <b>Claim Rejection - {rejectionObject.typeText}</b>
         </h2>
         {(rejectionObject.type === '102' || rejectionObject.type === '103') && (
           <div>{this.snippetListUi(rejectionObject.claimArgumentList)}</div>
@@ -66,17 +69,20 @@ class ClaimArgumentSublist extends Component {
           }
           return containsCitation;
         })
-        console.log(copiedObj)
-        return copiedObj
       }
+      console.log(copiedObj)
+      
+      return copiedObj
     }
     return null;
   }
 
   snippetListUi = rejectionObject => {
     // console.log(rejectionObject);
-    //using index b/c I'm assuming order of items does not change
-    return rejectionObject.map((claimArgumentObject, index) => (
+    return rejectionObject.filter( claimArgumentObject => {
+    //remove all empty snippetLists first
+      return claimArgumentObject.snippetList.length > 0
+    }).map((claimArgumentObject, index) => (
       <Container className="claimBlock" key={'claimArgument1' + index}>
         <Row>
           <Col>
