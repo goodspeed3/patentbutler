@@ -1,3 +1,5 @@
+// original OaSubview that drilled into every selected paragraph
+
 import React, { Component, Fragment } from 'react';
 import { withRouter } from 'react-router-dom';
 import PriorArtSubview from './PriorArtSubview.js';
@@ -6,7 +8,7 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import OaMetadata from './OaMetadata';
-import ClaimArgumentList from './ClaimArgumentList';
+import ClaimArgumentSublist from './ClaimArgumentSublist';
 //Use OaOverview css
 import './OaOverview.css' 
 
@@ -33,7 +35,7 @@ class OaSubview extends Component {
                 <OaMetadata uiData={this.state.uiData} />
               </Col>
               <Col sm="5" lg='5'>
-                <ClaimArgumentList uiData={this.state.uiData} />
+                <ClaimArgumentSublist uiData={this.state.uiData} />
               </Col>
               <Col sm="5" lg='6'>
                 <PriorArtSubview uiData={this.state.uiData} />

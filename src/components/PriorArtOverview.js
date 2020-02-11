@@ -11,7 +11,7 @@ class PriorArtOverview extends Component {
     var listOfPriorArt = this.getListOfPriorArt(
       this.state.uiData.rejectionList
     );
-    return <div>{this.displayOverview(listOfPriorArt)}</div>;
+    return <div className="PAView">{this.displayOverview(listOfPriorArt)}</div>;
   }
 
   getListOfPriorArt = rejectionList => {
