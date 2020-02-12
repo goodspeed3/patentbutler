@@ -83,6 +83,18 @@ class PriorArtSubview extends Component {
       pageNumber: 1,
     });
   };
+
+  removeTextLayerOffset = (page) => {
+    const textLayers = document.querySelectorAll(".react-pdf__Page__textContent");
+      textLayers.forEach(layer => {
+        const { style } = layer;
+        style.top = "0";
+        style.left = "0";
+        style.transform = "";
+    });
+  }
+  
+
   changePage = offset => this.setState(prevState => ({
     pageNumber: prevState.pageNumber + offset,
   }));
@@ -105,7 +117,11 @@ class PriorArtSubview extends Component {
           file={DEFAULT_URL}
           onLoadSuccess={this.onDocumentLoadSuccess}
         >
-          <Page pageNumber={pageNumber} />
+          <Page 
+            pageNumber={pageNumber} 
+            onLoadSuccess={this.removeTextLayerOffset}
+            scale={2}
+          />
         </Document>
         <div>
           <p>

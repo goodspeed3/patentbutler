@@ -6,10 +6,13 @@
 
 .parentDiv {
     padding: 1.5rem;
+    overflow-y: scroll;
+
 }
 
 .claimBlock {
     padding-bottom: 2rem;
+
 }
 
 .anchor {
