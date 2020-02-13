@@ -17,12 +17,12 @@ class ClaimArgumentList extends Component {
 
   render() {
     var claimArgumentList = this.state.uiData.rejectionList;
-    return <div>{this.claimArgumentUi(claimArgumentList)}</div>;
+    return <div className="claimArgumentListBlock">{this.claimArgumentUi(claimArgumentList)}</div>;
   }
   claimArgumentUi = claimArgumentList => {
     // console.log(claimArgumentList);
     return claimArgumentList.map(rejectionObject => (
-      <div className="parentDiv" key={'r' + rejectionObject.type}>
+      <div className="rejectionBlock" key={'r' + rejectionObject.type}>
         <div className="anchor" id={rejectionObject.type}></div>
         <h2 className="rejectionTitle" >
           <b>Claim Rejection - {rejectionObject.typeText}</b>
