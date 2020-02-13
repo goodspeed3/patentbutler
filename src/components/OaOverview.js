@@ -1,9 +1,9 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import ClaimArgumentList from './ClaimArgumentList';
 import PriorArtOverview from './PriorArtOverview.js';
-import Col from 'react-bootstrap/Col';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
+// import Col from 'react-bootstrap/Col';
+// import Container from 'react-bootstrap/Container';
+// import Row from 'react-bootstrap/Row';
 import OaMetadata from './OaMetadata';
 import './OaOverview.css'
 
@@ -17,25 +17,22 @@ class OaOverview extends Component {
 
   render() {
     return (
-      <div>
-        <Fragment>
-          <Container fluid='true'>
-            <Row>
-              <Col className='bookmark' sm="2" lg="1">
-                <OaMetadata uiData={this.state.uiData} />
-              </Col>
-              <Col sm="7" lg='8'>
-                <ClaimArgumentList uiData={this.state.uiData} />
-              </Col>
-              <Col sm="3" lg='3'>
-                <PriorArtOverview uiData={this.state.uiData} />
-              </Col>
-            </Row>
-          </Container>
-        </Fragment>
+      <div className='row'>
+          <div className='bookmark leftColOverview'>
+            <OaMetadata uiData={this.state.uiData} />
+          </div>
+          <div className='middleColOverview'>
+            <ClaimArgumentList uiData={this.state.uiData} />
+          </div>
+          <div className='rightColOverview'>
+            <PriorArtOverview uiData={this.state.uiData} />
+          </div>
       </div>
     );
   }
+
+
+
 }
 
 export default OaOverview;

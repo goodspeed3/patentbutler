@@ -1,10 +1,10 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import PriorArtSubview from './PriorArtSubview.js';
 // import FigureView from './FigureView.js';
-import Col from 'react-bootstrap/Col';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
+// import Col from 'react-bootstrap/Col';
+// import Container from 'react-bootstrap/Container';
+// import Row from 'react-bootstrap/Row';
 import OaMetadata from './OaMetadata';
 import ClaimArgumentList from './ClaimArgumentList';
 //Use OaOverview css
@@ -25,25 +25,16 @@ class OaSubview extends Component {
   render() {
 
     return (
-      <div>
-        <Fragment>
-          <Container fluid='true'>
-            <Row>
-              <Col className='bookmark' sm="2" lg="1">
-                <OaMetadata uiData={this.state.uiData} />
-              </Col>
-              <Col sm="5" lg='5'>
-                <ClaimArgumentList uiData={this.state.uiData} />
-              </Col>
-              <Col sm="5" lg='6'>
-                <PriorArtSubview uiData={this.state.uiData} />
-              </Col>
-              {/* <Col>
-                <FigureView uiData={this.state.uiData} />
-              </Col> */}
-            </Row>
-          </Container>
-        </Fragment>
+      <div className='row'>
+        <div className='bookmark leftColSubview'>
+          <OaMetadata uiData={this.state.uiData} />
+        </div>
+        <div className='middleColSubview'>
+          <ClaimArgumentList uiData={this.state.uiData} />
+        </div>
+        <div className='rightColSubview'>
+          <PriorArtSubview uiData={this.state.uiData} />
+        </div>
       </div>
     );
   }

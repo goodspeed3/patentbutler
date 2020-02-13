@@ -18,9 +18,6 @@ class ClaimArgumentSublist extends Component {
       citation: this.props.match.params.citation,
     };
   }
-  componentDidMount() {
-    window.scrollTo(0, 0);
-  }
 
   render() {
     var oaArgumentList = this.state.uiData.rejectionList;

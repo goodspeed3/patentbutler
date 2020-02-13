@@ -1,17 +1,12 @@
 .card {
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
-    width: 100%;
+    margin: 1rem;
+    width: 95%;
     border-radius: 15px;
     overflow: hidden;
     background-color: #FBFBFB;
 }
 
 .PAView {
-    /* position: sticky;
-    position: -webkit-sticky; */
-    /* same as navbar height */
-    overflow: scroll;
     top: 3.5rem; 
 }
 
