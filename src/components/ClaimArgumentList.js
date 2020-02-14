@@ -86,7 +86,7 @@ class ClaimArgumentList extends Component {
         <Link
           key={'l'+ i}
           to={{
-            pathname: '/subview/' + mappedCitations[match] + '/' + match,
+            pathname: '/view/' + mappedCitations[match] + '/' + match,
             // state: { updateMe: true }
           }}
         >

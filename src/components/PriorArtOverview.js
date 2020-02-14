@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import './PriorArtOverview.css'
 
@@ -52,4 +53,4 @@ class PriorArtOverview extends Component {
   };
 }
 
-export default PriorArtOverview;
+export default withRouter(PriorArtOverview);

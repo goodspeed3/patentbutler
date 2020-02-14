@@ -1,11 +1,10 @@
-import React, { Component, Fragment } from 'react';
-import { Route, Switch, Redirect, withRouter, Link } from 'react-router-dom';
+import React, { Component } from 'react';
+import { BrowserRouter as Router, Route, Switch, Redirect, withRouter, Link } from 'react-router-dom';
 import Navbar from 'react-bootstrap/Navbar';
 import logo from './img/logo.svg'
 import './App.css';
 import UploadView from './components/UploadView';
 import OaOverview from './components/OaOverview';
-import OaSubview from './components/OaSubview';
 
 class App extends Component {
   constructor(props) {
@@ -273,7 +272,7 @@ class App extends Component {
 
   render() {
     return (
-      <Fragment>
+      <Router>
         <Navbar className="headerBar" bg="light" variant="light">
           <Navbar.Brand fixed="top">
             <Link to="/view">
@@ -289,12 +288,12 @@ class App extends Component {
         <Switch>
           <Route exact path="/" render={this.uploadFunc} />
           <Route path="/view" render={this.oaViewFunc} />
-          <Route
+          {/* <Route
             path="/subview/:publicationNumber/:citation"
             render={this.oaSubviewFunc}
-          />
+          /> */}
         </Switch>
-      </Fragment>
+      </Router>
     );
   }
   uploadFunc = props => {
@@ -305,16 +304,16 @@ class App extends Component {
 
     return <OaOverview uiData={this.state.uiData} />;
   };
-  oaSubviewFunc = props => {
-    if (Object.keys(this.state.uiData).length === 0) return <Redirect to="/" />;
+  // oaSubviewFunc = props => {
+  //   if (Object.keys(this.state.uiData).length === 0) return <Redirect to="/" />;
 
-    return (
-      <OaSubview
-        key={props.match.params.publicationNumber + props.match.params.citation}
-        uiData={this.state.uiData}
-      />
-    );
-  };
+  //   return (
+  //     <OaSubview
+  //       key={props.match.params.publicationNumber + props.match.params.citation}
+  //       uiData={this.state.uiData}
+  //     />
+  //   );
+  // };
   showUi = response => {
     this.setState({ uiData: response });
     /* Need to add link to /view/:hash to access specific uiData */

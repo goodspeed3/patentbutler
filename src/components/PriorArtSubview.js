@@ -28,6 +28,16 @@ class PriorArtSubview extends Component {
       // )
     };
   }
+
+  componentDidUpdate(prevProps){
+    if(prevProps !== this.props){
+        this.setState({          
+          publicationNumber: this.props.match.params.publicationNumber,
+          citation: this.props.match.params.citation,
+        });
+    }
+}
+
   getPriorArt(uiData) {
     var priorArt;
     for (var i = 0; i < this.props.uiData.rejectionList.length; i++) {
