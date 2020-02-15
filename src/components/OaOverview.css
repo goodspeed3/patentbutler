@@ -15,44 +15,85 @@
         width: 8%;
     }
     .middleCol {
-        position: absolute;
-        top: 3.5rem;
+        position: relative;
+        top: 0;
         bottom: 0;
-        left: 8%; 
-        width: 67%;
+        /* left: 8%;  */
+        /* width: 67%; */
         overflow-y: scroll; 
-    
+        height: 100%;
         /* width: 46%; in subview, width should be smaller */
 
     }
     .rightCol {
-        position: absolute;
-        top: 3.5rem;
+        position: relative;
+        top: 0;
         bottom: 0;
         right: 0;
-        overflow-y: scroll;
-        width: 25%;
+        overflow: auto;
+        height: 100%;
+        /* width: 25%; */
+        /* background-color: aqua; */
         /* width: 46%; in subview, width should be bigger*/
 
     }
+    .middleAndRightCol {
+        position: absolute;
+        left: 8%;
+        top: 3.5rem;
+        height: calc(100% - 3.5rem);
+        width: 92%;
+    }
 }
-
-.gutter {
-    background-color: #eee;
-
-    background-repeat: no-repeat;
-    background-position: 50%;
+.Pane {
+    overflow: auto;
 }
-
-.gutter.gutter-vertical {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
-}
-
-.gutter.gutter-horizontal {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
-}
-.split {
-    -webkit-box-sizing: border-box;
+.Resizer {
+    background: #000;
+    opacity: 0.2;
+    z-index: 1;
     -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
+}
+
+.Resizer:hover {
+    -webkit-transition: all 2s ease;
+    transition: all 2s ease;
+}
+
+.Resizer.horizontal {
+    height: 11px;
+    margin: -5px 0;
+    border-top: 5px solid rgba(255, 255, 255, 0);
+    border-bottom: 5px solid rgba(255, 255, 255, 0);
+    cursor: row-resize;
+    width: 100%;
+}
+
+.Resizer.horizontal:hover {
+    border-top: 5px solid rgba(0, 0, 0, 0.5);
+    border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+}
+
+.Resizer.vertical {
+    width: 11px;
+    margin: 0 -5px;
+    border-left: 5px solid rgba(255, 255, 255, 0);
+    border-right: 5px solid rgba(255, 255, 255, 0);
+    cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+    border-left: 5px solid rgba(0, 0, 0, 0.5);
+    border-right: 5px solid rgba(0, 0, 0, 0.5);
+}
+.Resizer.disabled {
+    cursor: not-allowed;
+}
+.Resizer.disabled:hover {
+    border-color: transparent;
 }

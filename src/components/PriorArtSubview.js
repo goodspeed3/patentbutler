@@ -123,16 +123,6 @@ class PriorArtSubview extends Component {
           <Breadcrumb.Item href="/view">Prior Art Overview</Breadcrumb.Item>
           <Breadcrumb.Item active>{this.state.priorArt.abbreviation}, {this.state.priorArt.publicationNumber} @ {this.state.citation}</Breadcrumb.Item>
         </Breadcrumb>     
-        <Document
-          file={DEFAULT_URL}
-          onLoadSuccess={this.onDocumentLoadSuccess}
-        >
-          <Page 
-            pageNumber={pageNumber} 
-            onLoadSuccess={this.removeTextLayerOffset}
-            scale={2}
-          />
-        </Document>
         <div>
           <p>
             Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}
@@ -152,6 +142,17 @@ class PriorArtSubview extends Component {
             Next
           </button>
         </div>
+        <Document
+          file={DEFAULT_URL}
+          onLoadSuccess={this.onDocumentLoadSuccess}
+        >
+          <Page 
+            pageNumber={pageNumber} 
+            onLoadSuccess={this.removeTextLayerOffset}
+            scale={2}
+          />
+        </Document>
+        
 
         {/* {this.showPriorArt(this.state.selectedParagraphs)} */}
         </div>

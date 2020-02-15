@@ -7,7 +7,8 @@
 }
 
 .PAView {
-    top: 3.5rem; 
+    position: relative;
+    top: 0rem; 
 }
 
 

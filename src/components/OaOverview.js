@@ -12,6 +12,7 @@ import {
   Route,
   withRouter
  } from 'react-router-dom';
+import SplitPane from 'react-split-pane';
 
 class OaOverview extends Component {
   constructor(props) {
@@ -23,26 +24,29 @@ class OaOverview extends Component {
   }
 
   render() {
-    console.log(this.state.path)
+
     return (
       <div className='row'>
           <div className='bookmark leftCol'>
             <OaMetadata uiData={this.state.uiData} />
           </div>
-          <div className='middleCol'>
-            <ClaimArgumentList uiData={this.state.uiData} />
+          <div className='middleAndRightCol'>
+            <SplitPane split="vertical" defaultSize={"70%"} onChange={size => localStorage.setItem('splitPos', size)} maxSize={-200} minSize={500}>
+              <div className='middleCol'>
+                <ClaimArgumentList uiData={this.state.uiData} />
+              </div>
+              <div className='rightCol'>
+                <Switch>
+                  <Route exact path={this.state.path}>
+                      <PriorArtOverview uiData={this.state.uiData} />
+                  </Route>
+                  <Route path={`${this.state.path}/:publicationNumber/:citation`}>
+                      <PriorArtSubview uiData={this.state.uiData} />
+                  </Route>
+                </Switch>
+              </div> 
+            </SplitPane>
           </div>
-          <div className='rightCol'>
-            <Switch>
-              <Route exact path={this.state.path}>
-                  <PriorArtOverview uiData={this.state.uiData} />
-              </Route>
-              <Route path={`${this.state.path}/:publicationNumber/:citation`}>
-                  <PriorArtSubview uiData={this.state.uiData} />
-              </Route>
-            </Switch>
-          </div>
-
       </div>
     );
   }
