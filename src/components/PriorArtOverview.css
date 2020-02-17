@@ -11,9 +11,38 @@
     top: 0rem; 
 }
 
-.pdfControls {
+.subviewHeader {
+    /* width: 100%; */
+    position: sticky;
+    position: -webkit-sticky; /* Safari */
+    top: 0;
+    background-color: white;
+    z-index: 99;
     text-align: center;
+    opacity: 0;
+    -webkit-transition: all 300ms ease-in-out;
+    -moz-transition: all 300ms ease-in-out;
+    -ms-transition: all 300ms ease-in-out;
+    -o-transition: all 300ms ease-in-out;
+    transition: all 300ms ease-in-out;
+
+
 }
+.subviewHeader button {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
+
+}
+.subviewHeader:hover {
+    opacity: 1.0;
+}
+
+
 .cardImg {
     padding: 0.3rem;
 }

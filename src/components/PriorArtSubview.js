@@ -54,10 +54,14 @@ class PriorArtSubview extends Component {
 
   componentDidMount() {
     this.props.handler('50%');
+
   }
   componentWillUnmount() {
     this.props.handler('70%');
+
+
   }
+
 
   getPriorArt(uiData) {
     var priorArt;
@@ -125,11 +129,12 @@ class PriorArtSubview extends Component {
     }
   }
   onRenderSuccessHandler = () => {
-    //update fitscale if necessary
-
-
     this.removeTextLayerOffset()
   }
+  onLoadProgress = (data) => {
+    // console.log(data)
+  }
+
   removeTextLayerOffset = () => {
 
     const textLayers = document.querySelectorAll(".react-pdf__Page__textContent");
@@ -160,7 +165,15 @@ class PriorArtSubview extends Component {
     }
     this.setState(newState)    
   }
-
+  handlePageEntry = (event) => {
+    let pageNo = parseInt(event.target.value)
+    if ( isNaN(pageNo) || pageNo > this.state.numPages || pageNo <= 0) {
+      return
+    }
+    this.setState({
+      pageNumber: pageNo
+    })
+  }
   /*
     UIs needed: previous, enxt 
   */
@@ -169,14 +182,15 @@ class PriorArtSubview extends Component {
 
     return (
       <div id="PAView" className="PAView">
-        <Breadcrumb className='breadcrumb'>
+        <div className='subviewHeader'>
+        <Breadcrumb>
           <Breadcrumb.Item href="/view">Prior Art Overview</Breadcrumb.Item>
           <Breadcrumb.Item active>{this.state.priorArt.abbreviation}, {this.state.priorArt.publicationNumber} @ {this.state.citation}</Breadcrumb.Item>
-        </Breadcrumb>     
-        <div className='pdfControls'>
+        </Breadcrumb>
           <p>
             Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}
           </p>
+          <input type="text" size={5} placeholder='Page #' onChange={this.handlePageEntry}/>
           <button
             type="button"
             disabled={pageNumber <= 1}
@@ -204,8 +218,8 @@ class PriorArtSubview extends Component {
             onClick={this.zoomOut}
           >
             Smaller
-          </button>                    
-        </div>
+          </button>              
+        </div> 
         <Document
           file={DEFAULT_URL}
           cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
@@ -216,6 +230,7 @@ class PriorArtSubview extends Component {
             pageNumber={pageNumber} 
             onLoadSuccess={this.onPageLoad}
             scale={this.state.scale}
+            onLoadProgress={this.onLoadProgress}
             onRenderSuccess={this.onRenderSuccessHandler}
           />
         </Document>
