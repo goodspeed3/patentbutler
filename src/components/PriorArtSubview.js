@@ -21,7 +21,10 @@ class PriorArtSubview extends Component {
       priorArt: priorArt,
       numPages: null,
       pageNumber: 1,
-  
+      scale: 1.0,
+      originalPageWidth: 0,
+      isScaleLocked: false,
+      fitScale: 1.0
       // selectedParagraphs: this.getSelectedPara(
       //   priorArt,
       //   this.props.match.params.citation
@@ -30,13 +33,31 @@ class PriorArtSubview extends Component {
   }
 
   componentDidUpdate(prevProps){
-    if(prevProps !== this.props){
-        this.setState({          
-          publicationNumber: this.props.match.params.publicationNumber,
-          citation: this.props.match.params.citation,
-        });
+    if(prevProps !== this.props){  
+      var updateStateObj = {
+        publicationNumber: this.props.match.params.publicationNumber,
+        citation: this.props.match.params.citation,
+      }
+
+      if (!this.state.isScaleLocked) {
+        //this is needed for when user drags pane
+        const parentDiv = document.querySelector('#PAView')
+        let pageScale = parentDiv.clientWidth / this.state.originalPageWidth
+        //only update scale if user did not zoom in or out
+        updateStateObj['scale'] = pageScale
+        updateStateObj['fitScale'] = pageScale
+      }
+      this.setState(updateStateObj);
     }
-}
+    // this.removeTextLayerOffset()
+  }
+
+  componentDidMount() {
+    this.props.handler('50%');
+  }
+  componentWillUnmount() {
+    this.props.handler('70%');
+  }
 
   getPriorArt(uiData) {
     var priorArt;
@@ -94,7 +115,23 @@ class PriorArtSubview extends Component {
     });
   };
 
-  removeTextLayerOffset = (page) => {
+  onPageLoad = (page) => {
+    const parentDiv = document.querySelector('#PAView')
+    let pageScale = parentDiv.clientWidth / page.originalWidth
+    if (this.state.scale !== pageScale) {
+      this.setState({ scale: pageScale,
+        fitScale: pageScale,
+      originalPageWidth: page.originalWidth });
+    }
+  }
+  onRenderSuccessHandler = () => {
+    //update fitscale if necessary
+
+
+    this.removeTextLayerOffset()
+  }
+  removeTextLayerOffset = () => {
+
     const textLayers = document.querySelectorAll(".react-pdf__Page__textContent");
       textLayers.forEach(layer => {
         const { style } = layer;
@@ -105,25 +142,38 @@ class PriorArtSubview extends Component {
   }
   
 
+  previousPage = () => this.changePage(-1);
+  nextPage = () => this.changePage(1);
   changePage = offset => this.setState(prevState => ({
     pageNumber: prevState.pageNumber + offset,
   }));
 
-  previousPage = () => this.changePage(-1);
+  zoomIn = () => this.changeZoom(0.25);
+  zoomOut = () => this.changeZoom(-0.25);
+  changeZoom = offset => {
+    var newState = {}
+    newState['scale'] = this.state.scale + offset
+    if (newState['scale'] > this.state.fitScale) {
+      newState['isScaleLocked'] = true
+    } else {
+      newState['isScaleLocked'] = false
+    }
+    this.setState(newState)    
+  }
 
-  nextPage = () => this.changePage(1);
-
-
+  /*
+    UIs needed: previous, enxt 
+  */
   render() {
-    const { numPages, pageNumber } = this.state;
+    const { numPages, pageNumber, scale } = this.state;
 
     return (
-      <div className="PAView">
+      <div id="PAView" className="PAView">
         <Breadcrumb className='breadcrumb'>
           <Breadcrumb.Item href="/view">Prior Art Overview</Breadcrumb.Item>
           <Breadcrumb.Item active>{this.state.priorArt.abbreviation}, {this.state.priorArt.publicationNumber} @ {this.state.citation}</Breadcrumb.Item>
         </Breadcrumb>     
-        <div>
+        <div className='pdfControls'>
           <p>
             Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}
           </p>
@@ -141,15 +191,32 @@ class PriorArtSubview extends Component {
           >
             Next
           </button>
+          <button
+            type="button"
+            disabled={scale >= 3}
+            onClick={this.zoomIn}
+          >
+            Bigger
+          </button>
+          <button
+            type="button"
+            disabled={scale <= 0.5}
+            onClick={this.zoomOut}
+          >
+            Smaller
+          </button>                    
         </div>
         <Document
           file={DEFAULT_URL}
+          cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
+          cMapPacked={true}
           onLoadSuccess={this.onDocumentLoadSuccess}
         >
           <Page 
             pageNumber={pageNumber} 
-            onLoadSuccess={this.removeTextLayerOffset}
-            scale={2}
+            onLoadSuccess={this.onPageLoad}
+            scale={this.state.scale}
+            onRenderSuccess={this.onRenderSuccessHandler}
           />
         </Document>
         

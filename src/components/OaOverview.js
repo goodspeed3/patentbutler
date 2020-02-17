@@ -19,19 +19,34 @@ class OaOverview extends Component {
     super(props);
     this.state = {
       uiData: this.props.uiData,
-      path: '/view'
+      path: '/view',
+      panePosition: '70%',
     };
   }
 
-  render() {
+  handlePane = (val) => {
+    // localStorage.setItem('splitPos', size)
 
+    this.setState({
+      panePosition: val
+    })
+  }
+
+  render() {
     return (
       <div className='row'>
           <div className='bookmark leftCol'>
             <OaMetadata uiData={this.state.uiData} />
           </div>
           <div className='middleAndRightCol'>
-            <SplitPane split="vertical" defaultSize={"70%"} onChange={size => localStorage.setItem('splitPos', size)} maxSize={-200} minSize={500}>
+            <SplitPane 
+              split="vertical" 
+              defaultSize={this.state.panePosition} 
+              // onDragFinished = {size => this.handlePane(size)}
+              onChange={size => this.handlePane(size)} 
+              maxSize={-200} 
+              minSize={500}
+            >
               <div className='middleCol'>
                 <ClaimArgumentList uiData={this.state.uiData} />
               </div>
@@ -41,7 +56,7 @@ class OaOverview extends Component {
                       <PriorArtOverview uiData={this.state.uiData} />
                   </Route>
                   <Route path={`${this.state.path}/:publicationNumber/:citation`}>
-                      <PriorArtSubview uiData={this.state.uiData} />
+                      <PriorArtSubview uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
                   </Route>
                 </Switch>
               </div> 

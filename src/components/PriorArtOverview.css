@@ -11,7 +11,9 @@
     top: 0rem; 
 }
 
-
+.pdfControls {
+    text-align: center;
+}
 .cardImg {
     padding: 0.3rem;
 }
