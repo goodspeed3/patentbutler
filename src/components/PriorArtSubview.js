@@ -179,19 +179,18 @@ class PriorArtSubview extends Component {
   makeTextRenderer = searchText => textItem => this.highlightPattern(textItem.str, searchText);
 
   highlightPattern = (text, pattern) => {
-    // console.log("text: " + text + " pattern: " + pattern)
     const splitText = text.split(pattern);
     
     if (splitText.length <= 1) {
       return text;
     }
-  
+
     const matches = text.match(pattern);
   
     return splitText.reduce((arr, element, index) => (matches[index] ? [
       ...arr,
       element,
-      <mark>
+      <mark key={"found"+matches[index]+index}>
         {matches[index]}
       </mark>,
     ] : [...arr, element]), []);
@@ -255,7 +254,7 @@ class PriorArtSubview extends Component {
             scale={this.state.scale}
             onLoadProgress={this.onLoadProgress}
             onRenderSuccess={this.onRenderSuccessHandler}
-            customTextRenderer={this.makeTextRenderer("abstract")}
+            customTextRenderer={this.makeTextRenderer("0030")}
           />
         </Document>
         
