@@ -13,19 +13,8 @@
 
 .subviewHeader {
     /* width: 100%; */
-    position: sticky;
-    position: -webkit-sticky; /* Safari */
-    top: 0;
-    background-color: white;
-    z-index: 99;
     text-align: center;
-    opacity: 0;
-    -webkit-transition: all 300ms ease-in-out;
-    -moz-transition: all 300ms ease-in-out;
-    -ms-transition: all 300ms ease-in-out;
-    -o-transition: all 300ms ease-in-out;
-    transition: all 300ms ease-in-out;
-
+    
 
 }
 .subviewHeader button {
@@ -38,10 +27,6 @@
                                   supported by Chrome, Opera and Firefox */
 
 }
-.subviewHeader:hover {
-    opacity: 1.0;
-}
-
 
 .cardImg {
     padding: 0.3rem;

@@ -122,7 +122,8 @@ class PriorArtSubview extends Component {
   onPageLoad = (page) => {
     const parentDiv = document.querySelector('#PAView')
     let pageScale = parentDiv.clientWidth / page.originalWidth
-    if (this.state.scale !== pageScale) {
+    // console.log("pagescale: " + pageScale + " state.scale: " + this.state.scale)
+    if (this.state.scale !== pageScale && !this.state.isScaleLocked) {
       this.setState({ scale: pageScale,
         fitScale: pageScale,
       originalPageWidth: page.originalWidth });
@@ -163,7 +164,8 @@ class PriorArtSubview extends Component {
     } else {
       newState['isScaleLocked'] = false
     }
-    this.setState(newState)    
+    this.setState(newState) 
+    // console.log(newState)   
   }
   handlePageEntry = (event) => {
     let pageNo = parseInt(event.target.value)
@@ -174,12 +176,33 @@ class PriorArtSubview extends Component {
       pageNumber: pageNo
     })
   }
+  makeTextRenderer = searchText => textItem => this.highlightPattern(textItem.str, searchText);
+
+  highlightPattern = (text, pattern) => {
+    // console.log("text: " + text + " pattern: " + pattern)
+    const splitText = text.split(pattern);
+    
+    if (splitText.length <= 1) {
+      return text;
+    }
+  
+    const matches = text.match(pattern);
+  
+    return splitText.reduce((arr, element, index) => (matches[index] ? [
+      ...arr,
+      element,
+      <mark>
+        {matches[index]}
+      </mark>,
+    ] : [...arr, element]), []);
+  };
+  
+  
   /*
     UIs needed: previous, enxt 
   */
   render() {
     const { numPages, pageNumber, scale } = this.state;
-
     return (
       <div id="PAView" className="PAView">
         <div className='subviewHeader'>
@@ -232,6 +255,7 @@ class PriorArtSubview extends Component {
             scale={this.state.scale}
             onLoadProgress={this.onLoadProgress}
             onRenderSuccess={this.onRenderSuccessHandler}
+            customTextRenderer={this.makeTextRenderer("abstract")}
           />
         </Document>
         
