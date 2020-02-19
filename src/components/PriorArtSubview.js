@@ -13,7 +13,7 @@ class PriorArtSubview extends Component {
   constructor(props) {
     super(props);
 
-    var priorArt = this.getPriorArt(this.props.uiData);
+    let priorArt = this.getPriorArt(this.props.uiData);
     this.state = {
       uiData: this.props.uiData,
       publicationNumber: this.props.match.params.publicationNumber,
@@ -34,11 +34,12 @@ class PriorArtSubview extends Component {
 
   componentDidUpdate(prevProps){
     if(prevProps !== this.props){  
+      let pageToLoad = this.getPageToLoad(this.state.priorArt, this.props.match.params.citation)
       var updateStateObj = {
         publicationNumber: this.props.match.params.publicationNumber,
         citation: this.props.match.params.citation,
+        pageNumber: pageToLoad
       }
-
       if (!this.state.isScaleLocked) {
         //this is needed for when user drags pane
         const parentDiv = document.querySelector('#PAView')
@@ -82,6 +83,17 @@ class PriorArtSubview extends Component {
     }
     return null;
   }
+  getPageToLoad(priorArt, citation) {
+    var paList = priorArt.paragraphList
+    for (var i=0; i<paList.length; i++) {
+      var citationObj = paList[i]
+      if (citationObj.citation === citation) {
+        return citationObj.page || 1
+      }
+    }
+
+  }
+
   // getSelectedPara(priorArt, citation) {
   //   var range = 1; //number of surrounding paragraphs to show
   //   var index = 0;
@@ -170,12 +182,14 @@ class PriorArtSubview extends Component {
   handlePageEntry = (event) => {
     let pageNo = parseInt(event.target.value)
     if ( isNaN(pageNo) || pageNo > this.state.numPages || pageNo <= 0) {
-      return
+      
+    } else {
+      this.setState({
+        pageNumber: pageNo
+      })  
     }
-    this.setState({
-      pageNumber: pageNo
-    })
   }
+  /*
   makeTextRenderer = searchText => textItem => this.highlightPattern(textItem.str, searchText);
 
   highlightPattern = (text, pattern) => {
@@ -195,13 +209,14 @@ class PriorArtSubview extends Component {
       </mark>,
     ] : [...arr, element]), []);
   };
-  
+  */
   
   /*
     UIs needed: previous, enxt 
   */
   render() {
     const { numPages, pageNumber, scale } = this.state;
+    console.log('helllo' + pageNumber)
     return (
       <div id="PAView" className="PAView">
         <div className='subviewHeader'>
@@ -254,7 +269,7 @@ class PriorArtSubview extends Component {
             scale={this.state.scale}
             onLoadProgress={this.onLoadProgress}
             onRenderSuccess={this.onRenderSuccessHandler}
-            customTextRenderer={this.makeTextRenderer("0030")}
+            // customTextRenderer={this.makeTextRenderer("0030")}
           />
         </Document>
         

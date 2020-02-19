@@ -86,31 +86,37 @@ class App extends Component {
               paragraphList: [
                 {
                   citation: '[0002]',
+                  page: 13,
                   text:
                     'This invention relates generally to video processing and more particularly to tracking depth of an image and/or a marker associated with the image to provide real time motion capture for video game applications.'
                 },
                 {
                   citation: '[0010]',
+                  page: 13, 
                   text:
                     'In another embodiment, a method for controlling an object presented on a display screen in communication with a computing device through real time motion capture is provided. The method initiates with identifying a depth image associated with an object being tracked. Then, a model associated with both an object presented on a display screen and the object being tracked is identified. Next, the model is fit to the depth image to capture motion associated with the object being tracked. Then, the object presented on the display screen is controlled in real time according to the fitting of the model to the depth image.'
                 },
                 {
                   citation: '[0011]',
+                  page: 13, 
                   text:
                     'In yet another embodiment, a method for controlling movements of an image presented on a display screen through real time motion capture is provided. The method initiates with defining a model of a person. Then, a location of a marker on the model of the person is identified. Next, a depth image corresponding to a portion of the model of the person is provided. The portion of the model includes the marker. Then, the location of the marker is associated with a point on the depth image. Next, the portion of the model is positioned based upon a configuration of the depth image. Then, a video character displayed on a display screen is controlled according to the positioning of the portion of the model.'
                 },
                 {
                   citation: '[0036]',
+                  page: 15, 
                   text:
                     'It should be appreciated that the markers may take on various forms. For example, material having a certain shape, color, pattern, reflective capability, or some other distinguishing quality so that a video capture device can identify a point in space by the marker may be used. One skilled in the art will appreciate that retro-reflective material may be used to provide a distinguishing reflective capability. Additionally, a light associated with the video capture device may be used in combination with the retro-reflective tape to provide the location in space of the starting point for a particular appendage of the control object. In one embodiment, the markers may take the form of blinking lights. Here, the lights could be non-visible light, such as infrared light. The lights may blink at a set frequency where the set frequency corresponds to a particular person or team.'
                 },
                 {
                   citation: '[0037]',
+                  page: 15, 
                   text:
                     'In one embodiment, the video capture device is configured to provide a depth image that can be used to fill in portion of the skeleton image and position the skeleton image in three dimensional space. Thus, markers 140 a-140 i provide data as to a starting location of an appendage or limb and the depth image from the video capture device can fill in the appendage or limb in three dimensional space. As used herein, the terms appendage and limb are not meant to be limiting as a person, i.e., control object, may be controlling an object that is also captured by the depth image. Thus, the appendage or limb may include the objects being controlled by the person acting as a control object. In another embodiment, the video capture device does not have depth capturing capability and the markers will indicate a known location in space for a starting point of an appendage or limb. Here, an arm, hand, leg, foot, or some other appendage may be filled in from a database storing a typical configuration of the associated appendage. For example, a depth image of the control object can be taken prior to starting the game and the depth image may be stored in a database as a model to be used as needed for the control of a video game character in real time. In yet another embodiment, a video capture device is used to capture motion of the person playing the video game without markers. Here, certain assumptions about the location of the object, e.g., which hand, foot, etc., are from the right side or left side are made in order to translate the captured motion for control of a video game character. Thus, in each embodiment described above, the captured motion is used to control motion associated with a character of a video game in real time.'
                 },
                 {
                   citation: '[0050]',
+                  page: 18, 
                   text:
                     'In another embodiment, a method for controlling an object presented on a display screen in communication with a computing device through real time motion capture is provided. The method initiates with identifying a depth image associated with an object being tracked. Then, a model associated with both an object presented on a display screen and the object being tracked is identified. Next, the model is fit to the depth image to capture motion associated with the object being tracked. Then, the object presented on the display screen is controlled in real time according to the fitting of the model to the depth image.'
                 }
@@ -154,6 +160,7 @@ class App extends Component {
               paragraphList: [
                 {
                   citation: '[0057]',
+                  page: 19, 
                   text:
                     'In the example, video processor 316, video processor 318, and sensor processor 319 each create and stream the properties, including positions, color, size, shape, and orientation, of the detected objects to a geometry processor 320. In one example, each processed frame streamed to geometry processor 320 may include, but is not limited to, a camera ID, a frame number, a time stamp, and combinations of two or more of X axis coordinates (x_loc), Y axis coordinates (y_loc), and Z axis coordinates (z_loc). It is important to note that x_loc, y_loc, and z_loc may each include multiple sets of points and other data that identify all the properties of an object. If multiple objects are detected and tracked within a single frame, the X axis coordinates and Y axis coordinates for each object may be included in a single streamed object property record or in multiple separate streamed object property records. In addition, a streamed property frame, such as the frame from sensor processor 319 for a SONAR detected position, may include Z axis location coordinates, listed as z_loc, for example.'
                 }
