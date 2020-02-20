@@ -84,7 +84,7 @@ class PriorArtSubview extends Component {
     return null;
   }
   getPageToLoad(priorArt, citation) {
-    var paList = priorArt.paragraphList
+    var paList = priorArt.citationList
     for (var i=0; i<paList.length; i++) {
       var citationObj = paList[i]
       if (citationObj.citation === citation) {
@@ -99,8 +99,8 @@ class PriorArtSubview extends Component {
   //   var index = 0;
   //   var start = 0;
   //   var end = 0;
-  //   for (var i = 0; i < priorArt.paragraphList.length; i++) {
-  //     var paragraphObj = priorArt.paragraphList[i];
+  //   for (var i = 0; i < priorArt.citationList.length; i++) {
+  //     var paragraphObj = priorArt.citationList[i];
   //     if (paragraphObj.citation === citation) {
   //       index = i;
   //     }
@@ -110,14 +110,14 @@ class PriorArtSubview extends Component {
   //   } else {
   //     start = index - range;
   //   }
-  //   if (index + range >= priorArt.paragraphList.length - 1) {
-  //     end = priorArt.paragraphList.length - 1;
+  //   if (index + range >= priorArt.citationList.length - 1) {
+  //     end = priorArt.citationList.length - 1;
   //   } else {
   //     end = index + range;
   //   }
   //   var selectedPara = [];
   //   for (var j = start; j <= end; j++) {
-  //     selectedPara.push(priorArt.paragraphList[j]);
+  //     selectedPara.push(priorArt.citationList[j]);
   //   }
 
   //   return selectedPara;
@@ -133,7 +133,7 @@ class PriorArtSubview extends Component {
   onPageLoad = (page) => {
     const parentDiv = document.querySelector('#PAView')
     let pageScale = parentDiv.clientWidth / page.originalWidth
-    // console.log("pagescale: " + pageScale + " state.scale: " + this.state.scale)
+    console.log("pagescale: " + pageScale + " parentDiv width: " + parentDiv.clientWidth)
     if (this.state.scale !== pageScale && !this.state.isScaleLocked) {
       this.setState({ scale: pageScale,
         fitScale: pageScale,

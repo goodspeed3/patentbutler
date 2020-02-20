@@ -80,34 +80,76 @@ class App extends Component {
                   pagePreviewUrl: 'http://'
                 }
               ],
-              paragraphList: [
+              citationList: [
                 {
                   citation: '[0002]',
                   page: 13,
+                  boundingBox: {
+                    x: 40,
+                    y: 40,
+                    width: 20,
+                    height: 40
+                  }
                 },
                 {
                   citation: '[0010]',
                   page: 13, 
+                  boundingBox: {
+                    x: 20,
+                    y: 20,
+                    width: 20,
+                    height: 40
+                  }                  
                 },
                 {
                   citation: '[0011]',
                   page: 13, 
+                  boundingBox: {
+                    x: 20,
+                    y: 60,
+                    width: 20,
+                    height: 40
+                  }                  
                 },
                 {
                   citation: '[0035]',
                   page: 15, 
+                  boundingBox: {
+                    x: 20,
+                    y: 80,
+                    width: 20,
+                    height: 40
+                  }                  
                 },
                 {
                   citation: '[0036]',
                   page: 15, 
+                  boundingBox: {
+                    x: 80,
+                    y: 40,
+                    width: 20,
+                    height: 40
+                  }
                 },
                 {
                   citation: '[0037]',
                   page: 15, 
+                  boundingBox: {
+                    x: 20,
+                    y: 40,
+                    width: 20,
+                    height: 40
+                  }
                 },
                 {
                   citation: '[0050]',
-                  page: 18, 
+                  page: 18,
+                  boundingBox: {
+                    x: 40,
+                    y: 40,
+                    width: 20,
+                    height: 40
+                  }                   
                 }
               ],
               pageColumnLineEntriesList: []
@@ -147,13 +189,18 @@ class App extends Component {
                   pagePreviewUrl: 'http://'
                 }
               ],
-              paragraphList: [
+              citationList: [
                 {
                   citation: '[0057]',
                   page: 19, 
+                  boundingBox: {
+                    x: 40,
+                    y: 40,
+                    width: 20,
+                    height: 40
+                  }
                 }
-              ],
-              pageColumnLineEntriesList: []
+              ]
             }
           ],
           claimArgumentList: [
