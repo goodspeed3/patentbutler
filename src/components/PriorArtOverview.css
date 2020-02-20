@@ -43,3 +43,11 @@
 .cardAssignee {
     color: #0D904F;
 }
+.pdfDiv {
+    position: relative;
+}
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+}

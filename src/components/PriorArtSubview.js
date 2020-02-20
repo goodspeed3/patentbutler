@@ -91,7 +91,7 @@ class PriorArtSubview extends Component {
         return citationObj.page || 1
       }
     }
-
+    return 1
   }
 
   // getSelectedPara(priorArt, citation) {
@@ -188,6 +188,13 @@ class PriorArtSubview extends Component {
       })  
     }
   }
+
+  generateOverlay = () => {
+    console.log(this.state.priorArt.citationList)
+    return <div className='overlay'>
+      hi!!!!
+    </div>
+  }
   /*
   makeTextRenderer = searchText => textItem => this.highlightPattern(textItem.str, searchText);
 
@@ -255,23 +262,24 @@ class PriorArtSubview extends Component {
             Smaller
           </button>              
         </div> 
-        <Document
-          file={this.state.priorArt.pdfUrl}
-          cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
-          cMapPacked={true}
-          onLoadSuccess={this.onDocumentLoadSuccess}
-        >
-          <Page 
-            pageNumber={pageNumber} 
-            onLoadSuccess={this.onPageLoad}
-            scale={this.state.scale}
-            onLoadProgress={this.onLoadProgress}
-            onRenderSuccess={this.onRenderSuccessHandler}
-            // customTextRenderer={this.makeTextRenderer("0030")}
-          />
-        </Document>
-        
-
+        <div className='pdfDiv'>
+          <Document
+            file={this.state.priorArt.pdfUrl}
+            cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
+            cMapPacked={true}
+            onLoadSuccess={this.onDocumentLoadSuccess}
+          >
+            <Page 
+              pageNumber={pageNumber} 
+              onLoadSuccess={this.onPageLoad}
+              scale={this.state.scale}
+              onLoadProgress={this.onLoadProgress}
+              onRenderSuccess={this.onRenderSuccessHandler}
+              // customTextRenderer={this.makeTextRenderer("0030")}
+            />
+          </Document>
+          {this.generateOverlay()}
+        </div>
         {/* {this.showPriorArt(this.state.selectedParagraphs)} */}
         </div>
     );
