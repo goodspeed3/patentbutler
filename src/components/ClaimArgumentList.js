@@ -25,15 +25,21 @@ class ClaimArgumentList extends Component {
       <div className="rejectionBlock" key={'r' + rejectionObject.type}>
         <div className="anchor" id={rejectionObject.type}></div>
         <h2 className="rejectionTitle" >
-          <b>Claim Rejection - {rejectionObject.typeText}</b>
+          <b>{rejectionObject.typeText}</b>
         </h2>
+        {(rejectionObject.type === '101') && (
+          <div className='blurbBlock'>{this.sec101Blurb(rejectionObject)}</div>
+        )}
+
         {(rejectionObject.type === '102' || rejectionObject.type === '103') && (
           <div>{this.snippetListUi(rejectionObject.claimArgumentList)}</div>
         )}
       </div>
     ));
   };
-
+  sec101Blurb = (rejectionObject) => {
+    return rejectionObject.blurb
+  }
   snippetListUi = (rejectionObject) => {
     // console.log(rejectionObject);
     //using index b/c I'm assuming order of items does not change

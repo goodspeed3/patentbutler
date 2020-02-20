@@ -6,8 +6,6 @@ import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import { Document, Page, pdfjs } from 'react-pdf'
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
-var DEFAULT_URL = process.env.PUBLIC_URL + '/marks.pdf';
-
 
 class PriorArtSubview extends Component {
   constructor(props) {
@@ -34,11 +32,13 @@ class PriorArtSubview extends Component {
 
   componentDidUpdate(prevProps){
     if(prevProps !== this.props){  
-      let pageToLoad = this.getPageToLoad(this.state.priorArt, this.props.match.params.citation)
+      let priorArt = this.getPriorArt(this.props.uiData);
+      let pageToLoad = this.getPageToLoad(priorArt, this.props.match.params.citation)
       var updateStateObj = {
         publicationNumber: this.props.match.params.publicationNumber,
         citation: this.props.match.params.citation,
-        pageNumber: pageToLoad
+        pageNumber: pageToLoad,
+        priorArt: priorArt
       }
       if (!this.state.isScaleLocked) {
         //this is needed for when user drags pane
@@ -127,7 +127,6 @@ class PriorArtSubview extends Component {
     const { numPages } = document;
     this.setState({
       numPages,
-      pageNumber: 1,
     });
   };
 
@@ -145,7 +144,7 @@ class PriorArtSubview extends Component {
     this.removeTextLayerOffset()
   }
   onLoadProgress = (data) => {
-    // console.log(data)
+    console.log('onloadprogress: ' + data)
   }
 
   removeTextLayerOffset = () => {
@@ -216,13 +215,12 @@ class PriorArtSubview extends Component {
   */
   render() {
     const { numPages, pageNumber, scale } = this.state;
-    console.log('helllo' + pageNumber)
     return (
       <div id="PAView" className="PAView">
         <div className='subviewHeader'>
         <Breadcrumb>
           <Breadcrumb.Item href="/view">Prior Art Overview</Breadcrumb.Item>
-          <Breadcrumb.Item active>{this.state.priorArt.abbreviation}, {this.state.priorArt.publicationNumber} @ {this.state.citation}</Breadcrumb.Item>
+    <Breadcrumb.Item active>{this.state.priorArt.abbreviation}, {this.state.priorArt.priorityDate}, {this.state.priorArt.publicationNumber} @ {this.state.citation}</Breadcrumb.Item>
         </Breadcrumb>
           <p>
             Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}
@@ -258,7 +256,7 @@ class PriorArtSubview extends Component {
           </button>              
         </div> 
         <Document
-          file={DEFAULT_URL}
+          file={this.state.priorArt.pdfUrl}
           cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
           cMapPacked={true}
           onLoadSuccess={this.onDocumentLoadSuccess}
