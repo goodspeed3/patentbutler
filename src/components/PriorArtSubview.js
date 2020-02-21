@@ -22,7 +22,8 @@ class PriorArtSubview extends Component {
       scale: 1.0,
       originalPageWidth: 0,
       isScaleLocked: false,
-      fitScale: 1.0
+      fitScale: 1.0,
+      didFinishRenderingPage: false
       // selectedParagraphs: this.getSelectedPara(
       //   priorArt,
       //   this.props.match.params.citation
@@ -141,6 +142,9 @@ class PriorArtSubview extends Component {
     }
   }
   onRenderSuccessHandler = () => {
+    this.setState({
+      didFinishRenderingPage: true
+    })
     this.removeTextLayerOffset()
   }
   onLoadProgress = (data) => {
@@ -163,6 +167,7 @@ class PriorArtSubview extends Component {
   nextPage = () => this.changePage(1);
   changePage = offset => this.setState(prevState => ({
     pageNumber: prevState.pageNumber + offset,
+    didFinishRenderingPage: false
   }));
 
   zoomIn = () => this.changeZoom(0.25);
@@ -175,6 +180,7 @@ class PriorArtSubview extends Component {
     } else {
       newState['isScaleLocked'] = false
     }
+    newState['didFinishRenderingPage'] = false
     this.setState(newState) 
     // console.log(newState)   
   }
@@ -190,9 +196,30 @@ class PriorArtSubview extends Component {
   }
 
   generateOverlay = () => {
-    console.log(this.state.priorArt.citationList)
-    return <div className='overlay'>
-      hi!!!!
+    const pdfDiv = document.querySelector('#pdfDiv')
+    if (!this.state.didFinishRenderingPage || !pdfDiv) {
+      return
+    }
+    var styleArray = []
+    for (var i=0; i<this.state.priorArt.citationList.length; i++) {
+      var styleObj = {}
+      let citationBox = this.state.priorArt.citationList[i]
+      styleObj.position = "absolute"
+      styleObj.top = citationBox.boundingBox.x + "%"
+      styleObj.left = citationBox.boundingBox.y + "%"
+      styleObj.width = citationBox.boundingBox.width + "%"
+      styleObj.height = citationBox.boundingBox.height + "%"
+      styleObj.backgroundColor = (citationBox.citation === this.state.citation) ? "#FF4241" : "#FFE18F"
+      styleObj.opacity = "0.8"
+      styleObj.zIndex= "99"
+      styleArray.push(styleObj)
+    }
+    return <div className='overlay' style={{width: pdfDiv.clientWidth, height: pdfDiv.clientHeight}}>
+      {
+        styleArray.map((styleObj, i) => (
+          <div style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}></div>
+        ))
+      }
     </div>
   }
   /*
@@ -262,7 +289,7 @@ class PriorArtSubview extends Component {
             Smaller
           </button>              
         </div> 
-        <div className='pdfDiv'>
+        <div className='pdfDiv' id="pdfDiv" >
           <Document
             file={this.state.priorArt.pdfUrl}
             cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}

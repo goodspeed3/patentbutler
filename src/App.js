@@ -88,7 +88,7 @@ class App extends Component {
                     x: 40,
                     y: 40,
                     width: 20,
-                    height: 40
+                    height: 20
                   }
                 },
                 {
@@ -98,7 +98,7 @@ class App extends Component {
                     x: 20,
                     y: 20,
                     width: 20,
-                    height: 40
+                    height: 20
                   }                  
                 },
                 {
@@ -108,7 +108,7 @@ class App extends Component {
                     x: 20,
                     y: 60,
                     width: 20,
-                    height: 40
+                    height: 20
                   }                  
                 },
                 {
@@ -118,7 +118,7 @@ class App extends Component {
                     x: 20,
                     y: 80,
                     width: 20,
-                    height: 40
+                    height: 20
                   }                  
                 },
                 {
@@ -128,7 +128,7 @@ class App extends Component {
                     x: 80,
                     y: 40,
                     width: 20,
-                    height: 40
+                    height: 20
                   }
                 },
                 {
@@ -138,7 +138,7 @@ class App extends Component {
                     x: 20,
                     y: 40,
                     width: 20,
-                    height: 40
+                    height: 20
                   }
                 },
                 {
@@ -148,7 +148,7 @@ class App extends Component {
                     x: 40,
                     y: 40,
                     width: 20,
-                    height: 40
+                    height: 20
                   }                   
                 }
               ],
