@@ -64,6 +64,16 @@ class PriorArtSubview extends Component {
 
   }
 
+  scrollToFocus = () => {
+      //scroll accordingly
+      var highlightedElement = document.getElementById('focusHighlight');
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView();
+
+      }
+
+  }
+
 
   getPriorArt(uiData) {
     var priorArt;
@@ -134,7 +144,7 @@ class PriorArtSubview extends Component {
   onPageLoad = (page) => {
     const parentDiv = document.querySelector('#PAView')
     let pageScale = parentDiv.clientWidth / page.originalWidth
-    console.log("pagescale: " + pageScale + " parentDiv width: " + parentDiv.clientWidth)
+    // console.log("pagescale: " + pageScale + " parentDiv width: " + parentDiv.clientWidth)
     if (this.state.scale !== pageScale && !this.state.isScaleLocked) {
       this.setState({ scale: pageScale,
         fitScale: pageScale,
@@ -144,7 +154,7 @@ class PriorArtSubview extends Component {
   onRenderSuccessHandler = () => {
     this.setState({
       didFinishRenderingPage: true
-    })
+    }, () => { this.scrollToFocus() })
     this.removeTextLayerOffset()
   }
   onLoadProgress = (data) => {
@@ -197,27 +207,40 @@ class PriorArtSubview extends Component {
 
   generateOverlay = () => {
     const pdfDiv = document.querySelector('#pdfDiv')
+
     if (!this.state.didFinishRenderingPage || !pdfDiv) {
       return
     }
     var styleArray = []
     for (var i=0; i<this.state.priorArt.citationList.length; i++) {
-      var styleObj = {}
       let citationBox = this.state.priorArt.citationList[i]
+      if (citationBox.page !== this.state.pageNumber) {
+        continue;
+      }
+
+      var styleObj = {}
+      styleObj.idName=""
       styleObj.position = "absolute"
-      styleObj.top = citationBox.boundingBox.x + "%"
-      styleObj.left = citationBox.boundingBox.y + "%"
+      styleObj.top = citationBox.boundingBox.y + "%"
+      styleObj.left = citationBox.boundingBox.x + "%"
       styleObj.width = citationBox.boundingBox.width + "%"
       styleObj.height = citationBox.boundingBox.height + "%"
-      styleObj.backgroundColor = (citationBox.citation === this.state.citation) ? "#FF4241" : "#FFE18F"
-      styleObj.opacity = "0.8"
+      if (citationBox.citation === this.state.citation) {
+        styleObj.backgroundColor = "#FF4241"
+        //store the farthest down highlighted element, b/c that's likely the start of the highlighted portion
+        styleObj.idName="focusHighlight"
+      } else {
+        styleObj.backgroundColor = "#FFE18F"
+      }
+      styleObj.opacity = "0.2"
       styleObj.zIndex= "99"
       styleArray.push(styleObj)
     }
+
     return <div className='overlay' style={{width: pdfDiv.clientWidth, height: pdfDiv.clientHeight}}>
       {
-        styleArray.map((styleObj, i) => (
-          <div style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}></div>
+        styleArray.map((styleObj, i) =>  (
+          <div id={styleObj.idName} style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}></div>
         ))
       }
     </div>
@@ -251,7 +274,7 @@ class PriorArtSubview extends Component {
     const { numPages, pageNumber, scale } = this.state;
     return (
       <div id="PAView" className="PAView">
-        <div className='subviewHeader'>
+        <div className='subviewHeader' id="subviewHeader">
         <Breadcrumb>
           <Breadcrumb.Item href="/view">Prior Art Overview</Breadcrumb.Item>
     <Breadcrumb.Item active>{this.state.priorArt.abbreviation}, {this.state.priorArt.priorityDate}, {this.state.priorArt.publicationNumber} @ {this.state.citation}</Breadcrumb.Item>

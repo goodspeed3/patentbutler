@@ -85,72 +85,74 @@ class App extends Component {
                   citation: '[0002]',
                   page: 13,
                   boundingBox: {
-                    x: 40,
-                    y: 40,
-                    width: 20,
-                    height: 20
+                    x: 12,
+                    y: 21,
+                    width: 38,
+                    height: 5.5
                   }
                 },
                 {
                   citation: '[0010]',
                   page: 13, 
                   boundingBox: {
-                    x: 20,
-                    y: 20,
-                    width: 20,
-                    height: 20
+                    x: 50,
+                    y: 24,
+                    width: 38,
+                    height: 15
+
                   }                  
                 },
                 {
                   citation: '[0011]',
                   page: 13, 
                   boundingBox: {
-                    x: 20,
-                    y: 60,
-                    width: 20,
-                    height: 20
+                    x: 50,
+                    y: 38,
+                    width: 38,
+                    height: 16
+
                   }                  
                 },
                 {
                   citation: '[0035]',
                   page: 15, 
                   boundingBox: {
-                    x: 20,
-                    y: 80,
-                    width: 20,
-                    height: 20
+                    x: 12,
+                    y: 88,
+                    width: 38,
+                    height: 8
+                  }                  
+                },
+                {
+                  citation: '[0035]',
+                  page: 15, 
+                  boundingBox: {
+                    x: 50,
+                    y: 13,
+                    width: 38,
+                    height: 37
                   }                  
                 },
                 {
                   citation: '[0036]',
                   page: 15, 
                   boundingBox: {
-                    x: 80,
-                    y: 40,
-                    width: 20,
-                    height: 20
+                    x: 50,
+                    y: 50,
+                    width: 38,
+                    height: 38
                   }
                 },
                 {
                   citation: '[0037]',
                   page: 15, 
                   boundingBox: {
-                    x: 20,
-                    y: 40,
-                    width: 20,
-                    height: 20
+                    x: 50,
+                    y: 88,
+                    width: 38,
+                    height: 8
                   }
                 },
-                {
-                  citation: '[0050]',
-                  page: 18,
-                  boundingBox: {
-                    x: 40,
-                    y: 40,
-                    width: 20,
-                    height: 20
-                  }                   
-                }
               ],
               pageColumnLineEntriesList: []
             },
@@ -194,10 +196,10 @@ class App extends Component {
                   citation: '[0057]',
                   page: 19, 
                   boundingBox: {
-                    x: 40,
-                    y: 40,
-                    width: 20,
-                    height: 40
+                    x: 12,
+                    y: 41,
+                    width: 38,
+                    height: 20
                   }
                 }
               ]
