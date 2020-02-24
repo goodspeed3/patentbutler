@@ -98,7 +98,7 @@ class App extends Component {
                     x: 50,
                     y: 24,
                     width: 38,
-                    height: 15
+                    height: 14.2
 
                   }                  
                 },

@@ -14,8 +14,25 @@
 .subviewHeader {
     /* width: 100%; */
     text-align: center;
-    
-
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0rem;
+    background-color: #E7F3FC;
+    z-index: 101;
+    opacity: 0;
+    padding: 1rem;
+    border-radius: 10px;
+}
+.subviewHeader:hover {
+    opacity: 1;
+    transition: opacity .25s ease-in-out;
+    -moz-transition: opacity .25s ease-in-out;
+    -webkit-transition: opacity .25s ease-in-out;
+  
+}
+.pageMetadata {
+    color: gray;
+    margin-bottom: 0.8rem;
 }
 .subviewHeader button {
     -webkit-touch-callout: none; /* iOS Safari */

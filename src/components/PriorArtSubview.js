@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
+import { HashLink as Link } from 'react-router-hash-link';
 import { withRouter } from 'react-router-dom';
 // import Col from 'react-bootstrap/Col';
 // import Row from 'react-bootstrap/Row';
-import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import { Document, Page, pdfjs } from 'react-pdf'
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
@@ -18,12 +18,12 @@ class PriorArtSubview extends Component {
       citation: this.props.match.params.citation,
       priorArt: priorArt,
       numPages: null,
-      pageNumber: 1,
+      pageNumber: 0,
       scale: 1.0,
       originalPageWidth: 0,
       isScaleLocked: false,
       fitScale: 1.0,
-      didFinishRenderingPage: false
+      didFinishRenderingPage: false,
       // selectedParagraphs: this.getSelectedPara(
       //   priorArt,
       //   this.props.match.params.citation
@@ -34,12 +34,12 @@ class PriorArtSubview extends Component {
   componentDidUpdate(prevProps){
     if(prevProps !== this.props){  
       let priorArt = this.getPriorArt(this.props.uiData);
-      let pageToLoad = this.getPageToLoad(priorArt, this.props.match.params.citation)
+      let pageToLoad = this.getPageToLoad(priorArt, this.props.match.params.citation, prevProps.match.url !== this.props.match.url)
       var updateStateObj = {
         publicationNumber: this.props.match.params.publicationNumber,
         citation: this.props.match.params.citation,
         pageNumber: pageToLoad,
-        priorArt: priorArt
+        priorArt: priorArt,
       }
       if (!this.state.isScaleLocked) {
         //this is needed for when user drags pane
@@ -49,7 +49,9 @@ class PriorArtSubview extends Component {
         updateStateObj['scale'] = pageScale
         updateStateObj['fitScale'] = pageScale
       }
-      this.setState(updateStateObj);
+      this.setState(updateStateObj, () => {
+        this.scrollToFocus()
+      });
     }
     // this.removeTextLayerOffset()
   }
@@ -61,15 +63,13 @@ class PriorArtSubview extends Component {
   componentWillUnmount() {
     this.props.handler('70%');
 
-
   }
-
+  
   scrollToFocus = () => {
       //scroll accordingly
       var highlightedElement = document.getElementById('focusHighlight');
       if (highlightedElement) {
         highlightedElement.scrollIntoView();
-
       }
 
   }
@@ -94,7 +94,10 @@ class PriorArtSubview extends Component {
     }
     return null;
   }
-  getPageToLoad(priorArt, citation) {
+  getPageToLoad(priorArt, citation, didUserChangeUrl) {
+    if (!didUserChangeUrl && this.state.pageNumber !== 0) {
+      return this.state.pageNumber
+    }
     var paList = priorArt.citationList
     for (var i=0; i<paList.length; i++) {
       var citationObj = paList[i]
@@ -177,7 +180,7 @@ class PriorArtSubview extends Component {
   nextPage = () => this.changePage(1);
   changePage = offset => this.setState(prevState => ({
     pageNumber: prevState.pageNumber + offset,
-    didFinishRenderingPage: false
+    didFinishRenderingPage: false,
   }));
 
   zoomIn = () => this.changeZoom(0.25);
@@ -232,12 +235,21 @@ class PriorArtSubview extends Component {
       } else {
         styleObj.backgroundColor = "#FFE18F"
       }
-      styleObj.opacity = "0.2"
+      styleObj.opacity = "0.15"
       styleObj.zIndex= "99"
       styleArray.push(styleObj)
     }
+    var dimensions = {}
+    if (!this.state.isScaleLocked) {
+      dimensions.width = pdfDiv.clientWidth
+      dimensions.height = pdfDiv.clientHeight
+    } else {
+      dimensions.width = pdfDiv.scrollWidth
+      dimensions.height = pdfDiv.scrollHeight
 
-    return <div className='overlay' style={{width: pdfDiv.clientWidth, height: pdfDiv.clientHeight}}>
+    }
+
+    return <div className='overlay' style={dimensions}>
       {
         styleArray.map((styleObj, i) =>  (
           <div id={styleObj.idName} style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}></div>
@@ -271,46 +283,44 @@ class PriorArtSubview extends Component {
     UIs needed: previous, enxt 
   */
   render() {
-    const { numPages, pageNumber, scale } = this.state;
+    const { numPages, pageNumber, scale} = this.state;
+
     return (
       <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
-        <Breadcrumb>
-          <Breadcrumb.Item href="/view">Prior Art Overview</Breadcrumb.Item>
-    <Breadcrumb.Item active>{this.state.priorArt.abbreviation}, {this.state.priorArt.priorityDate}, {this.state.priorArt.publicationNumber} @ {this.state.citation}</Breadcrumb.Item>
-        </Breadcrumb>
-          <p>
-            Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}
-          </p>
-          <input type="text" size={5} placeholder='Page #' onChange={this.handlePageEntry}/>
-          <button
-            type="button"
-            disabled={pageNumber <= 1}
-            onClick={this.previousPage}
-          >
-            Previous
-          </button>
-          <button
-            type="button"
-            disabled={pageNumber >= numPages}
-            onClick={this.nextPage}
-          >
-            Next
-          </button>
-          <button
-            type="button"
-            disabled={scale >= 3}
-            onClick={this.zoomIn}
-          >
-            Bigger
-          </button>
-          <button
-            type="button"
-            disabled={scale <= 0.5}
-            onClick={this.zoomOut}
-          >
-            Smaller
-          </button>              
+        <div className="pageMetadata"><Link to="/view">Prior Art Overview</Link>
+     &nbsp;/ {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber}, Priority Date: {this.state.priorArt.priorityDate} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
+          <div>
+            <input type="text" size={5} placeholder='Page #' onChange={this.handlePageEntry}/>
+            <button
+              type="button"
+              disabled={pageNumber <= 1}
+              onClick={this.previousPage}
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={pageNumber >= numPages}
+              onClick={this.nextPage}
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              disabled={scale >= 3}
+              onClick={this.zoomIn}
+            >
+              Bigger
+            </button>
+            <button
+              type="button"
+              disabled={scale <= 0.5}
+              onClick={this.zoomOut}
+            >
+              Smaller
+            </button>        
+          </div>      
         </div> 
         <div className='pdfDiv' id="pdfDiv" >
           <Document
