@@ -5,6 +5,12 @@ import logo from './img/logo.svg'
 import './App.css';
 import UploadView from './components/UploadView';
 import OaOverview from './components/OaOverview';
+import HomeView from './components/HomeView';
+import ProfileView from './components/ProfileView';
+import history from "./utils/history";
+import PrivateRoute from "./components/PrivateRoute";
+
+import { Auth0Context } from "./react-auth0-spa";
 
 class App extends Component {
   constructor(props) {
@@ -29,57 +35,6 @@ class App extends Component {
               inventorList: ['Richard Marks'],
               figureThumb: process.env.PUBLIC_URL + '/pa_thumb1.png',
               pdfUrl: process.env.PUBLIC_URL + '/marks.pdf',
-              figureList: [
-                {
-                  reference: 'Fig. 1',
-                  subreferenceList: ['104', '102', '100', '106', '108'],
-                  pagePreviewUrl: 'http://'
-                },
-                {
-                  reference: 'Fig. 2',
-                  subreferenceList: [
-                    '122',
-                    '120',
-                    '124',
-                    '126',
-                    '122a',
-                    '126a'
-                  ],
-                  pagePreviewUrl: 'http://'
-                },
-                {
-                  reference: 'Fig. 3',
-                  subreferenceList: [
-                    '141',
-                    '142',
-                    '140c',
-                    '140d',
-                    '140b',
-                    '140a',
-                    '140e',
-                    '140f',
-                    '140g',
-                    '140h',
-                    '140i'
-                  ],
-                  pagePreviewUrl: 'http://'
-                },
-                {
-                  reference: 'Fig. 4A',
-                  subreferenceList: [],
-                  pagePreviewUrl: 'http://'
-                },
-                {
-                  reference: 'Fig. 4B',
-                  subreferenceList: [],
-                  pagePreviewUrl: 'http://'
-                },
-                {
-                  reference: 'Fig. 4C',
-                  subreferenceList: [],
-                  pagePreviewUrl: 'http://'
-                }
-              ],
               citationList: [
                 {
                   citation: '[0002]',
@@ -154,7 +109,6 @@ class App extends Component {
                   }
                 },
               ],
-              pageColumnLineEntriesList: []
             },
             {
               publicationNumber: 'US20080170123',
@@ -170,27 +124,6 @@ class App extends Component {
                 'Jacob C Albertson, Kenneth C. Arnold, Steven D. Goldman, Michael A. Paolini, Anthony J. Sessa '
               ],
               assignee: 'International Business Machines Corp',
-              figureList: [
-                {
-                  reference: 'Fig. 3',
-                  subreferenceList: [
-                    '202',
-                    '204',
-                    '240',
-                    '308',
-                    '310',
-                    '312',
-                    '316',
-                    '318',
-                    '319',
-                    '320',
-                    '112',
-                    '110',
-                    '104'
-                  ],
-                  pagePreviewUrl: 'http://'
-                }
-              ],
               citationList: [
                 {
                   citation: '[0057]',
@@ -319,13 +252,16 @@ class App extends Component {
       uiData: SampleOfficeAction
     };
   }
+  static contextType = Auth0Context;
 
   render() {
+    const { isAuthenticated, loginWithRedirect, logout } = this.context;
+
     return (
-      <Router>
+      <Router history={history}>
         <Navbar className="headerBar" bg="light" variant="light">
           <Navbar.Brand fixed="top">
-            <Link to="/view">
+            <Link to="/">
               <img
                 src={logo}
                 width="160"
@@ -333,11 +269,19 @@ class App extends Component {
                 alt="logo"
               />
             </Link>
+            {!isAuthenticated && (
+        <button onClick={() => loginWithRedirect({})}>Log in</button>
+          )}
+          {isAuthenticated && <button onClick={() => logout()}>Log out</button>}
+
           </Navbar.Brand>
         </Navbar>
         <Switch>
-          <Route exact path="/" render={this.uploadFunc} />
+          <Route exact path="/" render={this.homeFunc} />
+          <Route path="/home" render={this.homeFunc} />
+          <Route path="/upload" render={this.uploadFunc} />
           <Route path="/view" render={this.oaViewFunc} />
+          <PrivateRoute path="/profile" component={ProfileView} />
           {/* <Route
             path="/subview/:publicationNumber/:citation"
             render={this.oaSubviewFunc}
@@ -346,6 +290,10 @@ class App extends Component {
       </Router>
     );
   }
+  homeFunc = props => {
+    return <HomeView />;
+  };
+
   uploadFunc = props => {
     return <UploadView onReady={this.showUi} />;
   };
