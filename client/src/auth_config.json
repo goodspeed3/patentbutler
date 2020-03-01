@@ -1,4 +1,5 @@
 {
   "domain": "dev-patentbutler.auth0.com",
-  "clientId": "6umKtn13DMdzECU0dQnT8hLnnKnJxUYI"
+  "clientId": "6umKtn13DMdzECU0dQnT8hLnnKnJxUYI",
+  "audience": "https://patentbutler.com/api"
 }

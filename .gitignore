@@ -11,6 +11,10 @@
 
 # production
 /client/build
+/api/client-build
+
+# files
+/api/uploads
 
 # misc
 .DS_Store

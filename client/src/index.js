@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
+// import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
@@ -21,11 +21,12 @@ ReactDOM.render(
   domain={config.domain}
   client_id={config.clientId}
   redirect_uri={window.location.origin}
+  audience={config.audience}
   onRedirectCallback={onRedirectCallback}
 >
-<BrowserRouter>
+{/* <BrowserRouter> */}
   <App />
-  </BrowserRouter>
+  {/* </BrowserRouter> */}
 </Auth0Provider>,
 
   document.getElementById('root')

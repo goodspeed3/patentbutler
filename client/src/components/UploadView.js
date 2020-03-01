@@ -1,117 +1,79 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Form from 'react-bootstrap/Form';
-import ProgressBar from 'react-bootstrap/ProgressBar';
-import axios from 'axios';
+import Modal from 'react-bootstrap/Modal'
+import Button from 'react-bootstrap/Button'
+import Spinner from 'react-bootstrap/Spinner'
 
-class UploadView extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      uiData: {},
-      status: 'uploadOa' //uploadOa, OCR, getPriorArt, startUi, uiRdy
-    };
+import './UploadView.css'
+
+import AuthApi from './AuthApi'
+import { useAuth0 } from "../react-auth0-spa";
+
+function UploadView(props) {
+  const [uploadStatus, setUploadStatus] = useState({ uploadedFilename: ''})
+  const { getTokenSilently, user } = useAuth0();
+  const [show, setShow] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
+
+  const handleClose = () => {
+    props.triggerListRefresh()
+    setShow(false);
   }
+  const handleShow = () => setShow(true);
 
-  render() {
-    return (
-      <div>
-        <Jumbotron>
-          <h1>
-            {(() => {
-              switch (this.state.status) {
-                case 'uploadOa':
-                  return 'Upload an Office Action';
-                case 'OCR':
-                  return 'Starting OCR...';
-                case 'getPriorArt':
-                  return 'Gathering Art...';
-                case 'startUi':
-                  return 'Generating UI...';
-                default:
-                  return '';
-              }
-            })()}
-          </h1>
-          <p>
-            We will generate a unique link for you that will live for 14 days.
-          </p>
-          <div>
-            {(() => {
-              var progress = 0;
-              switch (this.state.status) {
-                case 'uploadOa':
-                  return (
-                    <Form>
-                      <Form.Group controlId="formGroupFile">
-                        <Form.Control
-                          type="file"
-                          onChange={this.handleUpload}
-                          accept=".pdf"
-                        />
-                      </Form.Group>
-                    </Form>
-                  );
-                case 'OCR':
-                  progress = 20;
-                  break;
-                case 'getPriorArt':
-                  progress = 50;
-                  break;
-                case 'startUi':
-                  progress = 90;
-                  break;
-                default:
-                  progress = 0;
-              }
-              return (
-                <ProgressBar animated now={progress} label={`${progress}%`} />
-              );
-            })()}
-          </div>
-        </Jumbotron>
-      </div>
-    );
-  }
+  useEffect(() => {
+      if (uploadStatus.uploadedFilename !== '') {
+        handleShow()
+      }
+  }, [uploadStatus]);
 
-  handleUpload = event => {
+  function handleUpload(event) {
     var formData = new FormData();
     var oaFile = event.target.files[0];
     formData.append('file', oaFile);
+    formData.append('userEmail', user.email);
+    setShowLoading(true)
+    AuthApi('/api/upload', getTokenSilently, formData)
+    .then(res => {
+        setShowLoading(false)
+        setUploadStatus({uploadedFilename: res.filename})
+    })
 
-    axios
-      .post('/api/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
-      .then(response => {
-        this.setState({ status: 'OCR' });
-        // return true;
-        return axios.get('/api/ocr', {
-          params: {
-            id: response.data
-          }
-        });
-      })
-      .then(response => {
-        this.setState({ status: 'getPriorArt' });
-        // return true;
-        return axios.get('/api/getPriorArt');
-      })
-      .then(response => {
-        this.setState({ status: 'startUi' });
+  }
 
-        return axios.get('/api/startUI');
-      })
-      .then(response => {
-        // console.log(response.data);
-        this.props.onReady(response.data);
-      })
-      .catch(function(error) {
-        console.log(error);
-      });
-  };
+  return (
+    <Jumbotron>
+        <h3>Upload an Office Action</h3>
+        <div style={{display: 'flex', justifyContent: 'center'}}>
+        <Form>
+            <Form.Group controlId="formGroupFile">
+            <Form.Control
+                type="file"
+                onChange={handleUpload}
+                accept=".pdf"
+            />
+            </Form.Group>
+        </Form>
+        { showLoading ? <Spinner animation="border" /> : null}
+        </div>
+        <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Uploaded Office Action</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>We will email you when the OA has finished processing (within 2 days).</Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleClose}>
+            Done
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+    </Jumbotron>
+  )
+
+
+
 }
 
 export default UploadView;

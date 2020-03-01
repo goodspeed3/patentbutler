@@ -1,0 +1,25 @@
+.homeLayout {
+    width: 100%;
+    text-align: center;
+
+}
+
+.uploadOa {
+}
+
+.oaList {
+    padding: 1rem;
+    text-align: left;
+}
+.columnHeader {
+    font-size: larger;
+    font-weight: bold;
+}
+.oaColumn {
+    float: left;
+    width: 75%;
+}
+.processingColumn {
+    float: left;
+    width: 25%;
+}

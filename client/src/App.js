@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Switch, Redirect, withRouter, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect, Link } from 'react-router-dom';
 import Navbar from 'react-bootstrap/Navbar';
 import logo from './img/logo.svg'
 import './App.css';
-import UploadView from './components/UploadView';
 import OaOverview from './components/OaOverview';
 import HomeView from './components/HomeView';
 import ProfileView from './components/ProfileView';
-import history from "./utils/history";
+// import history from "./utils/history";
 import PrivateRoute from "./components/PrivateRoute";
 
 import { Auth0Context } from "./react-auth0-spa";
@@ -258,7 +257,7 @@ class App extends Component {
     const { isAuthenticated, loginWithRedirect, logout } = this.context;
 
     return (
-      <Router history={history}>
+      <Router>
         <Navbar className="headerBar" bg="light" variant="light">
           <Navbar.Brand fixed="top">
             <Link to="/">
@@ -278,45 +277,25 @@ class App extends Component {
         </Navbar>
         <Switch>
           <Route exact path="/" render={this.homeFunc} />
-          <Route path="/home" render={this.homeFunc} />
-          <Route path="/upload" render={this.uploadFunc} />
+          <PrivateRoute path="/home" component={HomeView} />
           <Route path="/view" render={this.oaViewFunc} />
           <PrivateRoute path="/profile" component={ProfileView} />
-          {/* <Route
-            path="/subview/:publicationNumber/:citation"
-            render={this.oaSubviewFunc}
-          /> */}
         </Switch>
       </Router>
     );
   }
   homeFunc = props => {
-    return <HomeView />;
+    return <div>Landing Page</div>;
   };
 
-  uploadFunc = props => {
-    return <UploadView onReady={this.showUi} />;
-  };
   oaViewFunc = props => {
     if (Object.keys(this.state.uiData).length === 0) return <Redirect to="/" />;
 
     return <OaOverview uiData={this.state.uiData} />;
   };
-  // oaSubviewFunc = props => {
-  //   if (Object.keys(this.state.uiData).length === 0) return <Redirect to="/" />;
-
-  //   return (
-  //     <OaSubview
-  //       key={props.match.params.publicationNumber + props.match.params.citation}
-  //       uiData={this.state.uiData}
-  //     />
-  //   );
-  // };
-  showUi = response => {
-    this.setState({ uiData: response });
-    /* Need to add link to /view/:hash to access specific uiData */
-    this.props.history.push('/view');
-  };
 }
 
-export default withRouter(App);
+
+// export default withRouter(App);
+
+export default App;
