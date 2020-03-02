@@ -44,16 +44,6 @@ const checkJwt = jwt({
 });
 
 
-/* GET home page. */
-router.post('/home', checkJwt, function(req, res, next) {
-  //get list of datastore objects; get link rdy to show processed OA
-  // use req.body.userEmail
-  res.json({ list: [
-    {
-      hi: 'ho'
-    }
-  ] })
-});
 var mStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads/')
@@ -68,12 +58,16 @@ var mStorage = multer.diskStorage({
 const upload = multer({ storage: mStorage });
 /* POST upload OA. */
 router.post('/upload', checkJwt, upload.single('file'), async function(req, res, next) {
+  console.log('----uploading----')
+  console.log(req.body.userEmail)
   let results = await Promise.all([
     uploadFile(req.file.destination + req.file.filename),
     insertOaObject({
       user: req.body.userEmail,
       filename: req.file.filename,
-      uploadTime: Date.now()
+      origname: req.file.originalname,
+      uploadTime: Date.now(),
+      processed: false
     })])
   res.json({ filename: req.file.filename })    
   
@@ -111,6 +105,35 @@ const insertOaObject = oaObject => {
     data: oaObject,
   });
 };
+
+/* GET home page. */
+//need upload.non() to handle POST multipart form
+router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
+  //get list of datastore objects; get link rdy to show processed OA
+  // use req.body.userEmail
+  const processingOaQuery = datastore
+    .createQuery('oaUpload')
+    .filter('user', '=', req.body.userEmail)
+    .filter('processed', '=', false)
+    .order('uploadTime');
+
+    const finishedOaQuery = datastore
+    .createQuery('processedOa')
+    .filter('user', '=', req.body.userEmail)
+    .order('finishedProcessingTime');
+    
+
+  let results = await Promise.all([
+    datastore.runQuery(processingOaQuery),
+    datastore.runQuery(finishedOaQuery),    
+    ])
+
+  res.json(
+    {
+      processingOa: results[0], //order is preserved
+      finishedOa: results[1]  
+    })
+});
 
 
 

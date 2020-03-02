@@ -3,7 +3,6 @@
 //ONLY POSTS TO API
 const AuthApi = (url, getTokenSilently, body) => {
   try {
-
     return getTokenSilently().then( token => {
       return fetch(url, {
         headers: {

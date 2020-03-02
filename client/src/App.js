@@ -254,7 +254,7 @@ class App extends Component {
   static contextType = Auth0Context;
 
   render() {
-    const { isAuthenticated, loginWithRedirect, logout } = this.context;
+    const { isAuthenticated, loginWithRedirect, logout, loading } = this.context;
 
     return (
       <Router>
@@ -268,10 +268,10 @@ class App extends Component {
                 alt="logo"
               />
             </Link>
-            {!isAuthenticated && (
+            {!loading && !isAuthenticated && (
         <button onClick={() => loginWithRedirect({})}>Log in</button>
           )}
-          {isAuthenticated && <button onClick={() => logout()}>Log out</button>}
+          {!loading && isAuthenticated && <button onClick={() => logout()}>Log out</button>}
 
           </Navbar.Brand>
         </Navbar>

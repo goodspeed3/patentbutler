@@ -34,6 +34,7 @@ function UploadView(props) {
     formData.append('file', oaFile);
     formData.append('userEmail', user.email);
     setShowLoading(true)
+
     AuthApi('/api/upload', getTokenSilently, formData)
     .then(res => {
         setShowLoading(false)
@@ -44,7 +45,7 @@ function UploadView(props) {
 
   return (
     <Jumbotron>
-        <h3>Upload an Office Action</h3>
+        <h3>Upload an Office Action PDF</h3>
         <div style={{display: 'flex', justifyContent: 'center'}}>
         <Form>
             <Form.Group controlId="formGroupFile">

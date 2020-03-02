@@ -23,16 +23,18 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
 // app.use(express.static(path.join(__dirname, './public')));
 app.use(express.static(path.join(__dirname, './client-build')));
+
+// app.use('/', indexRouter);
+
 
 app.use('/api', apiRouter)
 
 app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, './client-build/index.html'));
 })
-// app.use('/', indexRouter);
-// app.use('/users', usersRouter);
 
 app.use(function(err, req, res, next) {
   if (err.name === "UnauthorizedError") {
@@ -57,5 +59,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;
