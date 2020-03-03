@@ -17,7 +17,7 @@
 /api/uploads
 
 #admin
-/admin/node_modules
+/admin-heavy/node_modules
 
 # misc
 .DS_Store

@@ -72,9 +72,12 @@ function HomeView() {
         return Math.ceil(diff) + " secs ago"
       } else if (diff < 60 * 60) {
         return Math.ceil(diff / 60) + " min ago"
-      } else {
-        let numHr = Math.ceil (diff / 3600)
+      } else if (diff < 60 * 60 * 24) {
+        let numHr = Math.round (diff / 3600)
         return numHr + " hr" + ((numHr > 1) ? 's' : '')  + " ago"
+      } else {
+        let numDay = Math.round (diff / (3600 * 24))
+        return numDay + " day" + ((numDay > 1) ? 's' : '')  + " ago"
       }
     } else {
       var date = new Date(timestamp);
