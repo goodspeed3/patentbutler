@@ -8,7 +8,7 @@ import HomeView from './components/HomeView';
 import ProfileView from './components/ProfileView';
 // import history from "./utils/history";
 import PrivateRoute from "./components/PrivateRoute";
-
+import Button from 'react-bootstrap/Button'
 import { Auth0Context } from "./react-auth0-spa";
 
 class App extends Component {
@@ -256,6 +256,17 @@ class App extends Component {
   render() {
     const { isAuthenticated, loginWithRedirect, logout, loading } = this.context;
 
+    var component = <div />;
+    if (!loading && isAuthenticated) {
+      component = (<div className='accountDiv'>
+        <Link to='/settings'><Button size='sm' variant='info' >Settings</Button></Link>
+        <Button size='sm' variant='info' onClick={() => logout()}>Log out</Button>        
+        </div>
+      ) 
+    } else if (!loading && !isAuthenticated) {
+      component = <Button size='sm' variant='info' className='accountDiv' onClick={() => loginWithRedirect({})}>Log in</Button>
+    }
+
     return (
       <Router>
         <Navbar className="headerBar" bg="light" variant="light">
@@ -268,11 +279,7 @@ class App extends Component {
                 alt="logo"
               />
             </Link>
-            {!loading && !isAuthenticated && (
-        <button onClick={() => loginWithRedirect({})}>Log in</button>
-          )}
-          {!loading && isAuthenticated && <button onClick={() => logout()}>Log out</button>}
-
+            {component}
           </Navbar.Brand>
         </Navbar>
         <Switch>

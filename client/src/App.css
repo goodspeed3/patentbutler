@@ -2,11 +2,22 @@
   text-align: center;
   /* position: relative; */
 }
+.accountDiv {
+  position: absolute;
+  right: 1rem;
+  top: 0.5rem;  
 
+}
+.accountDiv > Button {
+  margin-left: 0.5rem;
+}
 .headerBar {
   position: sticky;
   position: -webkit-sticky;
   top: 0px;
   z-index: 100;
   height: 3.5rem;
+
+  align-items : center;
+  justify-content: center;
 }

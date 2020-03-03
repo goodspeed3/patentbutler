@@ -82,8 +82,20 @@ function HomeView() {
     }
   }
 
+  let elementsToShow;
   if (!user || !homeData) {
-    return <div />
+    elementsToShow = <div />
+  } else {
+    elementsToShow = <div className='oaList'>
+    <div className='oaColumn'>
+      <div className='columnHeader'>Office Actions</div>
+      {showFinishedOa()}
+    </div>
+    <div className='processingColumn'>
+      <div className='columnHeader'>Processing</div>
+      {showProcessingOa()}
+    </div>
+  </div>
   }
 
   return (
@@ -91,16 +103,7 @@ function HomeView() {
         <div className='uploadOa'>
           <UploadView triggerListRefresh={triggerListRefresh} />
         </div>
-        <div className='oaList'>
-          <div className='oaColumn'>
-            <div className='columnHeader'>Office Actions</div>
-            {showFinishedOa()}
-          </div>
-          <div className='processingColumn'>
-            <div className='columnHeader'>Processing</div>
-            {showProcessingOa()}
-          </div>
-        </div>
+        {elementsToShow}
     </div>
   )
 
