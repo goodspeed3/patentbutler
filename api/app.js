@@ -1,6 +1,6 @@
 /*
 TO DEPLOY TO PROD:
-  1. 'npm run build' in /client
+  1. 'npm run build' in /client, 'npm run build' in /admin
   2. Go to /api and run 'gcloud app deploy' 
 
 */
@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// app.use(express.static(path.join(__dirname, './public')));
+app.use('/admin', express.static(path.join(__dirname, './admin-build')));
 app.use(express.static(path.join(__dirname, './client-build')));
 
 app.use(function(err, req, res, next) {
@@ -38,6 +38,10 @@ app.use(function(err, req, res, next) {
 
 app.use('/adminApi', adminApiRouter)
 app.use('/api', apiRouter)
+
+app.get('/admin/*', (req, res) => {
+  res.sendFile(path.join(__dirname + './admin-build/index.html'))
+})
 
 app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, './client-build/index.html'));

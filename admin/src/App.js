@@ -1,25 +1,30 @@
-import React, {useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Switch, Link, Redirect } from 'react-router-dom';
+import React, {useEffect } from 'react';
+import { BrowserRouter as Router, Switch, Link } from 'react-router-dom';
 import Navbar from 'react-bootstrap/Navbar';
 import logo from './img/logo.svg'
-import LoginView from './components/login.js'
 import HomeView from './components/home.js'
+import ProcessView from './components/process.js'
 import './App.css';
 import Button from 'react-bootstrap/Button'
 import PrivateRoute from "./components/PrivateRoute";
 import { useAuth0 } from "./react-auth0-spa";
 
 function App() {
-  const { isAuthenticated, loading, loginWithRedirect, logout } = useAuth0();
+  const { isAuthenticated, loading, loginWithRedirect, logout, user } = useAuth0();
 
   useEffect(() => {
-    console.log(isAuthenticated)
+
   }, [isAuthenticated]);
 
   var component = <div />;
   if (isAuthenticated && !loading) {
     component = (<div className='accountDiv'>
-      <Button size='sm' variant='info'>Log out</Button>        
+      <Button size='sm' variant='danger' onClick={() => logout()}>Log out {user.email}</Button>        
+      </div>
+    ) 
+  } else if (!isAuthenticated && !loading) {
+    component = (<div className='accountDiv'>
+        <Button size='sm' variant='danger' onClick={() => loginWithRedirect({})}>Log in</Button>        
       </div>
     ) 
   }
@@ -28,7 +33,7 @@ function App() {
       <Router>
         <Navbar className="headerBar" bg="light" variant="light">
           <Navbar.Brand fixed="top">
-            <Link to="/">
+            <Link to="/admin">
               <img
                 src={logo}
                 width="160"
@@ -40,8 +45,8 @@ function App() {
           </Navbar.Brand>
         </Navbar>
         <Switch>
-          <Route exact path="/" component={LoginView} />
-          <PrivateRoute path="/home" component={HomeView}  />
+          <PrivateRoute exact path="/admin" component={HomeView} />
+          <PrivateRoute path="/process" component={ProcessView} />
 
         </Switch>
       </Router>  );

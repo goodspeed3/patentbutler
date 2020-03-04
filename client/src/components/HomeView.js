@@ -16,7 +16,7 @@ function HomeView() {
 
   function triggerListRefresh() {
     if (!user) {
-      // no user yet
+      // no user ye
       return
     }
     var formData = new FormData();
@@ -30,7 +30,7 @@ function HomeView() {
 
   }
   function showFinishedOa() {
-    if (homeData.finishedOa && homeData.finishedOa.length === 0 ) {
+    if (homeData.finishedOa && homeData.finishedOa[0].length === 0 ) {
       return <div><pre>None yet</pre></div>
     }
     //first element is the list, second element is cursor data
@@ -54,7 +54,7 @@ function HomeView() {
     </Table>
   }
   function showProcessingOa() {
-    if (homeData.processingOa && homeData.processingOa.length === 0 ) {
+    if (homeData.processingOa && homeData.processingOa[0].length === 0 ) {
       return <div><pre>None yet</pre></div>
     }
 

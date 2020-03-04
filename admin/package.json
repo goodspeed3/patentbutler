@@ -8,9 +8,11 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "bootstrap": "^4.4.1",
+    "moment-timezone": "^0.5.28",
     "react": "^16.13.0",
     "react-bootstrap": "^1.0.0-beta.17",
     "react-dom": "^16.13.0",
+    "react-pdf": "^4.1.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.4.0"
   },
@@ -18,12 +20,14 @@
     "start": "PORT=3002 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postbuild": "rm -rf ../api/admin-build && mv build ../api/admin-build"
   },
   "eslintConfig": {
     "extends": "react-app"
   },
   "proxy": "http://localhost:3001",
+  "homepage": "/admin",
   "browserslist": {
     "production": [
       ">0.2%",

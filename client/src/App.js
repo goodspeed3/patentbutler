@@ -271,7 +271,7 @@ class App extends Component {
       <Router>
         <Navbar className="headerBar" bg="light" variant="light">
           <Navbar.Brand fixed="top">
-            <Link to="/">
+            <Link to={isAuthenticated ? "/home" : "/"}>
               <img
                 src={logo}
                 width="160"

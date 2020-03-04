@@ -4,7 +4,7 @@ import { Route, withRouter } from "react-router-dom";
 import { useAuth0 } from "../react-auth0-spa";
 
 const PrivateRoute = ({ component: Component, path, ...rest }) => {
-  const { loading, isAuthenticated, loginWithRedirect } = useAuth0();
+  const { loading, isAuthenticated, loginWithRedirect, user } = useAuth0();
 
   useEffect(() => {
     if (loading || isAuthenticated) {
@@ -18,8 +18,16 @@ const PrivateRoute = ({ component: Component, path, ...rest }) => {
     fn();
   }, [loading, isAuthenticated, loginWithRedirect, path]);
 
-  const render = props =>
-    isAuthenticated === true ? <Component {...props} /> : null;
+  const render = props => {
+    //ONLY ALLOWED USERS HERE
+    let allowedEmails = ['jon+1@patentbutler.com', 'jon@patentbutler.com']
+
+    if (isAuthenticated && user && user.email && allowedEmails.includes(user.email)) {
+      return <Component {...props} />
+    } else {
+      return <div />
+    }
+  }
 
   return <Route path={path} render={render} {...rest} />;
 };

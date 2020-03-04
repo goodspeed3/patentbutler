@@ -1,44 +1,116 @@
 var express = require('express');
 var router = express.Router();
-var crypto = require('crypto')
-// app.use('/', indexRouter);
-const generateAuthToken = () => {
-  return crypto.randomBytes(30).toString('hex');
-}
-// This will hold the users and authToken related to users
-const authTokens = {};
+var multer = require('multer');
+const crypto = require('crypto');
+var path = require('path');
 
-router.post('/login', function (req, res) {
-  if(req.body.username === 'renwoshin' && req.body.password === 'renwoshin!') {
-    const authToken = generateAuthToken();
-    // Store authentication token
-    authTokens[authToken] = req.body.username;
-    // Setting the auth token in cookies
-    res.cookie('AuthToken', authToken);
-    res.json({username: 'renwoshin'})
-  } else {
-    res.status(401)
-    res.json({})
+//MAKE SURE artUploads EXISTS ON THE SERVER
+
+var mStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads/art/')
+  },
+  filename: function (req, file, cb) {
+    crypto.pseudoRandomBytes(16, function (err, raw) {
+      cb(null, raw.toString('hex') + Date.now() + '.' + mime.getExtension(file.mimetype));
+    });
   }
-})
-
-function checkAdminLogin (req, res, next) {
-  const authToken = req.cookies['AuthToken'];
-  // Inject the user to the request
-  req.user = authTokens[authToken];
-  if (req.user) {
-    next()
-  } else {
-    console.log('admin error login')
-    res.status(401);
-    res.json({})
-  }
-}
-
-
-/* GET users listing. */
-router.get('/', checkAdminLogin, function(req, res, next) {
-  console.log('hiii')
 });
+
+const upload = multer({ storage: mStorage });
+
+var jwt = require('express-jwt');
+const jwksRsa = require("jwks-rsa");
+// Set up Auth0 configuration
+const authConfig = {
+  domain: "dev-patentbutler.auth0.com",
+  audience: 'https://patentbutler.com/adminApi',
+};
+
+// Define middleware that validates incoming bearer tokens
+// using JWKS from dev-patentbutler.auth0.com
+const checkJwt = jwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`
+  }),
+
+  audience: authConfig.audience,
+  issuer: `https://${authConfig.domain}/`,
+  algorithm: ["RS256"]
+});
+
+//need to write to Firestore (noSQL) and also store file in cloud storage (Firestore in Datastore mode)
+const {Storage} = require('@google-cloud/storage');
+// Instantiates a client. Explicitly use service account credentials by
+// specifying the private key file. All clients in google-cloud-node have this
+// helper, see https://github.com/GoogleCloudPlatform/google-cloud-node/blob/master/docs/authentication.md
+const projectId = 'crafty-valve-269403'
+const keyFilename = './crafty-valve-269403-438cf61af1ed.json'
+const storage = new Storage({projectId, keyFilename});
+const bucketName = 'crafty-valve-269403.appspot.com';
+const {Datastore} = require('@google-cloud/datastore');
+
+// Instantiate a datastore client
+const datastore = new Datastore({projectId, keyFilename});
+
+
+
+
+router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
+  //get list of datastore objects; get link rdy to show processed OA
+  // use req.body.userEmail
+  const processingOaQuery = datastore
+    .createQuery('oaUpload')
+    .filter('processed', '=', false)
+    .order('uploadTime');
+
+    const finishedOaQuery = datastore
+    .createQuery('processedOa')
+    .order('finishedProcessingTime');
+    
+
+  let results = await Promise.all([
+    datastore.runQuery(processingOaQuery),
+    datastore.runQuery(finishedOaQuery),    
+    ])
+
+  res.json(
+    {
+      processingOa: results[0], //order is preserved
+      finishedOa: results[1]  
+    })
+});
+
+//download uploaded office action
+router.post('/downloadOa', checkJwt, upload.none(), async function(req, res, next) {
+  if (req.body.filename)
+  var srcFilename = 'uploaded-office-actions/'+req.body.filename;
+  var destFilename = './downloads/oa/' + req.body.filename;
+
+  await downloadFile(srcFilename, destFilename).catch(console.error);
+
+  res.sendFile(path.join(__dirname, '../', destFilename))
+});
+
+async function downloadFile(src, dest) {
+  const options = {
+    // The path to which the file should be downloaded, e.g. "./file.txt"
+    destination: dest,
+  };
+
+  // Downloads the file
+  await storage
+    .bucket(bucketName)
+    .file(src)
+    .download(options);
+
+  console.log(
+    `gs://${bucketName}/${src} downloaded to ${dest}.`
+  );
+}
+
 
 module.exports = router;

@@ -1,0 +1,33 @@
+.homeLayout {
+    width: 100%;
+    text-align: center;
+
+}
+
+.procList {
+    padding: 1rem;
+    text-align: left;
+}
+.columnHeader {
+    font-size: larger;
+    font-weight: bold;
+    text-decoration: underline;
+}
+.procTable {
+    margin-top: 1rem;
+}
+.procColumn {
+    float: left;
+    width: 60%;
+    padding-left: 1rem;
+}
+
+
+.oaColumn {
+    float: left;
+    width: 35%;
+    background-color: #E7F3FC;
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-left: 2rem;
+}

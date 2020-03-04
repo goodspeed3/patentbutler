@@ -12,9 +12,13 @@
 # production
 /client/build
 /api/client-build
+/api/admin-build
 
 # files
-/api/uploads
+/api/uploads/art/*.pdf
+/api/uploads/oa/*.pdf
+/api/downloads/art/*.pdf
+/api/downloads/oa/*.pdf
 
 #admin
 /admin/node_modules

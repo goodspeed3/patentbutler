@@ -43,10 +43,10 @@ const checkJwt = jwt({
   algorithm: ["RS256"]
 });
 
-
+//MAKE SURE oaUploads EXISTS ON THE SERVER
 var mStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads/')
+    cb(null, './uploads/oa/')
   },
   filename: function (req, file, cb) {
     crypto.pseudoRandomBytes(16, function (err, raw) {
@@ -59,9 +59,9 @@ const upload = multer({ storage: mStorage });
 /* POST upload OA. */
 router.post('/upload', checkJwt, upload.single('file'), async function(req, res, next) {
   console.log('----uploading----')
-  console.log(req.body.userEmail)
+  console.log(req.file.destination + req.file.filename)
   let results = await Promise.all([
-    uploadFile(req.file.destination + req.file.filename),
+    uploadFile(req.file.destination, req.file.filename),
     insertOaObject({
       user: req.body.userEmail,
       filename: req.file.filename,
@@ -74,10 +74,11 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
 });
 
 
-function uploadFile(filename) {
+function uploadFile(path, filename) {
   console.log(`${filename} uploading to ${bucketName}.`);
   // Uploads a local file to the bucket
-  return storage.bucket(bucketName).upload(filename, {
+  return storage.bucket(bucketName).upload(path + filename, {
+    destination: `uploaded-office-actions/${filename}`,
     // Support for HTTP requests made with `Accept-Encoding: gzip`
     gzip: true,
     // By setting the option `destination`, you can change the name of the

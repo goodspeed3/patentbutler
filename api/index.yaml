@@ -1,8 +1,16 @@
+#to add index, gcloud datastore indexes create
+
 indexes:
 
 - kind: oaUpload
   properties:
   - name: user
+  - name: processed
+  - name: uploadTime
+    direction: asc
+
+- kind: oaUpload
+  properties:
   - name: processed
   - name: uploadTime
     direction: asc
