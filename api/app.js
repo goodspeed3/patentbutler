@@ -36,47 +36,7 @@ app.use(function(err, req, res, next) {
   next(err, req, res);
 });
 
-// app.use('/', indexRouter);
-const generateAuthToken = () => {
-  return crypto.randomBytes(30).toString('hex');
-}
-// This will hold the users and authToken related to users
-const authTokens = {};
-
-app.post('/adminLogin', function (req, res) {
-  if(req.body.username === 'renwoshin' && req.body.password === 'renwoshin!') {
-    const authToken = generateAuthToken();
-    // Store authentication token
-    authTokens[authToken] = req.body.username;
-    // Setting the auth token in cookies
-    res.cookie('AuthToken', authToken);
-    res.json({username: 'renwoshin'})
-  } else {
-    res.status(401)
-    res.json({})
-  }
-})
-//middleware to handle admin requests
-app.use((req, res, next) => {
-  // Get auth token from the cookies
-  const authToken = req.cookies['AuthToken'];
-
-  // Inject the user to the request
-  req.user = authTokens[authToken];
-
-  next();
-});
-function checkAdminLogin (req, res, next) {
-  if (req.user) {
-    next()
-  } else {
-    console.log('admin error login')
-    res.status(401);
-    res.json({})
-  }
-}
-
-app.use('/adminApi', checkAdminLogin, adminApiRouter)
+app.use('/adminApi', adminApiRouter)
 app.use('/api', apiRouter)
 
 app.get('*', function (req, res) {
