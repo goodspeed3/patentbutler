@@ -11,10 +11,6 @@ function ProcessView (props) {
     let { processedId, filename, user:email } = props.location.state
 
     useEffect(() => {
-        makeApiCall()
-      }, [user, processedId, filename, email]);
-
-    function makeApiCall() {
         if (!user || !filename || !email || !processedId) {
             return
         }
@@ -31,7 +27,7 @@ function ProcessView (props) {
             console.log(res)
             setProcessedData(res)
         })
-    }
+      }, [user, getTokenSilently, processedId, filename, email]);
 
     var elementsToShow = <div />;
     if (user && processedData) {
