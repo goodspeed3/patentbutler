@@ -2,12 +2,18 @@ import React, {useState, useEffect} from 'react';
 import './process.css'
 import AuthApi from './AuthApi'
 import { useAuth0 } from "../react-auth0-spa";
-// import {useParams} from 'react-router-dom'
+import {Switch, Route} from 'react-router-dom'
 import Spinner from 'react-bootstrap/Spinner'
+import SplitPane from 'react-split-pane';
+import PdfView from './PdfView'
+import OaMetadata from './OaMetadata'
 
 function ProcessView (props) {
     const { getTokenSilently, user } = useAuth0();
-    const [processedData, setProcessedData] = useState(null)
+    const [downloadedData, setDownloadedData] = useState(null)
+    const [panePosition, setPanePosition] = useState('60%')
+    const [oaObject, setOaObject] = useState({})
+
     let { processedId, filename, user:email } = props.location.state
 
     useEffect(() => {
@@ -24,15 +30,49 @@ function ProcessView (props) {
         //process as blob
         AuthApi('/adminApi/downloadOa', getTokenSilently, formData, true)
         .then(res => {
-            console.log(res)
-            setProcessedData(res)
+            setDownloadedData(res)
         })
       }, [user, getTokenSilently, processedId, filename, email]);
+    const handlePane = (val) => {
+        // localStorage.setItem('splitPos', size)
+    
+        setPanePosition(val)
+      }
+    const saveObjToCloud = () => {
+        var formData = new FormData();
+        formData.append('oaObj', JSON.stringify(oaObject))
+        AuthApi('/adminApi/saveOaObject', getTokenSilently, formData)
+        .then(res => {
+            console.log(res)
+        })
+    }
 
     var elementsToShow = <div />;
-    if (user && processedData) {
+    if (user && downloadedData) {
         elementsToShow = (
-        <div> {JSON.stringify(processedData)}
+        <div className='leftAndRightCol'>
+            <SplitPane 
+              split="vertical" 
+              defaultSize={'60%'} 
+              // onDragFinished = {size => this.handlePane(size)}
+              onChange={size => handlePane(size)} 
+              maxSize={-200} 
+              minSize={500}
+            >
+              <div className='leftCol'>
+                <PdfView downloadedData={downloadedData} fileData={props.location.state} panePosition={panePosition}/>
+              </div>
+              <div className='rightCol'>
+                <Switch>
+                  <Route exact path='/admin/process'>
+                      <OaMetadata fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} />
+                  </Route>
+                  {/* <Route path='/admin/process/priorArt'>
+                      <PriorArtSubview />
+                  </Route> */}
+                </Switch>
+              </div> 
+            </SplitPane>
         </div>
         )
     } else {

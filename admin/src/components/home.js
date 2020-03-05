@@ -32,7 +32,7 @@ function HomeView () {
     return <div>
         {homeData.finishedOa[0].map (processedOaEntity => {
             let linkWithState = {
-                pathname: '/process',
+                pathname: '/admin/process',
                 state: processedOaEntity
             }
 
@@ -59,7 +59,7 @@ function HomeView () {
         <tbody>
         {homeData.processingOa[0].map( processingEntity => {
             let linkWithState = {
-                pathname: '/process',
+                pathname: '/admin/process',
                 state: {
                     processedId: 'none',
                     ...processingEntity
