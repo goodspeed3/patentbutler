@@ -6,7 +6,7 @@ import {Switch, Route} from 'react-router-dom'
 import Spinner from 'react-bootstrap/Spinner'
 import SplitPane from 'react-split-pane';
 import PdfView from './PdfView'
-import OaMetadata from './OaMetadata'
+import OaInput from './OaInput'
 
 function ProcessView (props) {
     const { getTokenSilently, user } = useAuth0();
@@ -65,7 +65,7 @@ function ProcessView (props) {
               <div className='rightCol'>
                 <Switch>
                   <Route exact path='/admin/process'>
-                      <OaMetadata fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} />
+                      <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} saveOaObject={saveObjToCloud} />
                   </Route>
                   {/* <Route path='/admin/process/priorArt'>
                       <PriorArtSubview />
