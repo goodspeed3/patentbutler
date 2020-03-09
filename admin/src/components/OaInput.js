@@ -7,6 +7,10 @@ import Button from 'react-bootstrap/Button'
 function OaInput (props) {
   let { fileData, oaObject, setOaObject, saveOaObject } = props
   const [rejectionList, setRejectionList] = useState([])
+  const [applicationNumber, setApplicationNumber] = useState('')
+  const [attyDocket, setAttyDocket] = useState('')
+  const [mailingDate, setMailingDate] = useState('')
+  const [filingDate, setFilingDate] = useState('')
 
 
   const addRejection = () => {
@@ -14,39 +18,75 @@ function OaInput (props) {
   }
   const rejectionListElements = () => (
     rejectionList.map(rejection => (
-
+      <div />
     ))
     )
-  
+
+  const handleChange = (e) => {
+    const t = e.target
+    switch(t.name) {
+      case 'applicationNumber': 
+      //applicationnumber length needed for deletions
+        if (t.value.length === 2 && applicationNumber.length === 1)
+          t.value= t.value+'/'
+        if (t.value.length === 6 && applicationNumber.length === 5)
+          t.value= t.value+','
+        setApplicationNumber(t.value)
+        break;
+      case 'attyDocket':
+        setAttyDocket(t.value)
+        break;
+      case 'mailingDate':
+        if ((t.value.length === 2 && mailingDate.length === 1) || (t.value.length === 5 && mailingDate.length === 4))
+          t.value= t.value+'/'
+        setMailingDate(t.value)
+        break;
+      case 'filingDate':
+        if ((t.value.length === 2 && filingDate.length === 1) || (t.value.length === 5 && filingDate.length === 4))
+          t.value= t.value+'/'
+        setFilingDate(t.value)
+        break;
+      default: 
+        console.log('should not reach')
+    }
+  }
+  const handleSubmit = (e) => {
+    console.log(applicationNumber)
+    e.preventDefault()
+    e.stopPropagation();
+  }
+
 
     return <div className='formSubmission'>
-  <Form>
+  <Form onSubmit={handleSubmit}>
   <Form.Row>
   <Form.Group as={Col} controlId="formGridAppNo">
       <Form.Label>Application No</Form.Label>
-      <Form.Control type="text" placeholder="xx/yyy,yyy" />
+      <Form.Control name="applicationNumber" type="text" placeholder="xx/yyy,yyy" value={applicationNumber} onChange={handleChange} />
     </Form.Group>
     <Form.Group as={Col} controlId="formGridAttyDocket">
       <Form.Label>Attorney Docket</Form.Label>
-      <Form.Control type="text" placeholder="Enter docket" />
+      <Form.Control name="attyDocket" value={attyDocket} type="text" placeholder="Enter docket"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
 
   <Form.Row>
   <Form.Group as={Col} controlId="formGridMailDate">
       <Form.Label>Mail Date</Form.Label>
-      <Form.Control type="text" placeholder="MM/DD/YYYY" />
+      <Form.Control name="mailingDate" type="text" value={mailingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
     <Form.Group as={Col} controlId="formGridFileDate">
       <Form.Label>Filing Date</Form.Label>
-      <Form.Control type="text" placeholder="MM/DD/YYYY" />
+      <Form.Control name="filingDate" type="text" value={filingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
   {rejectionListElements()}
-  <Button variant="primary" onClick={addRejection}>
+  <Button variant="info" onClick={addRejection}>
     Add Rejection
   </Button>
-
+  <Button className='submitButton' variant="primary" type="submit">
+    Submit
+  </Button>
 
   {/* <Form.Group controlId="formGridAddress1">
     <Form.Label>Address</Form.Label>

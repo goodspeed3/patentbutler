@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import './process.css'
 import { Document, Page, pdfjs} from 'react-pdf'
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+pdfjs.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js'
 
 function PdfView (props) {
     // let { processedId, filename, user:email } = props.fileData

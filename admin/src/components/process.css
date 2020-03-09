@@ -117,3 +117,8 @@
 .formSubmission {
     padding: 1rem;
 }
+
+.submitButton {
+    display: block;
+    margin-top: 1rem;
+}
