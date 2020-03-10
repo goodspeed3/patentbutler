@@ -86,10 +86,14 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
 
 //download uploaded office action
 router.post('/downloadOa', checkJwt, upload.none(), async function(req, res, next) {
+
+
+
   var srcFilename = 'uploaded-office-actions/'+req.body.filename;
   var destFilename = './downloads/oa/' + req.body.filename;
 
-  await downloadFile(srcFilename, destFilename).catch(console.error);
+  //uncomment for prod!!
+  // await downloadFile(srcFilename, destFilename).catch(console.error);
 
   res.sendFile(path.join(__dirname, '../', destFilename))
 });

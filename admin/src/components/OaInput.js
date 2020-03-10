@@ -14,13 +14,117 @@ function OaInput (props) {
 
 
   const addRejection = () => {
+    const newRejection = {
+      type: 'unknown' + rejectionList.length,
+      typeText: '',
+      priorArtList: [],
+      claimArgumentList: [],
+      blurb: ''
+    }
+
+    rejectionList.push(newRejection)
+    //needs ... to trigger update of array
+    setRejectionList([...rejectionList])
+  }
+  const removeRejection = (index) => {
+    rejectionList.splice(index, 1)
+    //needs ... to trigger update of array
+    setRejectionList([...rejectionList])
+  }
+  const setRejType = (index, value) => {
+    rejectionList[index].type = value
+    setRejectionList([...rejectionList])
+  }
+  const setBlurb = (index, value) => {
+    rejectionList[index].blurb = value
+    setRejectionList([...rejectionList])
+  }
+
+
+  const rejectionListElements = () => {
+    return rejectionList.map((rejection, index) => {
+      let elements = (
+        <div key={"rej"+index}>
+        <Form.Row  >
+        <Form.Group as={Col} md={9} controlId={"formGridRejType"+index}>
+          <Form.Label>Rejection Type</Form.Label>
+          <Form.Control as="select" onChange={(e) => setRejType(index, e.target.value)} value={rejection.type}>
+            <option value='exrem'>Ex. Remarks</option>
+            <option value='101'>101</option>
+            <option value='112'>112</option>
+            <option value='102'>102</option>
+            <option value='103'>103</option>
+            <option value='other'>Other</option>
+
+          </Form.Control>
+        </Form.Group>
+        <Form.Group md={3} as={Col}>
+          <Button variant="warning" onClick={() => removeRejection(index)}>x</Button>
+        </Form.Group>
+        </Form.Row>
+        { rejection.type !== '102' && rejection.type !== '103' ? 
+        <Form.Group controlId={"formGridBlurb" + index}>
+          <Form.Label>Blurb</Form.Label>
+          <Form.Control as="textarea" rows="3" onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb} />
+        </Form.Group>
+        :
+        claimArgumentListElements(index)
+        }
+        </div>
+      );
+
+      return elements
+      
+    }
+    )
 
   }
-  const rejectionListElements = () => (
-    rejectionList.map(rejection => (
-      <div />
-    ))
-    )
+  const addClaimArgument = (rejectionIndex) => {
+    let rejection = rejectionList[rejectionIndex]
+    rejection.claimArgumentList.push({
+      number: 0, //elements where number is 0 will not be saved to server
+      snippetList: []
+    })
+    //needs a new object to trigger update of array
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+  }
+  const changeClaimArg = (rejectionIndex, claimArgIndex, value) => {
+    let rejection = rejectionList[rejectionIndex]
+    let claimArg = rejection.claimArgumentList[claimArgIndex]
+    claimArg.number = value;
+    //needs a new object to trigger update of array
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+  }
+
+
+  const claimArgumentListElements = (rejectionIndex) => {
+    let rejection = rejectionList[rejectionIndex]
+    if (rejection.claimArgumentList.length == 0) {
+      addClaimArgument(rejectionIndex)
+    }
+    return rejection.claimArgumentList.map((claimRejection, index) => {
+      // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
+      return (<div key={"claimRej"+index}>
+        <Form.Row  >
+        <Form.Group md={2} as={Col} controlId={"formGridClaimArg"+index}>
+          <Form.Label>Claim</Form.Label>
+          <Form.Control name={"claim"+index} type="text" value={claimRejection.number} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value)} />
+        </Form.Group>
+        <Form.Group as={Col} md={5} controlId={"formGridClaimSnippet"+index}>
+          <Form.Label>Claim Snippet</Form.Label>
+          <Form.Control as="textarea" rows="2" />
+        </Form.Group>
+        <Form.Group md={4} as={Col} controlId={"formGridExRemSnippet"+index}>
+          <Form.Label>Examiner Remarks</Form.Label>
+          <Form.Control as="textarea" rows="2" />
+        </Form.Group>
+        <Form.Group md={1} as={Col}>
+          <Button variant="outline-success" hidden={index !== rejection.claimArgumentList.length - 1 ? true : false} onClick={() => addClaimArgument(rejectionIndex)}>+</Button>
+        </Form.Group>
+        </Form.Row>
+      </div>)
+    })
+  }
 
   const handleChange = (e) => {
     const t = e.target
@@ -51,7 +155,7 @@ function OaInput (props) {
     }
   }
   const handleSubmit = (e) => {
-    console.log(applicationNumber)
+    console.log("submitting")
     e.preventDefault()
     e.stopPropagation();
   }
