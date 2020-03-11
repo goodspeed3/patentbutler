@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import './process.css'
 import Form from 'react-bootstrap/Form'
 import Col from 'react-bootstrap/Col'
-
+import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 function OaInput (props) {
   let { fileData, oaObject, setOaObject, saveOaObject } = props
@@ -11,6 +11,10 @@ function OaInput (props) {
   const [attyDocket, setAttyDocket] = useState('')
   const [mailingDate, setMailingDate] = useState('')
   const [filingDate, setFilingDate] = useState('')
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
 
 
   const addRejection = () => {
@@ -47,8 +51,8 @@ function OaInput (props) {
         <div key={"rej"+index}>
         <Form.Row  >
         <Form.Group as={Col} md={9} controlId={"formGridRejType"+index}>
-          <Form.Label>Rejection Type</Form.Label>
-          <Form.Control as="select" onChange={(e) => setRejType(index, e.target.value)} value={rejection.type}>
+          <Form.Label><b>Rejection Type</b></Form.Label>
+          <Form.Control size='sm' as="select" onChange={(e) => setRejType(index, e.target.value)} value={rejection.type}>
             <option value='exrem'>Ex. Remarks</option>
             <option value='101'>101</option>
             <option value='112'>112</option>
@@ -59,7 +63,7 @@ function OaInput (props) {
           </Form.Control>
         </Form.Group>
         <Form.Group md={3} as={Col}>
-          <Button variant="warning" onClick={() => removeRejection(index)}>x</Button>
+          <Button size='sm' variant="warning" onClick={() => removeRejection(index)}>x</Button>
         </Form.Group>
         </Form.Row>
         { rejection.type !== '102' && rejection.type !== '103' ? 
@@ -79,19 +83,29 @@ function OaInput (props) {
     )
 
   }
+  const removeClaimArgument = (rejectionIndex, claimArgIndex) => {
+    let rejection = rejectionList[rejectionIndex]
+    rejection.claimArgumentList.splice(claimArgIndex, 1)
+    
+    //needs a new object to trigger update of array
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+  }
+  
   const addClaimArgument = (rejectionIndex) => {
     let rejection = rejectionList[rejectionIndex]
     rejection.claimArgumentList.push({
-      number: 0, //elements where number is 0 will not be saved to server
-      snippetList: []
+      number: '', //elements where number is '' will not be saved to server
+      snippetText: '', //onsubmit, will convert all snippets into snippetList, kept in this form for now due to ease of removal / addition
+      examinerText: '',
+      citationList: []
     })
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
   }
-  const changeClaimArg = (rejectionIndex, claimArgIndex, value) => {
+  const changeClaimArg = (rejectionIndex, claimArgIndex, value, field) => {
     let rejection = rejectionList[rejectionIndex]
     let claimArg = rejection.claimArgumentList[claimArgIndex]
-    claimArg.number = value;
+    claimArg[field] = value;
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
   }
@@ -99,32 +113,84 @@ function OaInput (props) {
 
   const claimArgumentListElements = (rejectionIndex) => {
     let rejection = rejectionList[rejectionIndex]
-    if (rejection.claimArgumentList.length == 0) {
+    if (rejection.claimArgumentList.length === 0) {
       addClaimArgument(rejectionIndex)
     }
     return rejection.claimArgumentList.map((claimRejection, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
       return (<div key={"claimRej"+index}>
         <Form.Row  >
-        <Form.Group md={2} as={Col} controlId={"formGridClaimArg"+index}>
+        <Form.Group md={1} as={Col} controlId={"formGridClaimArg"+index}>
           <Form.Label>Claim</Form.Label>
-          <Form.Control name={"claim"+index} type="text" value={claimRejection.number} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value)} />
+          <Form.Control size='sm' name={"claim"+index} type="text" value={claimRejection.number} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'number')} />
         </Form.Group>
         <Form.Group as={Col} md={5} controlId={"formGridClaimSnippet"+index}>
           <Form.Label>Claim Snippet</Form.Label>
-          <Form.Control as="textarea" rows="2" />
+          <Form.Control size='sm' as="textarea" rows="2" value={claimRejection.snippetText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'snippetText')} />
         </Form.Group>
         <Form.Group md={4} as={Col} controlId={"formGridExRemSnippet"+index}>
           <Form.Label>Examiner Remarks</Form.Label>
-          <Form.Control as="textarea" rows="2" />
+          <Form.Control size='sm' as="textarea" rows="2"  value={claimRejection.examinerText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'examinerText')} />
         </Form.Group>
-        <Form.Group md={1} as={Col}>
-          <Button variant="outline-success" hidden={index !== rejection.claimArgumentList.length - 1 ? true : false} onClick={() => addClaimArgument(rejectionIndex)}>+</Button>
+        <Form.Group md={2} as={Col}>
+          <Button size='sm' variant={index !== rejection.claimArgumentList.length - 1 ? "outline-danger" : "outline-success"} onClick={index !== rejection.claimArgumentList.length - 1 ? () => removeClaimArgument(rejectionIndex, index) : () => addClaimArgument(rejectionIndex)}>{index !== rejection.claimArgumentList.length - 1 ? '-Snip' : '+Snip'}</Button>
         </Form.Group>
         </Form.Row>
+        {citationListElements(rejectionIndex, index)}
+                
       </div>)
     })
   }
+  const addCitation = (rejectionIndex, claimArgIndex) => {
+    let rejection = rejectionList[rejectionIndex]
+    rejection.claimArgumentList[claimArgIndex].citationList.push({
+      citation: '',  //empty citations will be ignored by server
+      publicationNumber: ''
+    })
+    //needs a new object to trigger update of array
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+  }
+  const removeCitation = (rejectionIndex, claimArgIndex, citationIndex) => {
+    let citationList = rejectionList[rejectionIndex].claimArgumentList[claimArgIndex].citationList
+    citationList.splice(citationIndex, 1)
+    
+    //needs a new object to trigger update of array
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+  }
+
+  const changeCitation = (rejectionIndex, claimArgIndex, citationIndex, value, field) => {
+    let rejection = rejectionList[rejectionIndex]
+    let ciationObj = rejection.claimArgumentList[claimArgIndex].citationList[citationIndex]
+    ciationObj[field] = value;
+    //needs a new object to trigger update of array
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+  }
+
+const citationListElements = (rejectionIndex, claimArgIndex) => {
+    let rejection = rejectionList[rejectionIndex]
+    if (rejection.claimArgumentList[claimArgIndex].citationList.length === 0) {
+      addCitation(rejectionIndex, claimArgIndex)
+    }
+    return rejection.claimArgumentList[claimArgIndex].citationList.map((citation, index) => {
+      // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
+      return (<div key={"cit"+claimArgIndex+index}>
+        <Form.Row  >
+        <Form.Group as={Col} controlId={"formGridCitation"+claimArgIndex+index}>
+          <Form.Label>Citation</Form.Label>
+          <Form.Control size='sm' md={6} type="text" placeholder="citation should match text in ex remark" value={citation.citation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'citation')} />
+        </Form.Group>
+        <Form.Group md={4} as={Col} controlId={"formGridPubNum"+claimArgIndex+index}>
+          <Form.Label>Publication Number</Form.Label>
+          <Form.Control size='sm' type="text"  value={citation.publicationNumber} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'publicationNumber')} />
+        </Form.Group>
+        <Form.Group md={2} as={Col}>
+          <Button size='sm' variant={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? "outline-danger" : "outline-success"} onClick={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? () => removeCitation(rejectionIndex, claimArgIndex, index) : () => addCitation(rejectionIndex, claimArgIndex)}>{index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? '-Cit' : '+Cit'}</Button>
+        </Form.Group>
+        </Form.Row>
+                
+      </div>)
+    })
+  }  
 
   const handleChange = (e) => {
     const t = e.target
@@ -155,33 +221,35 @@ function OaInput (props) {
     }
   }
   const handleSubmit = (e) => {
-    console.log("submitting")
+    setShow(true)
     e.preventDefault()
     e.stopPropagation();
   }
 
-
+  const finalizeRejectionList = () => {
+    return JSON.stringify(rejectionList, null, 2)
+  }
     return <div className='formSubmission'>
   <Form onSubmit={handleSubmit}>
   <Form.Row>
   <Form.Group as={Col} controlId="formGridAppNo">
       <Form.Label>Application No</Form.Label>
-      <Form.Control name="applicationNumber" type="text" placeholder="xx/yyy,yyy" value={applicationNumber} onChange={handleChange} />
+      <Form.Control size='sm' name="applicationNumber" type="text" placeholder="xx/yyy,yyy" value={applicationNumber} onChange={handleChange} />
     </Form.Group>
     <Form.Group as={Col} controlId="formGridAttyDocket">
       <Form.Label>Attorney Docket</Form.Label>
-      <Form.Control name="attyDocket" value={attyDocket} type="text" placeholder="Enter docket"  onChange={handleChange} />
+      <Form.Control size='sm' name="attyDocket" value={attyDocket} type="text" placeholder="Enter docket"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
 
   <Form.Row>
   <Form.Group as={Col} controlId="formGridMailDate">
       <Form.Label>Mail Date</Form.Label>
-      <Form.Control name="mailingDate" type="text" value={mailingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
+      <Form.Control size='sm' name="mailingDate" type="text" value={mailingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
     <Form.Group as={Col} controlId="formGridFileDate">
       <Form.Label>Filing Date</Form.Label>
-      <Form.Control name="filingDate" type="text" value={filingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
+      <Form.Control size='sm' name="filingDate" type="text" value={filingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
   {rejectionListElements()}
@@ -191,42 +259,22 @@ function OaInput (props) {
   <Button className='submitButton' variant="primary" type="submit">
     Submit
   </Button>
+</Form>
+  <Modal show={show} onHide={handleClose}>
+    <Modal.Header closeButton>
+      <Modal.Title>Double-check</Modal.Title>
+    </Modal.Header>
+    <Modal.Body><pre>{finalizeRejectionList()}</pre></Modal.Body>
+    <Modal.Footer>
+      <Button variant="secondary" onClick={handleClose}>
+        Close
+      </Button>
+      <Button variant="primary" onClick={handleClose}>
+        Save Changes
+      </Button>
+    </Modal.Footer>
+  </Modal>
 
-  {/* <Form.Group controlId="formGridAddress1">
-    <Form.Label>Address</Form.Label>
-    <Form.Control placeholder="1234 Main St" />
-  </Form.Group>
-
-  <Form.Group controlId="formGridAddress2">
-    <Form.Label>Address 2</Form.Label>
-    <Form.Control placeholder="Apartment, studio, or floor" />
-  </Form.Group>
-
-  <Form.Row>
-    <Form.Group as={Col} controlId="formGridCity">
-      <Form.Label>City</Form.Label>
-      <Form.Control />
-    </Form.Group>
-
-    <Form.Group as={Col} controlId="formGridState">
-      <Form.Label>State</Form.Label>
-      <Form.Control as="select">
-        <option>Choose...</option>
-        <option>...</option>
-      </Form.Control>
-    </Form.Group>
-
-    <Form.Group as={Col} controlId="formGridZip">
-      <Form.Label>Zip</Form.Label>
-      <Form.Control />
-    </Form.Group>
-  </Form.Row>
-
-  <Form.Group id="formGridCheckbox">
-    <Form.Check type="checkbox" label="Check me out" />
-  </Form.Group> */}
-
-</Form>   
  </div>
 }
 
