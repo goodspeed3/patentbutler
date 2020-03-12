@@ -4,8 +4,6 @@ var multer = require('multer');
 const crypto = require('crypto');
 var path = require('path');
 
-//MAKE SURE artUploads EXISTS ON THE SERVER
-
 var mStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads/art/')
@@ -116,8 +114,15 @@ async function downloadFile(src, dest) {
 }
 
 router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, next) {
-  console.log(JSON.parse(req.body.oaObject))
-  res.json({done: "done"})
+  const oaObject = JSON.parse(req.body.oaObject);
+  var entity = {
+    key: datastore.key(['processedOa', oaObject.filename]),
+    data: oaObject
+  }
+
+  await datastore.upsert(entity)
+  
+  res.json(oaObject)
   // var srcFilename = 'uploaded-office-actions/'+req.body.filename;
   // var destFilename = './downloads/oa/' + req.body.filename;
 

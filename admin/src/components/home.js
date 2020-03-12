@@ -36,7 +36,7 @@ function HomeView () {
                 state: processedOaEntity
             }
 
-        return <div key={processedOaEntity.finishedProcessingTime}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attorneyDocket}</Link> for {processedOaEntity.user} </div>
+        return <div key={processedOaEntity.finishedProcessingTime}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attyDocket}</Link> for {processedOaEntity.user} </div>
         })}
     </div>
 
@@ -61,7 +61,6 @@ function HomeView () {
             let linkWithState = {
                 pathname: '/admin/process',
                 state: {
-                    processedId: 'none',
                     ...processingEntity
                 }
             }

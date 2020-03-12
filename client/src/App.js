@@ -5,7 +5,6 @@ import logo from './img/logo.svg'
 import './App.css';
 import OaOverview from './components/OaOverview';
 import HomeView from './components/HomeView';
-import ProfileView from './components/ProfileView';
 // import history from "./utils/history";
 import PrivateRoute from "./components/PrivateRoute";
 import Button from 'react-bootstrap/Button'

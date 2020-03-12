@@ -4,7 +4,7 @@ import { Document, Page, pdfjs} from 'react-pdf'
 pdfjs.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js'
 
 function PdfView (props) {
-    // let { processedId, filename, user:email } = props.fileData
+    // let { filename, user:email } = props.fileData
     const [scale, setScale] = useState(1.0)
     const [fitScale, setFitScale] = useState(1.0)
     const [isScaleLocked, setIsScaleLocked] = useState(false)

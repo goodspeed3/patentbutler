@@ -102,7 +102,7 @@ const insertOaObject = oaObject => {
   console.log("saving to datastore: ")
   console.log(oaObject);
   return datastore.save({
-    key: datastore.key('oaUpload'),
+    key: datastore.key(['oaUpload', oaObject.filename]),
     data: oaObject,
   });
 };

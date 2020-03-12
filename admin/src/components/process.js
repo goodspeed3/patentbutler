@@ -14,16 +14,13 @@ function ProcessView (props) {
     const [panePosition, setPanePosition] = useState('60%')
     const [oaObject, setOaObject] = useState({})
 
-    let { processedId, filename, user:email } = props.location.state
+    let { filename, user:email } = props.location.state
 
     useEffect(() => {
-        if (!user || !filename || !email || !processedId) {
+        if (!user || !filename || !email ) {
             return
         }
         var formData = new FormData();
-        if (processedId !== 'none') {
-            formData.append('processedId', processedId);
-        }
         formData.append('filename', filename);
         formData.append('email', email);
        
@@ -32,7 +29,13 @@ function ProcessView (props) {
         .then(res => {
             setDownloadedData(res)
         })
-      }, [user, getTokenSilently, processedId, filename, email]);
+      }, [user, getTokenSilently, filename, email]);
+
+    useEffect(() => {
+        if (oaObject.attyDocket) {
+            saveObjToCloud()
+        }
+    }, [oaObject])
     const handlePane = (val) => {
         // localStorage.setItem('splitPos', size)
     
@@ -40,7 +43,7 @@ function ProcessView (props) {
       }
     const saveObjToCloud = () => {
         var formData = new FormData();
-        formData.append('oaObj', JSON.stringify(oaObject))
+        formData.append('oaObject', JSON.stringify(oaObject))
         AuthApi('/adminApi/saveOaObject', getTokenSilently, formData)
         .then(res => {
             console.log(res)
@@ -65,7 +68,7 @@ function ProcessView (props) {
               <div className='rightCol'>
                 <Switch>
                   <Route exact path='/admin/process'>
-                      <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} saveOaObject={saveObjToCloud} />
+                      <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} />
                   </Route>
                   {/* <Route path='/admin/process/priorArt'>
                       <PriorArtSubview />
