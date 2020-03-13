@@ -92,20 +92,14 @@ function PdfView (props) {
       }
 
       const toggleElements = () => {
-          //FOR TESTING ONLY, SWITCH LATER!!!!
-          let shouldEnablePriorArtButton = showPriorArt
-
-          //USE THIS IN PROD
-        //   let shouldEnablePriorArtButton = Object.keys(oaObject).length==0 || showPriorArt
-
           return (
             <span>
                 <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
-                <button type="button" disabled={shouldEnablePriorArtButton} onClick={() => setShowPriorArt(true)}>Prior Art</button>
+                <button type="button" disabled={showPriorArt} onClick={() => setShowPriorArt(true)}>Prior Art</button>
                 {
                     priorArtList.files && priorArtList.files.length > 0 &&
                     <>
-                        &nbsp; | &nbsp;
+                        &nbsp; 
                         <select onChange={(e) => {setShowPriorArt(true); setPaToLoad(parseInt(e.target.value))}}>
                             {priorArtList.files.map((paFile, index) => <option key={paFile.filename} value={index}>{paFile.originalname}</option>)}
                         </select>

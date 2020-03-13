@@ -146,7 +146,7 @@ function OaInput (props) {
     }
     return rejection.claimArgumentList.map((claimRejection, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
-      return (<div key={"claimRej"+index+claimRejection.snippetText}>
+      return (<div key={"claimRej"+index}>
         <Form.Row  >
         <Form.Group md={1} as={Col} >
           <Form.Label>Claim</Form.Label>
@@ -220,7 +220,7 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
     }
     return rejection.claimArgumentList[claimArgIndex].citationList.map((citation, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
-      return (<div key={"cit"+claimArgIndex+index+citation.citation}>
+      return (<div key={"cit"+claimArgIndex+index}>
         <Form.Row  >
         <Form.Group as={Col} md={1} >
         </Form.Group>
@@ -274,6 +274,7 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
     }
   }
   const handleSubmit = (e) => {
+    console.log(rejectionList)
     const form = e.currentTarget;
     if (form.checkValidity() === false) {
       e.preventDefault();
@@ -304,7 +305,6 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
 
   const saveOaObj = () => {
     setOaObject(finalizedOaObject)
-    setShowPriorArt(true)
     handleClose()
   }
 
@@ -329,7 +329,7 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
       {priorArtList.files.map((paFile, index) =>
         <div key={paFile.filename}>
           <Form.Row>
-          <Form.Label><b>{paFile.originalname}</b></Form.Label>
+          <Form.Label style={{marginTop: '1rem'}}><b>{paFile.originalname}</b></Form.Label>
           </Form.Row>
           <Form.Row>
           <Form.Group as={Col}>
@@ -387,19 +387,18 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
   <Button variant="info" onClick={addRejection}>
     Add Rejection
   </Button>
-  { (showPriorArt || (priorArtList.files && priorArtList.files.length >0)) &&  
-        <><hr /><div className='paUpload'>Upload Cited Art: &nbsp;
-          <Form.Group >
-          <Form.Control
-              type="file"
-              onChange={handlePaUpload}
-              accept=".pdf"
-              multiple
-          />
-          </Form.Group>
-        { showLoading ? <Spinner animation="border" /> : null}
-        </div>  </>
-  }
+  <hr />
+  <div className='paUpload'>Upload Cited Art: &nbsp;
+    <Form.Group >
+    <Form.Control
+        type="file"
+        onChange={handlePaUpload}
+        accept=".pdf"
+        multiple
+    />
+    </Form.Group>
+  { showLoading ? <Spinner animation="border" /> : null}
+  </div>  
   {showPriorArtElements()}
   <Button className='submitButton' variant="primary" type="submit">
     Save
