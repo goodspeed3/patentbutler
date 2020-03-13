@@ -19,17 +19,17 @@
     top: 0rem;
     background-color: #E7F3FC;
     z-index: 101;
-    opacity: 0;
+    opacity: 1;
     padding: 1rem;
     border-radius: 10px;
 }
-.subviewHeader:hover {
+/* .subviewHeader:hover {
     opacity: 1;
     transition: opacity .25s ease-in-out;
     -moz-transition: opacity .25s ease-in-out;
     -webkit-transition: opacity .25s ease-in-out;
   
-}
+} */
 .pageMetadata {
     color: gray;
     margin-bottom: 0.8rem;

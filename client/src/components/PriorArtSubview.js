@@ -289,7 +289,7 @@ class PriorArtSubview extends Component {
       <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
         <div className="pageMetadata"><Link to="/view">Prior Art Overview</Link>
-     &nbsp;/ {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber}, Priority Date: {this.state.priorArt.priorityDate} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
+     &nbsp;| {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber}, Priority Date: {this.state.priorArt.priorityDate} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
           <div>
             <input type="text" size={5} placeholder='Page #' onChange={this.handlePageEntry}/>
             <button

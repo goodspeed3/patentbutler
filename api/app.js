@@ -35,13 +35,18 @@ app.use(function(err, req, res, next) {
 
   next(err, req, res);
 });
-
 app.use('/adminApi', adminApiRouter)
 app.use('/api', apiRouter)
 
 app.get('/admin/*', (req, res) => {
   res.sendFile(path.join(__dirname + './admin-build/index.html'))
 })
+
+//server PA for admin
+app.get('/files/:type/:filename', (req, res) => {
+  res.sendFile(path.join(__dirname, './files/' + req.params.type + '/' + req.params.filename))
+})
+
 
 app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, './client-build/index.html'));

@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import './process.css'
 import AuthApi from './AuthApi'
 import { useAuth0 } from "../react-auth0-spa";
-import {Switch, Route} from 'react-router-dom'
+// import {Switch, Route} from 'react-router-dom'
 import Spinner from 'react-bootstrap/Spinner'
 import SplitPane from 'react-split-pane';
 import PdfView from './PdfView'
@@ -13,6 +13,8 @@ function ProcessView (props) {
     const [downloadedData, setDownloadedData] = useState(null)
     const [panePosition, setPanePosition] = useState('60%')
     const [oaObject, setOaObject] = useState({})
+    const [showPriorArt, setShowPriorArt] = useState(false)
+    const [priorArtList, setPriorArtList] = useState([])
 
     let { filename, user:email } = props.location.state
 
@@ -33,22 +35,23 @@ function ProcessView (props) {
 
     useEffect(() => {
         if (oaObject.attyDocket) {
-            saveObjToCloud()
+            var formData = new FormData();
+            formData.append('oaObject', JSON.stringify(oaObject))
+            return AuthApi('/adminApi/saveOaObject', getTokenSilently, formData)
         }
-    }, [oaObject])
+    }, [oaObject, getTokenSilently])
     const handlePane = (val) => {
         // localStorage.setItem('splitPos', size)
     
         setPanePosition(val)
       }
-    const saveObjToCloud = () => {
-        var formData = new FormData();
-        formData.append('oaObject', JSON.stringify(oaObject))
-        AuthApi('/adminApi/saveOaObject', getTokenSilently, formData)
-        .then(res => {
-            console.log(res)
-        })
+
+    const savePaToCloud = (formData) => {
+        // formData.append('paObject', JSON.stringify(oaObject))
+        return AuthApi('/adminApi/uploadPa', getTokenSilently, formData)
+
     }
+
 
     var elementsToShow = <div />;
     if (user && downloadedData) {
@@ -63,17 +66,10 @@ function ProcessView (props) {
               minSize={500}
             >
               <div className='leftCol'>
-                <PdfView downloadedData={downloadedData} fileData={props.location.state} panePosition={panePosition}/>
+                  <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} showPriorArt={showPriorArt} setShowPriorArt={setShowPriorArt} savePaToCloud={(formData) => savePaToCloud(formData)} priorArtList={priorArtList} setPriorArtList={setPriorArtList} />
               </div>
               <div className='rightCol'>
-                <Switch>
-                  <Route exact path='/admin/process'>
-                      <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} />
-                  </Route>
-                  {/* <Route path='/admin/process/priorArt'>
-                      <PriorArtSubview />
-                  </Route> */}
-                </Switch>
+                  <PdfView downloadedData={downloadedData} fileData={props.location.state} panePosition={panePosition} setShowPriorArt={setShowPriorArt} showPriorArt={showPriorArt} priorArtList={priorArtList} oaObject={oaObject} setOaObject={setOaObject}  />
               </div> 
             </SplitPane>
         </div>

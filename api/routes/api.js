@@ -46,7 +46,7 @@ const checkJwt = jwt({
 //MAKE SURE oaUploads EXISTS ON THE SERVER
 var mStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads/oa/')
+    cb(null, './files/oa/')
   },
   filename: function (req, file, cb) {
     crypto.pseudoRandomBytes(16, function (err, raw) {
@@ -58,10 +58,11 @@ var mStorage = multer.diskStorage({
 const upload = multer({ storage: mStorage });
 /* POST upload OA. */
 router.post('/upload', checkJwt, upload.single('file'), async function(req, res, next) {
-  console.log('----uploading----')
-  console.log(req.file.destination + req.file.filename)
+  console.log('----uploaded oa----')
+  // console.log(req.file.destination + req.file.filename)
   let results = await Promise.all([
-    uploadFile(req.file.destination, req.file.filename),
+    // do not upload to google for now
+    // uploadFileToGoogle(req.file.destination, req.file.filename),
     insertOaObject({
       user: req.body.userEmail,
       filename: req.file.filename,
@@ -74,7 +75,7 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
 });
 
 
-function uploadFile(path, filename) {
+function uploadFileToGoogle(path, filename) {
   console.log(`${filename} uploading to ${bucketName}.`);
   // Uploads a local file to the bucket
   return storage.bucket(bucketName).upload(path + filename, {

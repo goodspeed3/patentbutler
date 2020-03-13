@@ -1,4 +1,4 @@
-import React, {useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Switch, Link } from 'react-router-dom';
 import Navbar from 'react-bootstrap/Navbar';
 import logo from './img/logo.svg'
@@ -11,10 +11,6 @@ import { useAuth0 } from "./react-auth0-spa";
 
 function App() {
   const { isAuthenticated, loading, loginWithRedirect, logout, user } = useAuth0();
-
-  useEffect(() => {
-
-  }, [isAuthenticated]);
 
   var component = <div />;
   if (isAuthenticated && !loading) {

@@ -1,16 +1,22 @@
 import React, {useState, useEffect} from 'react';
 import './process.css'
 import { Document, Page, pdfjs} from 'react-pdf'
+
 pdfjs.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js'
 
 function PdfView (props) {
-    // let { filename, user:email } = props.fileData
+    let { fileData, oaObject, setOaObject, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList } = props
+    let { filename, user:email } = fileData
+
     const [scale, setScale] = useState(1.0)
     const [fitScale, setFitScale] = useState(1.0)
     const [isScaleLocked, setIsScaleLocked] = useState(false)
     const [numPages, setNumPages] = useState(null)
     const [originalPageWidth, setOriginalPageWidth] = useState(null)
     const [pageNumber, setPageNumber] = useState(1)
+    const [paToLoad, setPaToLoad] = useState(0)
+    const [pdfToLoad, setPdfToLoad] = useState(null)
+
 
     useEffect(() => {
         if (!isScaleLocked && originalPageWidth != null) {
@@ -22,7 +28,16 @@ function PdfView (props) {
             setScale(pageScale)
             setFitScale(pageScale)
           }    
-    }, [isScaleLocked, originalPageWidth, props.panePosition])
+    }, [isScaleLocked, originalPageWidth, panePosition])
+
+    useEffect(() => {
+        if (showPriorArt && priorArtList.files && priorArtList.files.length > 0) {
+            setPdfToLoad('/' + priorArtList.files[paToLoad].path)
+        } else {
+            setPdfToLoad(downloadedData)
+        }
+      }, [showPriorArt, paToLoad, pdfToLoad,downloadedData, priorArtList])
+
     const removeTextLayerOffset = () => {
         const textLayers = document.querySelectorAll(".react-pdf__Page__textContent");
           textLayers.forEach(layer => {
@@ -75,11 +90,35 @@ function PdfView (props) {
       const onRenderSuccessHandler = () => {
         removeTextLayerOffset()
       }
-    
+
+      const toggleElements = () => {
+          //FOR TESTING ONLY, SWITCH LATER!!!!
+          let shouldEnablePriorArtButton = showPriorArt
+
+          //USE THIS IN PROD
+        //   let shouldEnablePriorArtButton = Object.keys(oaObject).length==0 || showPriorArt
+
+          return (
+            <span>
+                <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
+                <button type="button" disabled={shouldEnablePriorArtButton} onClick={() => setShowPriorArt(true)}>Prior Art</button>
+                {
+                    priorArtList.files && priorArtList.files.length > 0 &&
+                    <>
+                        &nbsp; | &nbsp;
+                        <select onChange={(e) => {setShowPriorArt(true); setPaToLoad(parseInt(e.target.value))}}>
+                            {priorArtList.files.map((paFile, index) => <option key={paFile.filename} value={index}>{paFile.originalname}</option>)}
+                        </select>
+                    </>
+                }
+            </span>
+          )
+      }
+
     return (
         <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
-        <div className="pageMetadata">Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}</div>
+        <div className="pageMetadata">{toggleElements()}</div>
           <div>
             <input type="text" size={5} placeholder='Page #' onChange={handlePageEntry}/>
             <button
@@ -109,12 +148,12 @@ function PdfView (props) {
               onClick={zoomOut}
             >
               Smaller
-            </button>        
+            </button>     | Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}   
           </div>      
         </div> 
         <div className='pdfDiv' id="pdfDiv" >
           <Document
-            file={props.downloadedData}
+            file={pdfToLoad}
             cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
             cMapPacked={true}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -129,7 +168,9 @@ function PdfView (props) {
             />
           </Document>    
           
-    </div></div>
+        </div>
+        
+    </div>
     )
 }
 

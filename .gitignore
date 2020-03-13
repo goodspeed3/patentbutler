@@ -15,10 +15,8 @@
 /api/admin-build
 
 # files
-/api/uploads/art/*.pdf
-/api/uploads/oa/*.pdf
-/api/downloads/art/*.pdf
-/api/downloads/oa/*.pdf
+/api/files/art/*.pdf
+/api/files/oa/*.pdf
 
 #admin
 /admin/node_modules

@@ -1,11 +1,13 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import './process.css'
 import Form from 'react-bootstrap/Form'
 import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
+import Spinner from 'react-bootstrap/Spinner'
+
 function OaInput (props) {
-  let { fileData, oaObject, setOaObject } = props
+  let { fileData, oaObject, setOaObject, showPriorArt, setShowPriorArt, savePaToCloud, priorArtList, setPriorArtList } = props
   let { filename, user:email } = fileData
   var finalizedOaObject;
   const [rejectionList, setRejectionList] = useState([])
@@ -15,6 +17,8 @@ function OaInput (props) {
   const [filingDate, setFilingDate] = useState('')
   const [show, setShow] = useState(false);
   const [validated, setValidated] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
+  const [uniquePubNumList, setUniquePubNumList] = useState([]);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -24,7 +28,6 @@ function OaInput (props) {
     const newRejection = {
       type: 'exrem', //it's the first default rejection
       typeText: 'Examiner Remarks',
-      priorArtList: [],
       claimArgumentList: [],
       blurb: ''
     }
@@ -75,9 +78,9 @@ function OaInput (props) {
       let elements = (
         <div key={"rej"+index}>
         <Form.Row  >
-        <Form.Group as={Col} md={9} controlId={"formGridRejType"+index}>
-          <Form.Label><b>Rejection Type</b></Form.Label>
-          <Form.Control size='sm' as="select" onChange={(e) => setRejType(index, e.target.value)} value={rejection.type}>
+          <Form.Group as={Col} md={2}><Form.Label><b>Rejection Type:</b></Form.Label></Form.Group>
+        <Form.Group as={Col} md={2}>
+        <Form.Control size='sm' as="select" onChange={(e) => setRejType(index, e.target.value)} value={rejection.type}>
             <option value='exrem'>Ex. Remarks</option>
             <option value='101'>101</option>
             <option value='112'>112</option>
@@ -88,11 +91,11 @@ function OaInput (props) {
           </Form.Control>
         </Form.Group>
         <Form.Group md={3} as={Col}>
-          <Button size='sm' variant="warning" onClick={() => removeRejection(index)}>x</Button>
+          <Button size='sm' variant="warning" onClick={() => removeRejection(index)}>Remove</Button>
         </Form.Group>
         </Form.Row>
         { rejection.type !== '102' && rejection.type !== '103' ? 
-        <Form.Group controlId={"formGridBlurb" + index}>
+        <Form.Group >
           <Form.Label>Blurb</Form.Label>
           <Form.Control required as="textarea" rows="3" onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb} />
         </Form.Group>
@@ -143,17 +146,17 @@ function OaInput (props) {
     }
     return rejection.claimArgumentList.map((claimRejection, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
-      return (<div key={"claimRej"+index}>
+      return (<div key={"claimRej"+index+claimRejection.snippetText}>
         <Form.Row  >
-        <Form.Group md={1} as={Col} controlId={"formGridClaimArg"+index}>
+        <Form.Group md={1} as={Col} >
           <Form.Label>Claim</Form.Label>
           <Form.Control required size='sm' name={"claim"+index} type="text" value={claimRejection.number} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'number')} />
         </Form.Group>
-        <Form.Group as={Col} md={5} controlId={"formGridClaimSnippet"+index}>
+        <Form.Group as={Col} md={5} >
           <Form.Label>Claim Snippet</Form.Label>
           <Form.Control required size='sm' as="textarea" rows="2" value={claimRejection.snippetText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'snippetText')} />
         </Form.Group>
-        <Form.Group md={4} as={Col} controlId={"formGridExRemSnippet"+index}>
+        <Form.Group md={4} as={Col} >
           <Form.Label>Examiner Remarks</Form.Label>
           <Form.Control required size='sm' as="textarea" rows="2"  value={claimRejection.examinerText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'examinerText')} />
         </Form.Group>
@@ -166,11 +169,11 @@ function OaInput (props) {
       </div>)
     })
   }
-  const addCitation = (rejectionIndex, claimArgIndex) => {
+  const addCitation = (rejectionIndex, claimArgIndex, prevPubNum = '') => {
     let rejection = rejectionList[rejectionIndex]
     rejection.claimArgumentList[claimArgIndex].citationList.push({
       citation: '',  //empty citations will be ignored by server
-      publicationNumber: ''
+      publicationNumber: prevPubNum
     })
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
@@ -185,10 +188,29 @@ function OaInput (props) {
 
   const changeCitation = (rejectionIndex, claimArgIndex, citationIndex, value, field) => {
     let rejection = rejectionList[rejectionIndex]
-    let ciationObj = rejection.claimArgumentList[claimArgIndex].citationList[citationIndex]
-    ciationObj[field] = value;
+    let citationObj = rejection.claimArgumentList[claimArgIndex].citationList[citationIndex]
+    citationObj[field] = value;
+
+    
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+  }
+
+  const handleUniquePubNums = (e) => {
+    const newUniquePubNumList =[]
+    for (var i=0; i<rejectionList.length; i++) {
+      const rejection = rejectionList[i]
+      if (!rejection.claimArgumentList) continue
+      for (var j=0; j<rejection.claimArgumentList.length; j++) {
+        const claimArgument = rejection.claimArgumentList[j]
+        if (!claimArgument.citationList) continue
+        for (var k=0; k<claimArgument.citationList.length; k++) {
+          const pubNum = claimArgument.citationList[k].publicationNumber
+          newUniquePubNumList.push(pubNum)
+        }
+      }
+    }
+    setUniquePubNumList(newUniquePubNumList)
   }
 
 const citationListElements = (rejectionIndex, claimArgIndex) => {
@@ -198,20 +220,20 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
     }
     return rejection.claimArgumentList[claimArgIndex].citationList.map((citation, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
-      return (<div key={"cit"+claimArgIndex+index}>
+      return (<div key={"cit"+claimArgIndex+index+citation.citation}>
         <Form.Row  >
-        <Form.Group as={Col} md={1} controlId={"formGridCitation"+claimArgIndex+index}>
+        <Form.Group as={Col} md={1} >
         </Form.Group>
-        <Form.Group as={Col} md={5} controlId={"formGridCitation"+claimArgIndex+index}>
+        <Form.Group as={Col} md={5} >
           <Form.Label>Citation</Form.Label>
           <Form.Control required size='sm' type="text" placeholder="citation should match text in ex remark" value={citation.citation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'citation')} />
         </Form.Group>
-        <Form.Group md={4} as={Col} controlId={"formGridPubNum"+claimArgIndex+index}>
+        <Form.Group md={4} as={Col} >
           <Form.Label>Publication Number</Form.Label>
-          <Form.Control required size='sm' type="text"  value={citation.publicationNumber} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'publicationNumber')} />
+          <Form.Control required size='sm' type="text" placeholder="USxxxxxxxxxxx" value={citation.publicationNumber} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'publicationNumber')} onBlur={handleUniquePubNums} />
         </Form.Group>
         <Form.Group md={2} as={Col}>
-          <Button size='sm' variant={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? "outline-danger" : "outline-success"} onClick={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? () => removeCitation(rejectionIndex, claimArgIndex, index) : () => addCitation(rejectionIndex, claimArgIndex)}>{index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? '-Cit' : '+Cit'}</Button>
+          <Button size='sm' variant={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? "outline-danger" : "outline-success"} onClick={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? () => removeCitation(rejectionIndex, claimArgIndex, index) : () => addCitation(rejectionIndex, claimArgIndex, citation.publicationNumber)}>{index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? '-Cit' : '+Cit'}</Button>
         </Form.Group>
         </Form.Row>
                 
@@ -219,7 +241,7 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
     })
   }  
 
-  const handleChange = (e) => {
+  const handleChange = (e, index, property) => {
     const t = e.target
     switch(t.name) {
       case 'applicationNumber': 
@@ -242,6 +264,10 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
         if ((t.value.length === 2 && filingDate.length === 1) || (t.value.length === 5 && filingDate.length === 4))
           t.value= t.value+'/'
         setFilingDate(t.value)
+        break;
+      case 'priorArtObj':
+        priorArtList.paObjects[index][property] = t.value
+        setPriorArtList(JSON.parse(JSON.stringify(priorArtList)))
         break;
       default: 
         console.log('should not reach')
@@ -266,9 +292,11 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
       filename: filename,
       user: email,
       mailingDate: mailingDate,
+      filingDate: filingDate,
       applicationNumber: applicationNumber,
       attyDocket: attyDocket,
-      rejectionList: rejectionList
+      rejectionList: rejectionList,
+      priorArtList: priorArtList.paObjects
     }
 
     return JSON.stringify(finalizedOaObject, null, 2)
@@ -276,28 +304,81 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
 
   const saveOaObj = () => {
     setOaObject(finalizedOaObject)
+    setShowPriorArt(true)
+    handleClose()
+  }
 
+  const handlePaUpload = async (e) => {
+    var formData = new FormData();
+    for (var i=0; i<e.target.files.length; i++) {
+        let file = e.target.files[i]
+        formData.append('paList', file);
+    }
+    formData.append('userEmail', email);
+    setShowLoading(true)
+    let res = await savePaToCloud(formData)
+    // console.log(res)
+    setShowLoading(false)
+    setPriorArtList(res)
+  }
+
+
+  const showPriorArtElements = () => {
+    if (priorArtList.files && priorArtList.files.length > 0) {
+      return <>
+      {priorArtList.files.map((paFile, index) =>
+        <div key={paFile.filename}>
+          <Form.Row>
+          <Form.Label><b>{paFile.originalname}</b></Form.Label>
+          </Form.Row>
+          <Form.Row>
+          <Form.Group as={Col}>
+              <Form.Label>Abbreviation</Form.Label>
+              <Form.Control required size='sm' name="priorArtObj" type="text" placeholder="Marks" value={priorArtList.paObjects[index].abbreviation} onChange={(e) => handleChange(e, index, 'abbreviation')} />
+            </Form.Group>
+            <Form.Group as={Col}>
+              <Form.Label>Publication Number</Form.Label>
+              <Form.Control required size='sm' name="priorArtObj" value={priorArtList.paObjects[index].publicationNumber} as="select"  onChange={(e) => handleChange(e, index, 'publicationNumber')}>
+                {uniquePubNumList.map((pubNum) => 
+                    <option key={pubNum} value={pubNum}>{pubNum}</option>
+                )}
+              </Form.Control>
+            </Form.Group>
+            <Form.Group as={Col}>
+              <Form.Label>Assignee</Form.Label>
+              <Form.Control required size='sm' name="priorArtObj" value={priorArtList.paObjects[index].assignee} type="text" placeholder="Sony Interactive Entertainment, Inc."  onChange={(e) => handleChange(e, index, 'assignee')} />
+            </Form.Group>            
+          </Form.Row>
+          <Form.Row>
+            <Form.Label>Title</Form.Label>
+            <Form.Control required size='sm' type="text" name="priorArtObj" placeholder="Methods and Apparatus..." value={priorArtList.paObjects[index].title} onChange={(e) => handleChange(e, index, 'title')} />
+          </Form.Row>
+        </div>
+      )
+      }
+      </>
+    } 
   }
 
     return <div className='formSubmission'>
   <Form onSubmit={handleSubmit} validated={validated} >
   <Form.Row>
-  <Form.Group as={Col} controlId="formGridAppNo">
+  <Form.Group as={Col} >
       <Form.Label>Application No</Form.Label>
       <Form.Control required size='sm' name="applicationNumber" type="text" placeholder="xx/yyy,yyy" value={applicationNumber} onChange={handleChange} />
     </Form.Group>
-    <Form.Group as={Col} controlId="formGridAttyDocket">
+    <Form.Group as={Col} >
       <Form.Label>Attorney Docket</Form.Label>
       <Form.Control required size='sm' name="attyDocket" value={attyDocket} type="text" placeholder="Enter docket"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
 
   <Form.Row>
-  <Form.Group as={Col} controlId="formGridMailDate">
+  <Form.Group as={Col} >
       <Form.Label>Mail Date</Form.Label>
       <Form.Control required size='sm' name="mailingDate" type="text" value={mailingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
-    <Form.Group as={Col} controlId="formGridFileDate">
+    <Form.Group as={Col} >
       <Form.Label>Filing Date</Form.Label>
       <Form.Control required size='sm' name="filingDate" type="text" value={filingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
@@ -306,8 +387,22 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
   <Button variant="info" onClick={addRejection}>
     Add Rejection
   </Button>
+  { (showPriorArt || (priorArtList.files && priorArtList.files.length >0)) &&  
+        <><hr /><div className='paUpload'>Upload Cited Art: &nbsp;
+          <Form.Group >
+          <Form.Control
+              type="file"
+              onChange={handlePaUpload}
+              accept=".pdf"
+              multiple
+          />
+          </Form.Group>
+        { showLoading ? <Spinner animation="border" /> : null}
+        </div>  </>
+  }
+  {showPriorArtElements()}
   <Button className='submitButton' variant="primary" type="submit">
-    Submit
+    Save
   </Button>
 </Form>
   <Modal show={show} onHide={handleClose}>
@@ -324,7 +419,6 @@ const citationListElements = (rejectionIndex, claimArgIndex) => {
       </Button>
     </Modal.Footer>
   </Modal>
-
  </div>
 }
 

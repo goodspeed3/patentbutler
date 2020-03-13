@@ -3,10 +3,12 @@ var router = express.Router();
 var multer = require('multer');
 const crypto = require('crypto');
 var path = require('path');
+const fs = require('fs')
+const mime = require('mime');
 
 var mStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads/art/')
+    cb(null, './files/art/')
   },
   filename: function (req, file, cb) {
     crypto.pseudoRandomBytes(16, function (err, raw) {
@@ -87,16 +89,21 @@ router.post('/downloadOa', checkJwt, upload.none(), async function(req, res, nex
 
 
 
-  var srcFilename = 'uploaded-office-actions/'+req.body.filename;
-  var destFilename = './downloads/oa/' + req.body.filename;
+  // var srcFilename = 'uploaded-office-actions/'+req.body.filename;
+  var destFilename = './files/oa/' + req.body.filename;
 
-  //uncomment for prod!!
+  // skip downloading from google for now
   // await downloadFile(srcFilename, destFilename).catch(console.error);
 
   res.sendFile(path.join(__dirname, '../', destFilename))
 });
 
 async function downloadFile(src, dest) {
+  if (fs.existsSync(dest)) {
+    //file exists
+    console.log('file exists already, do not dl from goog')
+    return
+  }
   const options = {
     // The path to which the file should be downloaded, e.g. "./file.txt"
     destination: dest,
@@ -123,12 +130,51 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   await datastore.upsert(entity)
   
   res.json(oaObject)
-  // var srcFilename = 'uploaded-office-actions/'+req.body.filename;
-  // var destFilename = './downloads/oa/' + req.body.filename;
-
-  // await downloadFile(srcFilename, destFilename).catch(console.error);
-
-  // res.sendFile(path.join(__dirname, '../', destFilename))
 });
+
+router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, res, next) {
+  console.log('----uploaded pa----')
+  // var promiseArray = []
+  const paObjects = []
+  for (var i=0; i<req.files.length; i++) {
+    var fileObj = req.files[i]
+    paObjects.push({
+      pdfUrl: fileObj.path,
+      filename: fileObj.filename,
+      abbreviation: '', //need these empty fields so elements are controlled on client-side
+      publicationNumber: '',
+      assignee: '',
+      title: '',
+      citationList: []
+    })
+    // promiseArray.push(uploadFileToGoogle(fileObj.destination, fileObj.filename))
+  }  
+  // skip uploading to google for now
+  // let results = await Promise.all(promiseArray)
+  console.log(req.files)
+  res.json({ 
+    files: req.files,
+    paObjects: paObjects
+  })    
+});
+
+function uploadFileToGoogle(path, filename) {
+  console.log(`${filename} uploading to ${bucketName}.`);
+  // Uploads a local file to the bucket
+  return storage.bucket(bucketName).upload(path + filename, {
+    destination: `uploaded-prior-art/${filename}`,
+    // Support for HTTP requests made with `Accept-Encoding: gzip`
+    gzip: true,
+    // By setting the option `destination`, you can change the name of the
+    // object you are uploading to a bucket.
+    metadata: {
+      // Enable long-lived HTTP caching headers
+      // Use only if the contents of the file will never change
+      // (If the contents will change, use cacheControl: 'no-cache')
+      cacheControl: 'public, max-age=31536000',
+    },
+  });
+
+}
 
 module.exports = router;

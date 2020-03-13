@@ -122,3 +122,8 @@
     display: block;
     margin-top: 1rem;
 }
+.paUpload {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
