@@ -127,3 +127,9 @@
     justify-content: center;
     margin-top: 1rem;
 }
+
+.citationDiv {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}

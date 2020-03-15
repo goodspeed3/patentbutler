@@ -1,11 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import './process.css'
 import { Document, Page, pdfjs} from 'react-pdf'
+import Form from 'react-bootstrap/Form'
 
 pdfjs.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js'
 
 function PdfView (props) {
-    let { fileData, oaObject, setOaObject, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList } = props
+    let { fileData, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList, setPriorArtList } = props
     let { filename, user:email } = fileData
 
     const [scale, setScale] = useState(1.0)
@@ -16,7 +17,13 @@ function PdfView (props) {
     const [pageNumber, setPageNumber] = useState(1)
     const [paToLoad, setPaToLoad] = useState(0)
     const [pdfToLoad, setPdfToLoad] = useState(null)
-
+    const [dragRect, setDragRect] = useState({
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0
+    })
+    const [showCitationDiv, setShowCitationDiv] = useState(false)
 
     useEffect(() => {
         if (!isScaleLocked && originalPageWidth != null) {
@@ -108,7 +115,70 @@ function PdfView (props) {
             </span>
           )
       }
+      const mouseDown = (e) => {
+        if (!showPriorArt ) return;
+        setShowCitationDiv(false)
+        var rect = e.target.getBoundingClientRect();
+        var x = e.clientX - rect.left; //x position within the element.
+        var y = e.clientY - rect.top;  //y position within the element.
+        setDragRect({
+          ...dragRect,
+          x: (100.0* x / rect.width).toFixed(2), //get percentage
+          y: (100.0* y / rect.height).toFixed(2),
+        })
+      }
+      const mouseUp = (e) => {
+        if (!showPriorArt ) return;
+        var rect = e.target.getBoundingClientRect();
+        var x = e.clientX - rect.left; //x position within the element.
+        var y = e.clientY - rect.top;  //y position within the element.
+        // console.log({x: 100.0* x / rect.width, y: 100.0* y / rect.height})
+        let width = ((100.0* x / rect.width).toFixed(2) - dragRect.x).toFixed(2) //get percentage
+        let height = ((100.0* y / rect.height).toFixed(2) - dragRect.y).toFixed(2)
+        setDragRect({
+          ...dragRect,
+          width:  width,
+          height: height
+        })
+        if (width > 1 && height > 1) {
+          setShowCitationDiv(true)
+        }
 
+      }      
+      const selectCitation = (e) => {
+        console.log(e.target.value)
+      }
+      const showCitationDivElements = () => {
+        if (!showCitationDiv) {
+          return
+        }
+
+        var styleObj = {
+          left: dragRect.x + '%',
+          top: dragRect.y + '%',
+          width: dragRect.width + '%',
+          height: dragRect.height + '%',
+          backgroundColor: '#FF4241',
+          opacity: "0.15"
+        }
+        return <div style={styleObj} className='citationDiv'>
+          <Form style={{padding: "2rem", opacity: "1"}}>
+          <Form.Group>
+            <Form.Label>Select a citation</Form.Label>
+            <Form.Control size='sm' as="select" onChange={selectCitation}>
+              <option value='exrem'>Ex. Remarks</option>
+              <option value='101'>101</option>
+              <option value='112'>112</option>
+              <option value='102'>102</option>
+              <option value='103'>103</option>
+              <option value='other'>Other</option>
+
+            </Form.Control>
+          </Form.Group>
+
+          </Form>
+        </div>
+      }
     return (
         <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
@@ -145,7 +215,7 @@ function PdfView (props) {
             </button>     | Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}   
           </div>      
         </div> 
-        <div className='pdfDiv' id="pdfDiv" >
+        <div style={showPriorArt ? {cursor: 'crosshair'}: {cursor: 'default'}} className='pdfDiv' id="pdfDiv" onMouseDown={mouseDown} onMouseUp={mouseUp}>
           <Document
             file={pdfToLoad}
             cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
@@ -161,9 +231,8 @@ function PdfView (props) {
               // customTextRenderer={this.makeTextRenderer("0030")}
             />
           </Document>    
-          
+          {showCitationDivElements()}          
         </div>
-        
     </div>
     )
 }

@@ -14,7 +14,8 @@ function ProcessView (props) {
     const [panePosition, setPanePosition] = useState('60%')
     const [oaObject, setOaObject] = useState({})
     const [showPriorArt, setShowPriorArt] = useState(false)
-    const [priorArtList, setPriorArtList] = useState([])
+    const [priorArtList, setPriorArtList] = useState({})
+    const [rejectionList, setRejectionList] = useState([])
 
     let { filename, user:email } = props.location.state
 
@@ -66,10 +67,10 @@ function ProcessView (props) {
               minSize={500}
             >
               <div className='leftCol'>
-                  <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} showPriorArt={showPriorArt} setShowPriorArt={setShowPriorArt} savePaToCloud={(formData) => savePaToCloud(formData)} priorArtList={priorArtList} setPriorArtList={setPriorArtList} />
+                  <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} setShowPriorArt={setShowPriorArt} savePaToCloud={(formData) => savePaToCloud(formData)} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} setRejectionList={setRejectionList} />
               </div>
               <div className='rightCol'>
-                  <PdfView downloadedData={downloadedData} fileData={props.location.state} panePosition={panePosition} setShowPriorArt={setShowPriorArt} showPriorArt={showPriorArt} priorArtList={priorArtList} oaObject={oaObject} setOaObject={setOaObject}  />
+                  <PdfView downloadedData={downloadedData} fileData={props.location.state} panePosition={panePosition} setShowPriorArt={setShowPriorArt} showPriorArt={showPriorArt} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} setRejectionList={setRejectionList} />
               </div> 
             </SplitPane>
         </div>
