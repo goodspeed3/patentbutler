@@ -122,12 +122,15 @@ async function downloadFile(src, dest) {
 
 router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, next) {
   const oaObject = JSON.parse(req.body.oaObject);
-  var entity = {
+  var processedOaEntity = {
     key: datastore.key(['processedOa', oaObject.filename]),
     data: oaObject
   }
+  const oaUploadKey = datastore.key(['oaUpload', oaObject.filename]);
+  const [oaUploadEntity] = await datastore.get(oaUploadKey);
+  oaUploadEntity.processed = true
 
-  await datastore.upsert(entity)
+  await datastore.upsert([processedOaEntity, oaUploadEntity])
   
   res.json(oaObject)
 });
@@ -141,6 +144,7 @@ router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, r
     paObjects.push({
       pdfUrl: fileObj.path,
       filename: fileObj.filename,
+      originalname: fileObj.originalname,
       abbreviation: '', //need these empty fields so elements are controlled on client-side
       publicationNumber: '',
       assignee: '',
@@ -153,7 +157,7 @@ router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, r
   // let results = await Promise.all(promiseArray)
   console.log(req.files)
   res.json({ 
-    files: req.files,
+    // files: req.files,
     paObjects: paObjects
   })    
 });

@@ -2,12 +2,12 @@ import React, {useState, useEffect} from 'react';
 import './process.css'
 import { Document, Page, pdfjs} from 'react-pdf'
 import Form from 'react-bootstrap/Form'
+import Button from 'react-bootstrap/Button'
 
 pdfjs.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js'
 
 function PdfView (props) {
-    let { fileData, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList, setPriorArtList } = props
-    let { filename, user:email } = fileData
+    let { fileData, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList, setPriorArtList, rejectionList } = props
 
     const [scale, setScale] = useState(1.0)
     const [fitScale, setFitScale] = useState(1.0)
@@ -24,6 +24,90 @@ function PdfView (props) {
       height: 0
     })
     const [showCitationDiv, setShowCitationDiv] = useState(false)
+    const [citationObj, setCitationObj] = useState({})
+    const [selectedCitation, setSelectedCitation] = useState('')
+
+    useEffect(() => {
+      setCitationObj(c => {
+        if (fileData && fileData.finishedProcessingTime) { //prefill!
+          var prefilledCitationObj = {}
+
+          for (var a=0; a<fileData.priorArtList.length; a++) {
+            let pa = fileData.priorArtList[a]
+            prefilledCitationObj[pa.publicationNumber] = pa.citationList
+          }
+          return prefilledCitationObj
+        }
+
+        //copy citations over
+        var newCitationList=[]
+        for (var i=0; i<rejectionList.length; i++) {
+          const rejection = rejectionList[i]
+          if (!rejection.claimArgumentList) continue
+          for (var j=0; j<rejection.claimArgumentList.length; j++) {
+            const claimArgument = rejection.claimArgumentList[j]
+            if (!claimArgument.citationList) continue
+            for (var k=0; k<claimArgument.citationList.length; k++) {
+              const citationObj = claimArgument.citationList[k]
+    
+              var newObj = {
+                ...citationObj,
+                overlayAdded: false,
+                boundingBoxes: []
+              }
+              newCitationList.push(newObj)
+            }
+          }
+        }
+        if (newCitationList.length === 0) return c
+
+        var newCitationObj = {}
+        //clear citationObj 
+        for (i=0; i<newCitationList.length; i++) {
+          const co = newCitationList[i]
+          if (!co.publicationNumber) continue
+          newCitationObj[co.publicationNumber] = []
+        }
+
+        let keyObj = Object.keys(newCitationObj) 
+        for (i=0; i<keyObj.length; i++) {
+          const pubnum = keyObj[i]
+          const citList = newCitationObj[pubnum]
+          for (j=0; j<newCitationList.length; j++) {
+            const co = newCitationList[j]
+            if (co.publicationNumber === pubnum) {
+              //only add to list if it doesn't already exist
+              let tCit = co.citation
+              if (!citList.some(o => o.citation === tCit )) {
+                delete co.publicationNumber //don't need it anymore
+                citList.push(co)
+              }
+            }
+          }
+        }
+        console.log('newCitationObj')
+        console.log(newCitationObj)
+
+        return newCitationObj
+
+      })
+    }, [rejectionList, setCitationObj, fileData])
+    useEffect(() => {
+      setPriorArtList(pal => {
+        let pubnums = Object.keys(citationObj) 
+        if (pubnums.length === 0) return pal
+        for (var i=0; i<pubnums.length; i++) {
+          let pubnum = pubnums[i]
+          let citationList = citationObj[pubnum]
+          pal.forEach((pa) => {
+            if (pa.publicationNumber === pubnum) {
+              pa.citationList = citationList
+            }
+          })
+        }  
+        return pal
+      })
+    }, [citationObj, setPriorArtList])
 
     useEffect(() => {
         if (!isScaleLocked && originalPageWidth != null) {
@@ -38,8 +122,8 @@ function PdfView (props) {
     }, [isScaleLocked, originalPageWidth, panePosition])
 
     useEffect(() => {
-        if (showPriorArt && priorArtList.files && priorArtList.files.length > 0) {
-            setPdfToLoad('/' + priorArtList.files[paToLoad].path)
+        if (showPriorArt && priorArtList.length > 0) {
+            setPdfToLoad('/' + priorArtList[paToLoad].pdfUrl)
         } else {
             setPdfToLoad(downloadedData)
         }
@@ -104,11 +188,11 @@ function PdfView (props) {
                 <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
                 <button type="button" disabled={showPriorArt} onClick={() => setShowPriorArt(true)}>Prior Art</button>
                 {
-                    priorArtList.files && priorArtList.files.length > 0 &&
+                    priorArtList.length > 0 &&
                     <>
                         &nbsp; 
                         <select onChange={(e) => {setShowPriorArt(true); setPaToLoad(parseInt(e.target.value))}}>
-                            {priorArtList.files.map((paFile, index) => <option key={paFile.filename} value={index}>{paFile.originalname}</option>)}
+                            {priorArtList.map((paFile, index) => <option key={paFile.filename} value={index}>{paFile.originalname}</option>)}
                         </select>
                     </>
                 }
@@ -146,10 +230,31 @@ function PdfView (props) {
 
       }      
       const selectCitation = (e) => {
-        console.log(e.target.value)
+        setSelectedCitation(e.target.value)
+      }
+      const saveCitation = (e) => {
+        if (!selectedCitation) return
+        var cList = citationObj[priorArtList[paToLoad].publicationNumber]
+        for (var i=0; i<cList.length; i++) {
+          var cObj = cList[i]  
+          if (cObj.citation === selectedCitation) {
+            var bbox = {}
+            bbox.page = pageNumber
+            bbox.boundingBox = dragRect
+            cObj.overlayAdded = true
+            cObj.boundingBoxes.push(bbox)
+          }
+        }
+        setCitationObj({...citationObj})
+        setShowCitationDiv(false)
       }
       const showCitationDivElements = () => {
-        if (!showCitationDiv) {
+        if (!showCitationDiv || priorArtList.length === 0 || !citationObj[priorArtList[paToLoad].publicationNumber]) {
+          return
+        }
+        const pdfDiv = document.querySelector('#pdfDiv')
+    
+        if (!pdfDiv) {
           return
         }
 
@@ -158,27 +263,101 @@ function PdfView (props) {
           top: dragRect.y + '%',
           width: dragRect.width + '%',
           height: dragRect.height + '%',
-          backgroundColor: '#FF4241',
-          opacity: "0.15"
+          backgroundColor: 'rgb(255,66,65,0.15)',
         }
-        return <div style={styleObj} className='citationDiv'>
-          <Form style={{padding: "2rem", opacity: "1"}}>
+        var dimensions = {}
+        dimensions.zIndex = "99" //this should be on top
+        if (!isScaleLocked) {
+          dimensions.width = pdfDiv.clientWidth
+          dimensions.height = pdfDiv.clientHeight
+        } else {
+          dimensions.width = pdfDiv.scrollWidth
+          dimensions.height = pdfDiv.scrollHeight
+    
+        }
+        return <div className='overlay' style={dimensions}><div style={styleObj} className='citationDiv' onMouseDown={(e) => e.stopPropagation()} onMouseUp={(e) => e.stopPropagation()}>
+          <Form style={{padding: "1rem"}}>
           <Form.Group>
-            <Form.Label>Select a citation</Form.Label>
-            <Form.Control size='sm' as="select" onChange={selectCitation}>
-              <option value='exrem'>Ex. Remarks</option>
-              <option value='101'>101</option>
-              <option value='112'>112</option>
-              <option value='102'>102</option>
-              <option value='103'>103</option>
-              <option value='other'>Other</option>
-
+            <Form.Control size='sm' as="select" value={selectedCitation} onChange={selectCitation}>
+              <option value=''>--</option>
+              {
+                citationObj[priorArtList[paToLoad].publicationNumber].map(c => 
+                <option value={c.citation} key={c.id}>{c.citation} {c.overlayAdded && '(done)'}</option>
+                )
+              }
             </Form.Control>
+          </Form.Group>
+          <Form.Group>
+            <Button variant="secondary" size="sm" onClick={saveCitation}>Save</Button>
           </Form.Group>
 
           </Form>
+        </div></div>
+      }
+      const removeOverlay = (id, coordinateString) => {
+        var citationList = citationObj[priorArtList[paToLoad].publicationNumber]
+        for (var i=0; i<citationList.length; i++) {
+          var citObj = citationList[i]
+          for (var j=0 ;j<citObj.boundingBoxes.length ;j++) {
+            var cobb = citObj.boundingBoxes[j]
+            var objCoord = cobb.boundingBox.y + '%-' + cobb.boundingBox.x + '%-' + cobb.boundingBox.width + '%-' + cobb.boundingBox.height + '%'
+            if (citObj.id === id && objCoord === coordinateString) {
+              citObj.boundingBoxes.splice(j, 1)
+              if (citObj.boundingBoxes.length === 0)
+                citObj.overlayAdded = false
+            }  
+          }
+        }
+        setCitationObj({...citationObj})
+      }
+      const generateOverlay = () => {
+        if (!showPriorArt || priorArtList.length === 0 || !citationObj[priorArtList[paToLoad].publicationNumber]) return
+        const pdfDiv = document.querySelector('#pdfDiv')
+        var styleArray = []
+        var citationList = citationObj[priorArtList[paToLoad].publicationNumber]
+        for (var i=0; i<citationList.length; i++) {
+          let citationBox = citationList[i]
+          for (var j=0; j<citationBox.boundingBoxes.length; j++) {
+            let citationBoxIndividual = citationBox.boundingBoxes[j]
+            if (citationBoxIndividual.page !== pageNumber) {
+              continue;
+            }
+            var styleObj = {}
+            styleObj.id=citationBox.id
+            styleObj.idName=""
+            styleObj.position = "absolute"
+            styleObj.top = citationBoxIndividual.boundingBox.y + "%"
+            styleObj.left = citationBoxIndividual.boundingBox.x + "%"
+            styleObj.width = citationBoxIndividual.boundingBox.width + "%"
+            styleObj.height = citationBoxIndividual.boundingBox.height + "%"
+            styleObj.backgroundColor = "rgb(255,225,143, 0.15)"
+            // styleObj.zIndex= "10"
+            styleArray.push(styleObj)
+  
+          }
+        }
+        var dimensions = {}
+        dimensions.zIndex="10"
+        if (!isScaleLocked) {
+          dimensions.width = pdfDiv.clientWidth
+          dimensions.height = pdfDiv.clientHeight
+        } else {
+          dimensions.width = pdfDiv.scrollWidth
+          dimensions.height = pdfDiv.scrollHeight
+    
+        }
+    
+        return <div className='overlay' style={dimensions}>
+          {
+            styleArray.map((styleObj, i) =>  (
+              <div id={styleObj.idName} style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}>
+                <button style={{margin: '1rem'}} onClick={(e) => removeOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Remove</button>
+              </div>
+            ))
+          }
         </div>
       }
+
     return (
         <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
@@ -231,7 +410,8 @@ function PdfView (props) {
               // customTextRenderer={this.makeTextRenderer("0030")}
             />
           </Document>    
-          {showCitationDivElements()}          
+          {generateOverlay()}      
+          {showCitationDivElements()}    
         </div>
     </div>
     )

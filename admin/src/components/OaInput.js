@@ -8,8 +8,9 @@ import Spinner from 'react-bootstrap/Spinner'
 const shortid = require('shortid');
 
 function OaInput (props) {
-  let { fileData, oaObject, setOaObject, setShowPriorArt, savePaToCloud, priorArtList, setPriorArtList, rejectionList, setRejectionList } = props
+  let { fileData, setOaObject, setShowPriorArt, savePaToCloud, priorArtList, setPriorArtList, rejectionList, setRejectionList } = props
   let { filename, user:email } = fileData
+  var finalizedOaObject;
   const [applicationNumber, setApplicationNumber] = useState('')
   const [attyDocket, setAttyDocket] = useState('')
   const [mailingDate, setMailingDate] = useState('')
@@ -21,6 +22,17 @@ function OaInput (props) {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
+  useEffect(() => {
+    if (fileData && fileData.finishedProcessingTime) { //prefill the page with what was processed
+      setApplicationNumber(fileData.applicationNumber)
+      setAttyDocket(fileData.attyDocket)
+      setMailingDate(fileData.mailingDate)
+      setFilingDate(fileData.filingDate)
+      setRejectionList(fileData.rejectionList)
+      setPriorArtList(fileData.priorArtList)
+    }
+  }, [fileData, setPriorArtList, setRejectionList])
 
   useEffect(() => {
     const newUniquePubNumList =[]
@@ -41,57 +53,8 @@ function OaInput (props) {
     }
     setUniquePubNumList(newUniquePubNumList)
     
-
-    // setPriorArtList(pa => {
-    //   if (Object.keys(pa).length === 0) return {}
-
-    //   //copy citations over
-    //   var newCitationList=[]
-    //   for (var i=0; i<rejectionList.length; i++) {
-    //     const rejection = rejectionList[i]
-    //     if (!rejection.claimArgumentList) continue
-    //     for (var j=0; j<rejection.claimArgumentList.length; j++) {
-    //       const claimArgument = rejection.claimArgumentList[j]
-    //       if (!claimArgument.citationList) continue
-    //       for (var k=0; k<claimArgument.citationList.length; k++) {
-    //         const citationObj = claimArgument.citationList[k]
-  
-    //         var newObj = {
-    //           ...citationObj,
-    //           overlayAdded: false
-    //         }
-    //         newCitationList.push(newObj)
-    //       }
-    //     }
-    //   }
-
-    //   for (i=0; i<newCitationList.length; i++) {
-    //     var citationObj = newCitationList[i]
-    //     //now iterate over paObjects to copy over relevant data
-    //     for (j=0; j<pa.paObjects.length; j++) {
-    //       const paObject = pa.paObjects[j]
-    //       debugger
-    //       if (citationObj.publicationNumber ===paObject.publicationNumber) {
-    //         //only add to list if it doesn't already exist
-    //         let tCit = citationObj.citation
-    //         if (!paObject.citationList.some(o => o.citation === tCit )) {
-    //           paObject.citationList.push(citationObj)
-    //         }
-    //       }
-    //     }
-
-    //   }
-
-    //   return {
-    //     ...pa,
-    //   }
-
-    // })
-
-
-
   }, [rejectionList, setUniquePubNumList])
-  
+
   const addRejection = () => {
     const newRejection = {
       type: 'exrem', //it's the first default rejection
@@ -124,9 +87,17 @@ function OaInput (props) {
         break;
       case '102':
         rejectionList[index].typeText = '§ 102 Rejection'
+        if (rejectionList[index].claimArgumentList.length === 0) {
+          addClaimArgument(index)
+          addCitation(index, 0) //has to be no citations      
+        }    
         break;
       case '103':
         rejectionList[index].typeText = '§ 103 Rejection'
+        if (rejectionList[index].claimArgumentList.length === 0) {
+          addClaimArgument(index)
+          addCitation(index, 0) //has to be no citations      
+        }    
         break;
       case 'other':
         rejectionList[index].typeText = 'Other'
@@ -211,9 +182,9 @@ function OaInput (props) {
 
   const claimArgumentListElements = (rejectionIndex) => {
     let rejection = rejectionList[rejectionIndex]
-    if (rejection.claimArgumentList.length === 0) {
-      addClaimArgument(rejectionIndex)
-    }
+    // if (rejection.claimArgumentList.length === 0) {
+    //   addClaimArgument(rejectionIndex)
+    // }
     return rejection.claimArgumentList.map((claimRejection, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
       return (<div key={claimRejection.id}>
@@ -263,8 +234,8 @@ function OaInput (props) {
     if (field === 'publicationNumber' && Object.keys(priorArtList).length > 0) {
       var oldPubNum = citationObj[field]
       //update the pub number in priorArtList
-      for (var i=0; i<priorArtList.paObjects.length; i++) {
-        var paObj = priorArtList.paObjects[i]
+      for (var i=0; i<priorArtList.length; i++) {
+        var paObj = priorArtList[i]
         if (paObj.publicationNumber === oldPubNum) {
           paObj.publicationNumber = value
         }
@@ -280,9 +251,9 @@ function OaInput (props) {
 
   const citationListElements = (rejectionIndex, claimArgIndex) => {
     let rejection = rejectionList[rejectionIndex]
-    if (rejection.claimArgumentList[claimArgIndex].citationList.length === 0) {
-      addCitation(rejectionIndex, claimArgIndex)
-    }
+    // if (rejection.claimArgumentList[claimArgIndex].citationList.length === 0) {
+    //   addCitation(rejectionIndex, claimArgIndex)
+    // }
     return rejection.claimArgumentList[claimArgIndex].citationList.map((citation, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
       return (<div key={citation.id}>
@@ -331,7 +302,7 @@ function OaInput (props) {
         setFilingDate(t.value)
         break;
       case 'priorArtObj':
-        priorArtList.paObjects[index][property] = t.value
+        priorArtList[index][property] = t.value
         setPriorArtList(JSON.parse(JSON.stringify(priorArtList)))
         break;
       default: 
@@ -339,15 +310,29 @@ function OaInput (props) {
     }
   }
   const handleSubmit = (e) => {
-    console.log('rejectionlist')
-    console.log(rejectionList)
-    console.log('palist')
-    console.log(priorArtList)
     const form = e.currentTarget;
-    if (form.checkValidity() === false) {
+    //if not all citations have overlays...
+    var allOverlaysAdded = true
+    var citationOverlayNeeded = ''
+    priorArtList.forEach((pa) => {
+      pa.citationList.forEach((citation) => {
+        if (citation.overlayAdded === false) {
+          allOverlaysAdded = false
+          citationOverlayNeeded = citation.citation
+        }
+      })
+    })
+    if (!allOverlaysAdded || (priorArtList.length > 0 && priorArtList.some((pa) => pa.citationList.length === 0))) {
+      allOverlaysAdded = false
+      alert(citationOverlayNeeded + ' overlay still needed!')
+    }
+
+    if (form.checkValidity() === false || !allOverlaysAdded) {
       e.preventDefault();
       e.stopPropagation();
+      return
     }
+
     setValidated(true);
 
     handleShow()
@@ -356,7 +341,7 @@ function OaInput (props) {
   }
 
   const finalizeRejectionList = () => {
-     var obj = {
+    finalizedOaObject = {
       finishedProcessingTime: Date.now(),
       filename: filename,
       user: email,
@@ -365,14 +350,15 @@ function OaInput (props) {
       applicationNumber: applicationNumber,
       attyDocket: attyDocket,
       rejectionList: rejectionList,
-      priorArtList: priorArtList.paObjects
+      priorArtList: priorArtList
     }
 
-    return JSON.stringify(obj, null, 2)
+    return JSON.stringify(finalizedOaObject, null, 2)
   }
 
   const saveOaObj = () => {
-    // setOaObject(finalizedOaObject)
+    setOaObject(finalizedOaObject)
+    
     handleClose()
   }
 
@@ -387,23 +373,20 @@ function OaInput (props) {
     let res = await savePaToCloud(formData)
     setShowLoading(false)
     if (uniquePubNumList.length > 0) {
-      console.log(uniquePubNumList)
       for (i=0; i<res.paObjects.length; i++) {
         var paObj = res.paObjects[i]
         paObj.publicationNumber = uniquePubNumList[0]
       }  
     }
-    console.log(res)
-    setPriorArtList(res)
+    setPriorArtList(res.paObjects)
     setShowPriorArt(true)
   }
 
 
   const showPriorArtElements = () => {
-    if (priorArtList.files && priorArtList.files.length > 0) {
+    if (priorArtList.length > 0) {
       return <>
-      <Form.Text className="text-muted">Don't forget to draw the cited areas.</Form.Text>
-      {priorArtList.files.map((paFile, index) =>
+      {priorArtList.map((paFile, index) =>
         <div key={paFile.filename}>
           <Form.Row>
           <Form.Label style={{marginTop: '1rem'}}><b>{paFile.originalname}</b></Form.Label>
@@ -411,23 +394,23 @@ function OaInput (props) {
           <Form.Row>
           <Form.Group as={Col}>
               <Form.Label>Abbreviation</Form.Label>
-              <Form.Control required size='sm' name="priorArtObj" type="text" placeholder="Marks" value={priorArtList.paObjects[index].abbreviation} onChange={(e) => handleChange(e, index, 'abbreviation')} />
+              <Form.Control required size='sm' name="priorArtObj" type="text" placeholder="Marks" value={priorArtList[index].abbreviation} onChange={(e) => handleChange(e, index, 'abbreviation')} />
             </Form.Group>
             <Form.Group as={Col}>
               <Form.Label>Publication Number</Form.Label>
-              <Form.Control required size='sm' name="priorArtObj" value={priorArtList.paObjects[index].publicationNumber} as="select"  onChange={(e) => handleChange(e, index, 'publicationNumber')}>
+              <Form.Control required size='sm' name="priorArtObj" value={priorArtList[index].publicationNumber} as="select"  onChange={(e) => handleChange(e, index, 'publicationNumber')}>
                 {uniquePubNumList.map((pubNum) => 
                     <option key={pubNum} value={pubNum}>{pubNum}</option>)}
               </Form.Control>
             </Form.Group>
             <Form.Group as={Col}>
               <Form.Label>Assignee</Form.Label>
-              <Form.Control required size='sm' name="priorArtObj" value={priorArtList.paObjects[index].assignee} type="text" placeholder="Sony Interactive Entertainment, Inc."  onChange={(e) => handleChange(e, index, 'assignee')} />
+              <Form.Control required size='sm' name="priorArtObj" value={priorArtList[index].assignee} type="text" placeholder="Sony Interactive Entertainment, Inc."  onChange={(e) => handleChange(e, index, 'assignee')} />
             </Form.Group>            
           </Form.Row>
           <Form.Row>
             <Form.Label>Title</Form.Label>
-            <Form.Control required size='sm' type="text" name="priorArtObj" placeholder="Methods and Apparatus..." value={priorArtList.paObjects[index].title} onChange={(e) => handleChange(e, index, 'title')} />
+            <Form.Control required size='sm' type="text" name="priorArtObj" placeholder="Methods and Apparatus..." value={priorArtList[index].title} onChange={(e) => handleChange(e, index, 'title')} />
           </Form.Row>
         </div>
       )
@@ -490,7 +473,7 @@ function OaInput (props) {
         Close
       </Button>
       <Button variant="primary" onClick={saveOaObj}>
-        Save Changes
+        Save & notify {email}
       </Button>
     </Modal.Footer>
   </Modal>

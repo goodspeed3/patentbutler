@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import './process.css'
 import AuthApi from './AuthApi'
+import { Redirect } from 'react-router-dom';
 import { useAuth0 } from "../react-auth0-spa";
 // import {Switch, Route} from 'react-router-dom'
 import Spinner from 'react-bootstrap/Spinner'
@@ -14,11 +15,13 @@ function ProcessView (props) {
     const [panePosition, setPanePosition] = useState('60%')
     const [oaObject, setOaObject] = useState({})
     const [showPriorArt, setShowPriorArt] = useState(false)
-    const [priorArtList, setPriorArtList] = useState({})
+    const [priorArtList, setPriorArtList] = useState([])
     const [rejectionList, setRejectionList] = useState([])
+    const [redirectToHome, setRedirectToHome] = useState(false)
 
     let { filename, user:email } = props.location.state
-
+    
+    
     useEffect(() => {
         if (!user || !filename || !email ) {
             return
@@ -38,7 +41,9 @@ function ProcessView (props) {
         if (oaObject.attyDocket) {
             var formData = new FormData();
             formData.append('oaObject', JSON.stringify(oaObject))
-            return AuthApi('/adminApi/saveOaObject', getTokenSilently, formData)
+            AuthApi('/adminApi/saveOaObject', getTokenSilently, formData).then(res => {
+                setRedirectToHome(true)
+            })
         }
     }, [oaObject, getTokenSilently])
     const handlePane = (val) => {
@@ -53,7 +58,6 @@ function ProcessView (props) {
 
     }
 
-
     var elementsToShow = <div />;
     if (user && downloadedData) {
         elementsToShow = (
@@ -67,10 +71,10 @@ function ProcessView (props) {
               minSize={500}
             >
               <div className='leftCol'>
-                  <OaInput fileData={props.location.state} oaObject={oaObject} setOaObject={setOaObject} setShowPriorArt={setShowPriorArt} savePaToCloud={(formData) => savePaToCloud(formData)} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} setRejectionList={setRejectionList} />
+                  <OaInput fileData={props.location.state} setOaObject={setOaObject} setShowPriorArt={setShowPriorArt} savePaToCloud={(formData) => savePaToCloud(formData)} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} setRejectionList={setRejectionList} />
               </div>
               <div className='rightCol'>
-                  <PdfView downloadedData={downloadedData} fileData={props.location.state} panePosition={panePosition} setShowPriorArt={setShowPriorArt} showPriorArt={showPriorArt} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} setRejectionList={setRejectionList} />
+                  <PdfView fileData={props.location.state} downloadedData={downloadedData} panePosition={panePosition} setShowPriorArt={setShowPriorArt} showPriorArt={showPriorArt} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} />
               </div> 
             </SplitPane>
         </div>
@@ -80,6 +84,7 @@ function ProcessView (props) {
     }
     return (
     <div>
+        {redirectToHome && <Redirect to='/admin' />}
         {elementsToShow}
     </div>
     )
