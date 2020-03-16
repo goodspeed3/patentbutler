@@ -29,9 +29,8 @@ function PdfView (props) {
 
     useEffect(() => {
       setCitationObj(c => {
-        if (fileData && fileData.finishedProcessingTime) { //prefill!
+        if (fileData && fileData.finishedProcessingTime && Object.keys(c).length === 0) { //prefill!
           var prefilledCitationObj = {}
-
           for (var a=0; a<fileData.priorArtList.length; a++) {
             let pa = fileData.priorArtList[a]
             prefilledCitationObj[pa.publicationNumber] = pa.citationList
@@ -49,11 +48,20 @@ function PdfView (props) {
             if (!claimArgument.citationList) continue
             for (var k=0; k<claimArgument.citationList.length; k++) {
               const citationObj = claimArgument.citationList[k]
-    
+              
+              let preExistingData = c[citationObj.publicationNumber]
+              var boundingBoxes = [];
+              if (preExistingData) {
+                for (var x = 0; x<preExistingData.length; x++) {
+                  var preExistingCitation = preExistingData[x]
+                  if (preExistingCitation.citation === citationObj.citation) {
+                    boundingBoxes = preExistingCitation.boundingBoxes
+                  }
+                }
+              }
               var newObj = {
                 ...citationObj,
-                overlayAdded: false,
-                boundingBoxes: []
+                boundingBoxes: boundingBoxes
               }
               newCitationList.push(newObj)
             }
@@ -79,14 +87,12 @@ function PdfView (props) {
               //only add to list if it doesn't already exist
               let tCit = co.citation
               if (!citList.some(o => o.citation === tCit )) {
-                delete co.publicationNumber //don't need it anymore
+                // delete co.publicationNumber //don't need it anymore
                 citList.push(co)
               }
             }
           }
         }
-        console.log('newCitationObj')
-        console.log(newCitationObj)
 
         return newCitationObj
 
@@ -241,7 +247,6 @@ function PdfView (props) {
             var bbox = {}
             bbox.page = pageNumber
             bbox.boundingBox = dragRect
-            cObj.overlayAdded = true
             cObj.boundingBoxes.push(bbox)
           }
         }
@@ -249,7 +254,7 @@ function PdfView (props) {
         setShowCitationDiv(false)
       }
       const showCitationDivElements = () => {
-        if (!showCitationDiv || priorArtList.length === 0 || !citationObj[priorArtList[paToLoad].publicationNumber]) {
+        if (!showPriorArt || !showCitationDiv || priorArtList.length === 0 || !citationObj[priorArtList[paToLoad].publicationNumber]) {
           return
         }
         const pdfDiv = document.querySelector('#pdfDiv')
@@ -282,7 +287,7 @@ function PdfView (props) {
               <option value=''>--</option>
               {
                 citationObj[priorArtList[paToLoad].publicationNumber].map(c => 
-                <option value={c.citation} key={c.id}>{c.citation} {c.overlayAdded && '(done)'}</option>
+                <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && '(done)'}</option>
                 )
               }
             </Form.Control>
@@ -303,8 +308,6 @@ function PdfView (props) {
             var objCoord = cobb.boundingBox.y + '%-' + cobb.boundingBox.x + '%-' + cobb.boundingBox.width + '%-' + cobb.boundingBox.height + '%'
             if (citObj.id === id && objCoord === coordinateString) {
               citObj.boundingBoxes.splice(j, 1)
-              if (citObj.boundingBoxes.length === 0)
-                citObj.overlayAdded = false
             }  
           }
         }
@@ -325,12 +328,13 @@ function PdfView (props) {
             var styleObj = {}
             styleObj.id=citationBox.id
             styleObj.idName=""
+            styleObj.citation=citationBox.citation
             styleObj.position = "absolute"
             styleObj.top = citationBoxIndividual.boundingBox.y + "%"
             styleObj.left = citationBoxIndividual.boundingBox.x + "%"
             styleObj.width = citationBoxIndividual.boundingBox.width + "%"
             styleObj.height = citationBoxIndividual.boundingBox.height + "%"
-            styleObj.backgroundColor = "rgb(255,225,143, 0.15)"
+            styleObj.backgroundColor = "rgb(80,220,100, 0.15)"
             // styleObj.zIndex= "10"
             styleArray.push(styleObj)
   
@@ -351,7 +355,7 @@ function PdfView (props) {
           {
             styleArray.map((styleObj, i) =>  (
               <div id={styleObj.idName} style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}>
-                <button style={{margin: '1rem'}} onClick={(e) => removeOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Remove</button>
+                <button style={{margin: '1rem'}} onClick={(e) => removeOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Remove {styleObj.citation}</button>
               </div>
             ))
           }

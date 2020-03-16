@@ -316,7 +316,7 @@ function OaInput (props) {
     var citationOverlayNeeded = ''
     priorArtList.forEach((pa) => {
       pa.citationList.forEach((citation) => {
-        if (citation.overlayAdded === false) {
+        if (citation.boundingBoxes.length === 0) {
           allOverlaysAdded = false
           citationOverlayNeeded = citation.citation
         }

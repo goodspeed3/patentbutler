@@ -31,7 +31,6 @@ function HomeView () {
 
     return <div>
         {homeData.finishedOa[0].map (processedOaEntity => {
-            console.log(processedOaEntity)
             let linkWithState = {
                 pathname: '/admin/process',
                 state: processedOaEntity
