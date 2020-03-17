@@ -18,7 +18,6 @@ function ProcessView (props) {
     const [priorArtList, setPriorArtList] = useState([])
     const [rejectionList, setRejectionList] = useState([])
     const [redirectToHome, setRedirectToHome] = useState(false)
-
     let { filename, user:email } = props.location.state
     
     

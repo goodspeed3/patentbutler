@@ -38,15 +38,15 @@ function HomeView() {
       <thead>
         <tr>
           <th>Attorney Docket</th>
-          <th>Due Date</th>
+          <th>Mailing Date</th>
         </tr>
       </thead>
       <tbody>
         {homeData.finishedOa[0].map( oaEntity => {
           return (
               <tr key={oaEntity.finishedProcessingTime} >
-                <td><Link to="/view">{oaEntity.attorneyDocket}</Link></td>
-                <td>{timeHelper(oaEntity.dueDate)}</td>
+                <td><Link to="/view">{oaEntity.attyDocket}</Link></td>
+                <td>{timeHelper(oaEntity.mailingDate)}</td>
               </tr>
           )
         })}        

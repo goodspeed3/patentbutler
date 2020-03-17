@@ -284,6 +284,7 @@ class App extends Component {
         <Switch>
           <Route exact path="/" render={this.homeFunc} />
           <PrivateRoute path="/home" component={HomeView} />
+          <PrivateRoute path="/view/:filename" component={OaOverview} />
           <Route path="/view" render={this.oaViewFunc} />
           {/* <PrivateRoute path="/profile" component={ProfileView} /> */}
         </Switch>

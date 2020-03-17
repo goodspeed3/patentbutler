@@ -5,23 +5,45 @@ import PriorArtSubview from './PriorArtSubview.js';
 // import Col from 'react-bootstrap/Col';
 // import Container from 'react-bootstrap/Container';
 // import Row from 'react-bootstrap/Row';
+import PrivateRoute from "./PrivateRoute";
+import { Auth0Context } from "../react-auth0-spa";
+import AuthApi from './AuthApi'
+
 import OaMetadata from './OaMetadata';
 import './OaOverview.css'
 import {   
   Switch,
-  Route,
+  // Route,
   withRouter
- } from 'react-router-dom';
+} from 'react-router-dom';
 import SplitPane from 'react-split-pane';
 
 class OaOverview extends Component {
+  static contextType = Auth0Context;
+
   constructor(props) {
     super(props);
+
     this.state = {
       uiData: this.props.uiData,
+      filename: this.props.match.params.filename,
       path: '/view',
       panePosition: '70%',
     };
+  }
+  componentDidMount() {
+    const filename = this.props.match.params.filename;
+    var formData = new FormData();
+    formData.append('filename', filename);
+
+    AuthApi('/api/getProcessedOa', this.context.getTokenSilently, formData)
+    .then(res => {
+      this.setState({
+        uiData: res
+      })
+      
+    })  
+
   }
 
   handlePane = (val) => {
@@ -33,6 +55,7 @@ class OaOverview extends Component {
   }
 
   render() {
+
     return (
       <div className='row'>
           <div className='bookmark leftCol'>
@@ -52,12 +75,12 @@ class OaOverview extends Component {
               </div>
               <div className='rightCol'>
                 <Switch>
-                  <Route exact path={this.state.path}>
+                  <PrivateRoute exact path={this.state.path}>
                       <PriorArtOverview uiData={this.state.uiData} />
-                  </Route>
-                  <Route path={`${this.state.path}/:publicationNumber/:citation`}>
+                  </PrivateRoute>
+                  <PrivateRoute path={`${this.state.path}/:filename/:publicationNumber/:citation`}>
                       <PriorArtSubview uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
-                  </Route>
+                  </PrivateRoute>
                 </Switch>
               </div> 
             </SplitPane>

@@ -92,8 +92,9 @@ function PdfView (props) {
               }
             }
           }
+          //sort the citations
+          newCitationObj[pubnum].sort((first, second) => (second.citation < first.citation) ? 1 : -1 )
         }
-
         return newCitationObj
 
       })
@@ -192,12 +193,12 @@ function PdfView (props) {
           return (
             <span>
                 <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
-                <button type="button" disabled={showPriorArt} onClick={() => setShowPriorArt(true)}>Prior Art</button>
+                <button type="button" disabled={showPriorArt} onClick={() => {setPageNumber(1); setShowPriorArt(true)}}>Prior Art</button>
                 {
                     priorArtList.length > 0 &&
                     <>
                         &nbsp; 
-                        <select onChange={(e) => {setShowPriorArt(true); setPaToLoad(parseInt(e.target.value))}}>
+                        <select onChange={(e) => {setShowPriorArt(true); setPageNumber(1); setPaToLoad(parseInt(e.target.value))}}>
                             {priorArtList.map((paFile, index) => <option key={paFile.filename} value={index}>{paFile.originalname}</option>)}
                         </select>
                     </>
@@ -230,9 +231,7 @@ function PdfView (props) {
           width:  width,
           height: height
         })
-        if (width > 1 && height > 1) {
-          setShowCitationDiv(true)
-        }
+        setShowCitationDiv(true)
 
       }      
       const selectCitation = (e) => {
@@ -262,12 +261,17 @@ function PdfView (props) {
         if (!pdfDiv) {
           return
         }
-
+        var customWidth = dragRect.width
+        var customHeight = dragRect.height
+        if (customWidth <1 || customHeight <1) {
+          customWidth = 25
+          customHeight = 15
+        } 
         var styleObj = {
           left: dragRect.x + '%',
           top: dragRect.y + '%',
-          width: dragRect.width + '%',
-          height: dragRect.height + '%',
+          width: customWidth + '%',
+          height: customHeight + '%',
           backgroundColor: 'rgb(255,66,65,0.15)',
         }
         var dimensions = {}
@@ -287,13 +291,14 @@ function PdfView (props) {
               <option value=''>--</option>
               {
                 citationObj[priorArtList[paToLoad].publicationNumber].map(c => 
-                <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && '(done)'}</option>
+                <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && 'p. ' + c.boundingBoxes[0].page}</option>
                 )
               }
             </Form.Control>
           </Form.Group>
           <Form.Group>
-            <Button variant="secondary" size="sm" onClick={saveCitation}>Save</Button>
+            <Button disabled={dragRect.width <1 || dragRect.height <1 } variant="primary" size="sm" onClick={saveCitation}>Save</Button>
+            <Button style={{marginLeft: '0.1rem'}} variant="secondary" size="sm" onClick={() => setShowCitationDiv(false)}>Close</Button>
           </Form.Group>
 
           </Form>

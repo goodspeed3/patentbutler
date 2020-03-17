@@ -10,7 +10,6 @@ const shortid = require('shortid');
 function OaInput (props) {
   let { fileData, setOaObject, setShowPriorArt, savePaToCloud, priorArtList, setPriorArtList, rejectionList, setRejectionList } = props
   let { filename, user:email } = fileData
-  var finalizedOaObject;
   const [applicationNumber, setApplicationNumber] = useState('')
   const [attyDocket, setAttyDocket] = useState('')
   const [mailingDate, setMailingDate] = useState('')
@@ -89,14 +88,12 @@ function OaInput (props) {
         rejectionList[index].typeText = '§ 102 Rejection'
         if (rejectionList[index].claimArgumentList.length === 0) {
           addClaimArgument(index)
-          addCitation(index, 0) //has to be no citations      
         }    
         break;
       case '103':
         rejectionList[index].typeText = '§ 103 Rejection'
         if (rejectionList[index].claimArgumentList.length === 0) {
           addClaimArgument(index)
-          addCitation(index, 0) //has to be no citations      
         }    
         break;
       case 'other':
@@ -159,15 +156,21 @@ function OaInput (props) {
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
   }
   
-  const addClaimArgument = (rejectionIndex) => {
+  const addClaimArgument = (rejectionIndex, claimArgIndex = 0) => {
     let rejection = rejectionList[rejectionIndex]
+    var number = ''
+    if (claimArgIndex > 0) {
+      number = rejectionList[rejectionIndex].claimArgumentList[claimArgIndex].number
+    }
     rejection.claimArgumentList.push({
-      number: '', //elements where number is '' will not be saved to server
+      number: number, //elements where number is '' will not be saved to server
       snippetText: '', //onsubmit, will convert all snippets into snippetList, kept in this form for now due to ease of removal / addition
       examinerText: '',
       citationList: [],
       id: shortid.generate()
     })
+    addCitation(rejectionIndex, claimArgIndex + 1) //has to be no citations      
+
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
   }
@@ -202,7 +205,13 @@ function OaInput (props) {
           <Form.Control required size='sm' as="textarea" rows="2"  value={claimRejection.examinerText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'examinerText')} />
         </Form.Group>
         <Form.Group md={2} as={Col}>
-          <Button size='sm' variant={index !== rejection.claimArgumentList.length - 1 ? "outline-danger" : "outline-success"} onClick={index !== rejection.claimArgumentList.length - 1 ? () => removeClaimArgument(rejectionIndex, index) : () => addClaimArgument(rejectionIndex)}>{index !== rejection.claimArgumentList.length - 1 ? '-Snip' : '+Snip'}</Button>
+          {rejection.claimArgumentList.length !==1 && 
+          <Button style={{marginRight: "0.1rem"}} size='sm' variant="outline-danger" onClick={() => removeClaimArgument(rejectionIndex, index)}>-Snip</Button>
+          }
+          {
+            index === rejection.claimArgumentList.length - 1 &&
+            <Button size='sm' variant={"outline-success"} onClick={() => addClaimArgument(rejectionIndex, index)}>+Snip</Button>
+          }
         </Form.Group>
         </Form.Row>
         {citationListElements(rejectionIndex, index)}
@@ -251,9 +260,6 @@ function OaInput (props) {
 
   const citationListElements = (rejectionIndex, claimArgIndex) => {
     let rejection = rejectionList[rejectionIndex]
-    // if (rejection.claimArgumentList[claimArgIndex].citationList.length === 0) {
-    //   addCitation(rejectionIndex, claimArgIndex)
-    // }
     return rejection.claimArgumentList[claimArgIndex].citationList.map((citation, index) => {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
       return (<div key={citation.id}>
@@ -269,7 +275,12 @@ function OaInput (props) {
           <Form.Control required size='sm' type="text" placeholder="USxxxxxxxxxxx" value={citation.publicationNumber} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'publicationNumber')}/>
         </Form.Group>
         <Form.Group md={2} as={Col}>
-          <Button size='sm' variant={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? "outline-danger" : "outline-success"} onClick={index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? () => removeCitation(rejectionIndex, claimArgIndex, index) : () => addCitation(rejectionIndex, claimArgIndex, citation.publicationNumber)}>{index !== rejection.claimArgumentList[claimArgIndex].citationList.length - 1 ? '-Cit' : '+Cit'}</Button>
+          {rejection.claimArgumentList[claimArgIndex].citationList.length !==1 && 
+          <Button style={{marginRight: "0.1rem"}} size='sm' variant="outline-danger" onClick={() => removeCitation(rejectionIndex, claimArgIndex, index)}>-Cit</Button>
+          }
+          {index === rejection.claimArgumentList[claimArgIndex].citationList.length - 1 && 
+          <Button size='sm' variant="outline-success" onClick={() => addCitation(rejectionIndex, claimArgIndex, citation.publicationNumber)}>+Cit</Button>
+          }
         </Form.Group>
         </Form.Row>
                 
@@ -341,7 +352,11 @@ function OaInput (props) {
   }
 
   const finalizeRejectionList = () => {
-    finalizedOaObject = {
+    return "Are you sure you want to proceed?"
+  }
+
+  const saveOaObj = () => {
+    let finalizedOaObject = {
       finishedProcessingTime: Date.now(),
       filename: filename,
       user: email,
@@ -353,10 +368,6 @@ function OaInput (props) {
       priorArtList: priorArtList
     }
 
-    return JSON.stringify(finalizedOaObject, null, 2)
-  }
-
-  const saveOaObj = () => {
     setOaObject(finalizedOaObject)
     
     handleClose()
@@ -405,7 +416,7 @@ function OaInput (props) {
             </Form.Group>
             <Form.Group as={Col}>
               <Form.Label>Assignee</Form.Label>
-              <Form.Control required size='sm' name="priorArtObj" value={priorArtList[index].assignee} type="text" placeholder="Sony Interactive Entertainment, Inc."  onChange={(e) => handleChange(e, index, 'assignee')} />
+              <Form.Control size='sm' name="priorArtObj" value={priorArtList[index].assignee} type="text" placeholder="Sony Interactive Entertainment, Inc."  onChange={(e) => handleChange(e, index, 'assignee')} />
             </Form.Group>            
           </Form.Row>
           <Form.Row>
