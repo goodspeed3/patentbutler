@@ -17,6 +17,7 @@ import {
   withRouter
 } from 'react-router-dom';
 import SplitPane from 'react-split-pane';
+import Spinner from 'react-bootstrap/Spinner'
 
 class OaOverview extends Component {
   static contextType = Auth0Context;
@@ -25,7 +26,8 @@ class OaOverview extends Component {
     super(props);
 
     this.state = {
-      uiData: this.props.uiData,
+      // uiData: this.props.uiData,
+      uiData: {},
       filename: this.props.match.params.filename,
       path: '/view',
       panePosition: '70%',
@@ -39,7 +41,7 @@ class OaOverview extends Component {
     AuthApi('/api/getProcessedOa', this.context.getTokenSilently, formData)
     .then(res => {
       this.setState({
-        uiData: res
+        uiData: res.processedOa
       })
       
     })  
@@ -55,7 +57,10 @@ class OaOverview extends Component {
   }
 
   render() {
-
+    if (Object.keys(this.state.uiData).length === 0) {
+      return <Spinner animation="border" />
+    }
+    console.log(this.state.uiData)
     return (
       <div className='row'>
           <div className='bookmark leftCol'>

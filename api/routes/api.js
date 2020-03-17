@@ -137,6 +137,14 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
     })
 });
 
+router.post('/getProcessedOa', checkJwt, upload.none(), async function(req, res, next) {
 
+  const [entity] = await datastore.get(datastore.key(['processedOa', req.body.filename]));
+  console.log(entity)
+  res.json(
+    {
+      processedOa: entity
+    })
+});
 
 module.exports = router;

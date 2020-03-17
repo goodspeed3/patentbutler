@@ -21,9 +21,6 @@ class OaMetadata extends Component {
         <div className='metadata metadataTitle'>Mailing Date</div>
         <div className='metadata'>{new Date(metadata.mailingDate).toLocaleDateString('en-US')}</div>
         <br />
-        <div className='metadata metadataTitle'>Due</div>
-        <div className='metadata'>5 days</div>
-        <br />
         <div className='divider'></div>
         <br />
         {
