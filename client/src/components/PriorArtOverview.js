@@ -2,50 +2,40 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import './PriorArtOverview.css'
+import { Document, Page, pdfjs } from 'react-pdf';
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
 class PriorArtOverview extends Component {
   constructor(props) {
     super(props);
-    this.state = { uiData: this.props.uiData };
+    this.paDiv = React.createRef()
+    this.state = { uiData: this.props.uiData, pdfWidth: 0 };
   }
   render() {
-    var listOfPriorArt = this.getListOfPriorArt(
-      this.state.uiData.rejectionList
-    );
-    return <div className="PAView">{this.displayOverview(listOfPriorArt)}</div>;
+    // console.log(this.state.uiData.priorArtList)
+    return <div className="PAView" ref={this.paDiv}>{this.displayOverview(this.state.uiData.priorArtList)}</div>;
   }
-
-  getListOfPriorArt = rejectionList => {
-    var listPa = [];
-    for (var i = 0; i < rejectionList.length; i++) {
-      if (rejectionList[i].priorArtList) {
-        for (var j = 0; j < rejectionList[i].priorArtList.length; j++) {
-          if (!this.doesContainPa(rejectionList[i].priorArtList[j], listPa)) {
-            listPa.push(rejectionList[i].priorArtList[j]);
-          }
-        }
-      }
-    }
-    return listPa;
-  };
-
-  doesContainPa(pa, listPa) {
-    for (var i = 0; i < listPa.length; i++) {
-      if (listPa[i].publicationNumber === pa.publicationNumber) {
-        return true;
-      }
-    }
-    return false;
+  componentDidMount() {
+    this.setState({
+      pdfWidth: this.paDiv.current.clientWidth
+    })
   }
-
   displayOverview = listOfPriorArt => {
-    // console.log(listOfPriorArt);
+    // console.log(listOfPriorArt[0].pdfUrl);
     return listOfPriorArt.map(priorArt => (
       <Card key={priorArt.publicationNumber} className="card">
         <Card.Header className='cardHeader'>{priorArt.abbreviation} ({priorArt.publicationNumber})</Card.Header>
-        <Card.Img className='cardImg' variant="top" src={priorArt.figureThumb} />
+        {/* <Card.Img className='cardImg' variant="top" src={priorArt.figureThumb} /> */}
+        <Document 
+          file={'/' + priorArt.pdfUrl}
+          cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
+          cMapPacked={true} >
+        <Page 
+          pageNumber={1}
+          width={this.state.pdfWidth}
+         /></Document>
         <Card.Body className='cardBody'>
-          <Card.Text className='cardAssignee'>{priorArt.assignee} &#183; {priorArt.priorityDate}</Card.Text>
+          <Card.Text className='cardAssignee'>{priorArt.assignee}</Card.Text>
           <Card.Text>{priorArt.title}</Card.Text>
         </Card.Body>
       </Card>

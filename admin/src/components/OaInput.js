@@ -467,7 +467,7 @@ function OaInput (props) {
         multiple
     />
     </Form.Group>
-  { showLoading ? <Spinner animation="border" /> : null}
+  { showLoading ? <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> : null}
   </div>  
   {showPriorArtElements()}
   <Button className='submitButton' variant="primary" type="submit">

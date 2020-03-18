@@ -3,6 +3,7 @@ import './HomeView.css'
 import UploadView from './UploadView';
 import Table from 'react-bootstrap/Table'
 import { HashLink as Link } from 'react-router-hash-link';
+import Spinner from 'react-bootstrap/Spinner'
 
 import AuthApi from './AuthApi'
 import { useAuth0 } from "../react-auth0-spa";
@@ -87,7 +88,7 @@ function HomeView() {
 
   let elementsToShow;
   if (!user || !homeData) {
-    elementsToShow = <div />
+    elementsToShow = <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div>
   } else {
     elementsToShow = <div className='oaList'>
     <div className='oaColumn'>

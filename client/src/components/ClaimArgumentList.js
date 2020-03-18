@@ -40,10 +40,34 @@ class ClaimArgumentList extends Component {
   sec101Blurb = (rejectionObject) => {
     return rejectionObject.blurb
   }
+  doesReformattedListHaveClaim = (list, obj) => {
+    return list.some(e => e.number === obj.number)
+  }
   snippetListUi = (rejectionObject) => {
     // console.log(rejectionObject);
+    //create snippet list
+    var reformattedClaimArgumentList = [] //group by same claim for formatting purposes
+    for (var i=0; i<rejectionObject.length; i++) {
+      var snippetObj = rejectionObject[i]
+      //if reformatted claim arg list has NO claim number yet
+      if (!this.doesReformattedListHaveClaim(reformattedClaimArgumentList, snippetObj)) {
+        reformattedClaimArgumentList.push({
+          number: snippetObj.number,
+          snippetList: [snippetObj]
+        })
+      } else { //add it to the existing element
+        for (var j=0; j<reformattedClaimArgumentList.length; j++) {
+          var reformattedClaimObj = reformattedClaimArgumentList[j]
+          if (reformattedClaimObj.number === snippetObj.number) {
+            reformattedClaimObj.snippetList.push(snippetObj)
+          }
+        }
+  
+      }
+    }
+    // console.log(reformattedClaimArgumentList)
     //using index b/c I'm assuming order of items does not change
-    return rejectionObject.map((claimArgumentObject, index) => (
+    return reformattedClaimArgumentList.map((claimArgumentObject, index) => (
       <Container className="claimBlock" key={'claimArgument' + index}>
         <Row>
           <Col>
@@ -92,7 +116,7 @@ class ClaimArgumentList extends Component {
         <Link
           key={'l'+ i}
           to={{
-            pathname: '/view/' + mappedCitations[match] + '/' + match,
+            pathname: '/view/' + this.props.match.params.filename + '/' + mappedCitations[match] + '/' + match,
             // state: { updateMe: true }
           }}
         >

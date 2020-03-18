@@ -5,6 +5,8 @@ import { useAuth0 } from "../react-auth0-spa";
 import Table from 'react-bootstrap/Table'
 import { Link } from 'react-router-dom';
 import moment from 'moment-timezone'
+import Spinner from 'react-bootstrap/Spinner'
+
 function HomeView () {
     const { getTokenSilently, user } = useAuth0();
     const [homeData, setHomeData] = useState(null)
@@ -96,7 +98,7 @@ function HomeView () {
     }
     }
         
-    var elementsToShow = <div />;
+    var elementsToShow = <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div>;
     if (user && homeData) {
         elementsToShow = (
         <div className='procList'>

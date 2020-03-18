@@ -79,7 +79,7 @@ function ProcessView (props) {
         </div>
         )
     } else {
-        elementsToShow = <Spinner animation="border" />
+        elementsToShow = <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div>
     }
     return (
     <div>

@@ -24,15 +24,12 @@ class PriorArtSubview extends Component {
       isScaleLocked: false,
       fitScale: 1.0,
       didFinishRenderingPage: false,
-      // selectedParagraphs: this.getSelectedPara(
-      //   priorArt,
-      //   this.props.match.params.citation
-      // )
     };
   }
 
   componentDidUpdate(prevProps){
     if(prevProps !== this.props){  
+
       let priorArt = this.getPriorArt(this.props.uiData);
       let pageToLoad = this.getPageToLoad(priorArt, this.props.match.params.citation, prevProps.match.url !== this.props.match.url)
       var updateStateObj = {
@@ -77,19 +74,14 @@ class PriorArtSubview extends Component {
 
   getPriorArt(uiData) {
     var priorArt;
-    for (var i = 0; i < this.props.uiData.rejectionList.length; i++) {
-      var rejectionObj = this.props.uiData.rejectionList[i];
-      if (rejectionObj.priorArtList) {
-        for (var j = 0; j < rejectionObj.priorArtList.length; j++) {
-          var candidatePriorArt = rejectionObj.priorArtList[j];
-          if (
-            candidatePriorArt.publicationNumber ===
-            this.props.match.params.publicationNumber
-          ) {
-            priorArt = candidatePriorArt;
-            return priorArt;
-          }
-        }
+    for (var i = 0; i < this.props.uiData.priorArtList.length; i++) {
+      var candidatePriorArt = this.props.uiData.priorArtList[i];
+      if (
+        candidatePriorArt.publicationNumber ===
+        this.props.match.params.publicationNumber
+      ) {
+        priorArt = candidatePriorArt;
+        return priorArt;
       }
     }
     return null;
@@ -98,44 +90,20 @@ class PriorArtSubview extends Component {
     if (!didUserChangeUrl && this.state.pageNumber !== 0) {
       return this.state.pageNumber
     }
+    // console.log(priorArt)
     var paList = priorArt.citationList
     for (var i=0; i<paList.length; i++) {
       var citationObj = paList[i]
       if (citationObj.citation === citation) {
-        return citationObj.page || 1
+        var citFirstPage;
+        if (citationObj.boundingBoxes.length >0) {
+          citFirstPage = citationObj.boundingBoxes[0].page
+        }
+        return citFirstPage || 1
       }
     }
     return 1
   }
-
-  // getSelectedPara(priorArt, citation) {
-  //   var range = 1; //number of surrounding paragraphs to show
-  //   var index = 0;
-  //   var start = 0;
-  //   var end = 0;
-  //   for (var i = 0; i < priorArt.citationList.length; i++) {
-  //     var paragraphObj = priorArt.citationList[i];
-  //     if (paragraphObj.citation === citation) {
-  //       index = i;
-  //     }
-  //   }
-  //   if (index <= range) {
-  //     start = 0;
-  //   } else {
-  //     start = index - range;
-  //   }
-  //   if (index + range >= priorArt.citationList.length - 1) {
-  //     end = priorArt.citationList.length - 1;
-  //   } else {
-  //     end = index + range;
-  //   }
-  //   var selectedPara = [];
-  //   for (var j = start; j <= end; j++) {
-  //     selectedPara.push(priorArt.citationList[j]);
-  //   }
-
-  //   return selectedPara;
-  // }
 
   onDocumentLoadSuccess = (document) => {
     const { numPages } = document;
@@ -217,28 +185,35 @@ class PriorArtSubview extends Component {
     var styleArray = []
     for (var i=0; i<this.state.priorArt.citationList.length; i++) {
       let citationBox = this.state.priorArt.citationList[i]
-      if (citationBox.page !== this.state.pageNumber) {
-        continue;
-      }
+      for (var j=0; j<citationBox.boundingBoxes.length; j++) {
+        let citationBoxIndividual = citationBox.boundingBoxes[j]
+        if (citationBoxIndividual.page !== this.state.pageNumber) {
+          continue;
+        }
+        var styleObj = {}
+        styleObj.id=citationBox.id
+        styleObj.idName=""
+        styleObj.citation=citationBox.citation
+        styleObj.position = "absolute"
+        styleObj.top = citationBoxIndividual.boundingBox.y + "%"
+        styleObj.left = citationBoxIndividual.boundingBox.x + "%"
+        styleObj.width = citationBoxIndividual.boundingBox.width + "%"
+        styleObj.height = citationBoxIndividual.boundingBox.height + "%"
+        if (citationBox.citation === this.state.citation) {
+          styleObj.backgroundColor = "#FF4241"
+          //store the farthest down highlighted element, b/c that's likely the start of the highlighted portion
+          styleObj.idName="focusHighlight"
+        } else {
+          styleObj.backgroundColor = "#FFE18F"
+        }
+        styleObj.opacity = "0.15"
+        styleObj.zIndex= "10"
+        styleArray.push(styleObj)
 
-      var styleObj = {}
-      styleObj.idName=""
-      styleObj.position = "absolute"
-      styleObj.top = citationBox.boundingBox.y + "%"
-      styleObj.left = citationBox.boundingBox.x + "%"
-      styleObj.width = citationBox.boundingBox.width + "%"
-      styleObj.height = citationBox.boundingBox.height + "%"
-      if (citationBox.citation === this.state.citation) {
-        styleObj.backgroundColor = "#FF4241"
-        //store the farthest down highlighted element, b/c that's likely the start of the highlighted portion
-        styleObj.idName="focusHighlight"
-      } else {
-        styleObj.backgroundColor = "#FFE18F"
       }
-      styleObj.opacity = "0.15"
-      styleObj.zIndex= "99"
-      styleArray.push(styleObj)
     }
+
+    
     var dimensions = {}
     if (!this.state.isScaleLocked) {
       dimensions.width = pdfDiv.clientWidth
@@ -289,7 +264,7 @@ class PriorArtSubview extends Component {
       <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
         <div className="pageMetadata"><Link to="/view">Prior Art Overview</Link>
-     &nbsp;| {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber}, Priority Date: {this.state.priorArt.priorityDate} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
+     &nbsp;| {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
           <div>
             <input type="text" size={5} placeholder='Page #' onChange={this.handlePageEntry}/>
             <button
@@ -324,7 +299,7 @@ class PriorArtSubview extends Component {
         </div> 
         <div className='pdfDiv' id="pdfDiv" >
           <Document
-            file={this.state.priorArt.pdfUrl}
+            file={'/' + this.state.priorArt.pdfUrl}
             cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
             cMapPacked={true}
             onLoadSuccess={this.onDocumentLoadSuccess}
