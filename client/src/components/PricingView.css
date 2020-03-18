@@ -1,0 +1,32 @@
+.pricing {
+    padding-left: 13rem;
+    padding-right: 13rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+
+
+}
+.header {
+    font-weight: 700;
+    font-size: 2.5em;
+    padding-top: 5rem;
+    font-family: 'EB Garamond', serif;
+
+}
+
+.toggle {
+    margin: 2.5rem;
+}
+
+.boxes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}

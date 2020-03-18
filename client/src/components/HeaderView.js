@@ -14,7 +14,8 @@ function HeaderView () {
     const { isAuthenticated, loginWithRedirect, logout, loading } = useAuth0();
 
     var component = <div />;
-    var landingLinks = (location.pathname === '/' || location.pathname === '/pricing') &&
+    var links = ['/', '/pricing', '/about']
+    var landingLinks = links.includes(location.pathname) &&
         <><Link to='/#features'><Button size='sm' variant='link' >Features</Button></Link>      
         <Link to='/pricing'><Button size='sm' variant='link' >Pricing</Button></Link></>
 

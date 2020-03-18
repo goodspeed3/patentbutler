@@ -1,0 +1,33 @@
+.about {
+    padding-left: 13rem;
+    padding-right: 13rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+    font-family: 'EB Garamond', serif;
+
+}
+.header {
+    font-weight: 700;
+    font-size: 2.5em;
+    padding-top: 5rem;
+}
+.profile {
+    margin-top: 1rem;
+    border-radius: 50%;
+}
+.name {
+    font-size: 1.4rem;
+    margin-top: 0.5rem;
+    font-family: 'Arvo', sans-serif;
+
+}
+.blurb {
+    font-size: 1rem;
+    text-align: left;
+}
+.about > p {
+    font-family: 'Arvo', sans-serif;
+}
