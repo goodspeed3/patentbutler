@@ -2,25 +2,3 @@
   text-align: center;
   /* position: relative; */
 }
-.accountDiv {
-  position: absolute;
-  right: 1rem;
-  top: 0.5rem;  
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-
-}
-.accountDiv > Button {
-  margin-left: 0.5rem;
-}
-.headerBar {
-  position: sticky;
-  position: -webkit-sticky;
-  top: 0px;
-  z-index: 100;
-  height: 3.5rem;
-
-  align-items : center;
-  justify-content: center;
-}
