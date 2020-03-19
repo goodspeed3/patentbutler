@@ -6,6 +6,12 @@ var path = require('path');
 const fs = require('fs')
 const mime = require('mime');
 
+const mailgun = require("mailgun-js");
+const DOMAIN = 'mail.patentbutler.com';
+const api_key = '395890d26aad6ccac5435c933c0933a3-9a235412-6950caab'
+const mg = mailgun({apiKey: api_key, domain: DOMAIN});
+
+
 var mStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './files/art/')
@@ -132,7 +138,21 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
 
   await datastore.upsert([processedOaEntity, oaUploadEntity])
   
-  res.json(oaObject)
+  const link = 'https://patentbutler.com/view/'+oaObject.filename
+  const maildate = new Date(oaObject.mailingDate)
+  const txt = 'Hello,<br /><br />Our systems have processed \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
+  maildateString = (1+maildate.getMonth()) + "/" + maildate.getDate() + "/" + maildate.getFullYear()
+  const data = {
+    from: 'Team team@patentbutler.com',
+    to: oaObject.user,
+    subject: 'Your Office Action \'' + oaObject.originalname + '\' mailed on ' + maildateString + ' has finished processing',
+    html: txt
+  };
+  mg.messages().send(data, function (error, body) {
+    console.log(body)
+    res.json({ filename: oaObject.filename })    
+
+  });  
 });
 
 router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, res, next) {

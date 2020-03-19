@@ -9,7 +9,7 @@ const shortid = require('shortid');
 
 function OaInput (props) {
   let { fileData, setOaObject, setShowPriorArt, savePaToCloud, priorArtList, setPriorArtList, rejectionList, setRejectionList } = props
-  let { filename, user:email } = fileData
+  let { filename, user:email, originalname} = fileData
   const [applicationNumber, setApplicationNumber] = useState('')
   const [attyDocket, setAttyDocket] = useState('')
   const [mailingDate, setMailingDate] = useState('')
@@ -359,6 +359,7 @@ function OaInput (props) {
     let finalizedOaObject = {
       finishedProcessingTime: Date.now(),
       filename: filename,
+      originalname: originalname,
       user: email,
       mailingDate: mailingDate,
       filingDate: filingDate,

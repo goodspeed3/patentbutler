@@ -71,7 +71,7 @@ function HomeView () {
                 <td>{timeHelper(processingEntity.uploadTime, true)}</td>
                 <td>{timeHelper(processingEntity.uploadTime)}</td>
                 <td>{processingEntity.user}</td>
-                <td><Link to={linkWithState}>{processingEntity.origname}</Link></td>
+                <td><Link to={linkWithState}>{processingEntity.originalname}</Link></td>
                 </tr>
             )
         })}        

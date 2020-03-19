@@ -66,13 +66,29 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
     insertOaObject({
       user: req.body.userEmail,
       filename: req.file.filename,
-      origname: req.file.originalname,
+      originalname: req.file.originalname,
       uploadTime: Date.now(),
       processed: false
     })])
-  res.json({ filename: req.file.filename })    
-  
+  const txt = req.body.userEmail + ' uploaded ' + req.file.originalname + " for processing.  Go <a href='https://patentbutler.com/admin'>here</a> to process."
+  const data = {
+    from: req.body.userEmail,
+    to: 'Jon Liu, jon@patentbutler.com',
+    subject: 'Uploaded new OA for processing',
+    html: txt
+  };
+  mg.messages().send(data, function (error, body) {
+    console.log(body)
+    res.json({ filename: req.file.filename })    
+
+  });  
 });
+
+const mailgun = require("mailgun-js");
+const DOMAIN = 'mail.patentbutler.com';
+const api_key = '395890d26aad6ccac5435c933c0933a3-9a235412-6950caab'
+const mg = mailgun({apiKey: api_key, domain: DOMAIN});
+
 
 
 function uploadFileToGoogle(path, filename) {
@@ -146,5 +162,20 @@ router.post('/getProcessedOa', checkJwt, upload.none(), async function(req, res,
       processedOa: entity
     })
 });
+
+//let people send feedback
+router.post('/email', upload.none(), (req, res) => {
+  const data = {
+    from: req.body.email,
+    to: 'Jon Liu, jon@patentbutler.com',
+    subject: 'Feedback',
+    text: req.body.comment
+  };
+  mg.messages().send(data, function (error, body) {
+    res.json({success: 'done'})
+
+  });  
+})
+
 
 module.exports = router;

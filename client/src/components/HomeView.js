@@ -62,7 +62,7 @@ function HomeView() {
     return <div>
       <div className='procNotice'>* We will email you when processing completes.</div>
       {homeData.processingOa[0].map (processedOaEntity => {
-        return <div key={processedOaEntity.uploadTime}><b>{timeHelper(processedOaEntity.uploadTime, true)}</b> - Uploaded {processedOaEntity.origname} </div>
+        return <div key={processedOaEntity.uploadTime}><b>{timeHelper(processedOaEntity.uploadTime, true)}</b> - Uploaded {processedOaEntity.originalname} </div>
       })}
     </div>
   }
@@ -82,7 +82,7 @@ function HomeView() {
       }
     } else {
       var date = new Date(timestamp);
-      return date.getMonth() + "/" + date.getDate() + "/" + date.getFullYear()
+      return (1+date.getMonth()) + "/" + date.getDate() + "/" + date.getFullYear()
     }
   }
 

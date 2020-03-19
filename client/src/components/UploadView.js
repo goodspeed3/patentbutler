@@ -62,7 +62,7 @@ function UploadView(props) {
         <Modal.Header closeButton>
           <Modal.Title>Uploaded Office Action</Modal.Title>
         </Modal.Header>
-        <Modal.Body>We will email you when the OA has finished processing (within 2 days).</Modal.Body>
+        <Modal.Body>We will email you when processing completes.</Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={handleClose}>
             Done

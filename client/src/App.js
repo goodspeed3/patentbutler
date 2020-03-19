@@ -7,6 +7,8 @@ import LandingView from './components/LandingView';
 import PricingView from './components/PricingView';
 import HeaderView from './components/HeaderView';
 import AboutView from './components/AboutView';
+// import TermsView from './components/TermsView';
+// import PrivacyView from './components/PrivacyView';
 // import history from "./utils/history";
 import PrivateRoute from "./components/PrivateRoute";
 // import { Auth0Context } from "./react-auth0-spa";
@@ -31,6 +33,8 @@ class App extends Component {
           <Route exact path="/" component={LandingView} />
           <Route exact path="/pricing" component={PricingView} />
           <Route exact path="/about" component={AboutView} />
+          {/* <Route exact path="/terms" component={TermsView} />
+          <Route exact path="/privacy" component={PrivacyView} /> */}
           <PrivateRoute path="/home" component={HomeView} />
           <PrivateRoute path="/view/:filename" component={OaOverview} />
           {/* <PrivateRoute path="/profile" component={ProfileView} /> */}

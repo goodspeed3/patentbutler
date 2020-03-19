@@ -23,10 +23,22 @@
 .toggle {
     margin: 2.5rem;
 }
+.cd {
+    margin-bottom: 1rem;
+}
+.pricingText {
+    margin-top: 3.5rem;
+    margin-bottom: 3.5rem;
+    font-size: 3rem;
+}
+.marks {
+    margin-right: 1rem;
+}
+.pricingText > p > span{
+    font-size: 1rem;
+}
 
-.boxes {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
+.benefits {
+    text-align: left;
+    padding-left: 0.7rem;
 }

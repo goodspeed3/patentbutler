@@ -5,8 +5,10 @@ import Button from 'react-bootstrap/Button'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import { useAuth0 } from "../react-auth0-spa";
 
 function LandingView () {
+    const { loginWithRedirect } = useAuth0();
 
     return (
     <div className='landing'>
@@ -14,7 +16,7 @@ function LandingView () {
             <div>
                 <h1 className='tagline'>The fastest way to respond to Office Actions</h1>
                 <h4 className='subTagline'>Upload an OA (.pdf), get a new experience</h4>
-                <div className='cta'><Button>Sign Up for Free</Button></div>
+                <div className='cta'><Button onClick={loginWithRedirect}>Sign Up for Free</Button></div>
             </div>
             <img className='landingImg' width='1200' alt='landingA' src={process.env.PUBLIC_URL + '/landingA.png'} />
         </div>    
@@ -58,11 +60,13 @@ function LandingView () {
         <div className='block1'>
             <div>
                 <h1 className='secondTagline'>Ready to get started?</h1>
-                <div className='cta'><Button>Sign Up for Free</Button></div>
+                <div className='cta'><Button onClick={loginWithRedirect}>Sign Up for Free</Button></div>
             </div>
         </div>    
         <div className='block2'>
-            <div>© 2020 PatentButler &#183; <Link to='/about'>About</Link></div>
+            <div>© 2020 PatentButler <br /><Link to='/about'><Button variant='link'>About</Button></Link>
+            {/* <Link to='/privacy'><Button variant='link'>Privacy</Button></Link><Link to='/terms'><Button variant='link'>Terms</Button></Link> */}
+            </div>
         </div>            
 
     </div>
