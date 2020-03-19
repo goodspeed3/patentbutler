@@ -103,7 +103,7 @@ router.post('/downloadOa', checkJwt, upload.none(), async function(req, res, nex
 
   res.sendFile(path.join(__dirname, '../', destFilename))
 });
-
+/*
 async function downloadFile(src, dest) {
   if (fs.existsSync(dest)) {
     //file exists
@@ -125,7 +125,7 @@ async function downloadFile(src, dest) {
     `gs://${bucketName}/${src} downloaded to ${dest}.`
   );
 }
-
+*/
 router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, next) {
   const oaObject = JSON.parse(req.body.oaObject);
   var processedOaEntity = {

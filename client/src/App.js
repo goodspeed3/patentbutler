@@ -7,6 +7,7 @@ import LandingView from './components/LandingView';
 import PricingView from './components/PricingView';
 import HeaderView from './components/HeaderView';
 import AboutView from './components/AboutView';
+import AccountView from './components/AccountView';
 // import TermsView from './components/TermsView';
 // import PrivacyView from './components/PrivacyView';
 // import history from "./utils/history";
@@ -35,6 +36,7 @@ class App extends Component {
           <Route exact path="/about" component={AboutView} />
           {/* <Route exact path="/terms" component={TermsView} />
           <Route exact path="/privacy" component={PrivacyView} /> */}
+          <PrivateRoute path="/account" component={AccountView} />
           <PrivateRoute path="/home" component={HomeView} />
           <PrivateRoute path="/view/:filename" component={OaOverview} />
           {/* <PrivateRoute path="/profile" component={ProfileView} /> */}

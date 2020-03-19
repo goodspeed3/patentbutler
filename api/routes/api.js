@@ -4,6 +4,12 @@ var multer = require('multer');
 const crypto = require('crypto');
 const mime = require('mime');
 
+const stripeTestAPI = "pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR"
+const stripeTestSecret = "sk_test_v7Cq5PY6cfaLE52uEAYsnCWj00BYaAS8A3"
+
+const stripeLiveAPI = 'pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl'
+const stripeLiveSecret = 'sk_live_6LZ8nKG8v1bX8HFDH19tsgwc009mYJTJ2p'
+
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
 
@@ -59,10 +65,23 @@ const upload = multer({ storage: mStorage });
 /* POST upload OA. */
 router.post('/upload', checkJwt, upload.single('file'), async function(req, res, next) {
   console.log('----uploaded oa----')
+  //decrease credits and increase processed
+  const userKey = datastore.key(['user', req.body.userEmail]);
+  var [userEntity] = await datastore.get(userKey);
+  userEntity.numOaProcessed = userEntity.numOaProcessed + 1
+  if (userEntity.oaCredits <= 0 && !userEntity.paymentAdded) {
+    console.log('no credits to continue')
+    res.json({ error: 'need to add payment'})
+    return
+  }
+  if (userEntity.oaCredits > 0)
+    userEntity.oaCredits = userEntity.oaCredits - 1
+
   // console.log(req.file.destination + req.file.filename)
-  let results = await Promise.all([
+  await Promise.all([
     // do not upload to google for now
     // uploadFileToGoogle(req.file.destination, req.file.filename),
+    datastore.upsert(userEntity),
     insertOaObject({
       user: req.body.userEmail,
       filename: req.file.filename,
@@ -90,7 +109,7 @@ const api_key = '395890d26aad6ccac5435c933c0933a3-9a235412-6950caab'
 const mg = mailgun({apiKey: api_key, domain: DOMAIN});
 
 
-
+/*
 function uploadFileToGoogle(path, filename) {
   console.log(`${filename} uploading to ${bucketName}.`);
   // Uploads a local file to the bucket
@@ -109,7 +128,7 @@ function uploadFileToGoogle(path, filename) {
   });
 
 }
-
+*/
 /**
  * Insert a visit record into the database.
  *
@@ -127,6 +146,7 @@ const insertOaObject = oaObject => {
 /* GET home page. */
 //need upload.non() to handle POST multipart form
 router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
+  var promiseArray = []
   //get list of datastore objects; get link rdy to show processed OA
   // use req.body.userEmail
   const processingOaQuery = datastore
@@ -139,18 +159,33 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
     .createQuery('processedOa')
     .filter('user', '=', req.body.userEmail)
     .order('finishedProcessingTime');
+
+    promiseArray.push(datastore.runQuery(processingOaQuery))
+    promiseArray.push(datastore.runQuery(finishedOaQuery))
+
+
+    //if no user yet, create one
+    const userKey = datastore.key(['user', req.body.userEmail]);
+    var [userEntity] = await datastore.get(userKey);
+    // console.log(userEntity)
+    if (!userEntity) { //save if new user
+      promiseArray.push(addUser(req.body.userEmail))
+    }
+
+
     
-
-  let results = await Promise.all([
-    datastore.runQuery(processingOaQuery),
-    datastore.runQuery(finishedOaQuery),    
-    ])
-
-  res.json(
-    {
-      processingOa: results[0], //order is preserved
-      finishedOa: results[1]  
-    })
+  let results = await Promise.all(promiseArray)
+  var responseObj = {
+    processingOa: results[0], //order is preserved
+    finishedOa: results[1]
+  }
+    if (promiseArray.length === 3) {
+      responseObj.user = results[2]
+    } else {
+      responseObj.user = userEntity
+    }
+    console.log(responseObj)
+  res.json(responseObj)
 });
 
 router.post('/getProcessedOa', checkJwt, upload.none(), async function(req, res, next) {
@@ -177,5 +212,31 @@ router.post('/email', upload.none(), (req, res) => {
   });  
 })
 
+const addUser = async (email) => {
+  var data = {
+    createdDate: Date.now(),
+    oaCredits: 1, //give every new user a free OA
+    paymentAdded: false,
+    numOaProcessed: 0
+  }
+  return datastore.save({
+    key: datastore.key(['user', email]),
+    data: data
+  }).then(r => data);
+}
+
+router.post('/user', checkJwt, upload.none(), async function(req, res, next) {
+
+  const userKey = datastore.key(['user', req.body.userEmail]);
+  var [userEntity] = await datastore.get(userKey);
+  // console.log(userEntity)
+  if (!userEntity) { //save if new user
+    let data = await addUser(req.body.userEmail)
+    res.json({ user: data })    
+    return
+  }
+  res.json({ user: userEntity })    
+
+});
 
 module.exports = router;

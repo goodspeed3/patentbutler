@@ -4,6 +4,7 @@ import UploadView from './UploadView';
 import Table from 'react-bootstrap/Table'
 import { HashLink as Link } from 'react-router-hash-link';
 import Spinner from 'react-bootstrap/Spinner'
+import Alert from 'react-bootstrap/Alert'
 
 import AuthApi from './AuthApi'
 import { useAuth0 } from "../react-auth0-spa";
@@ -11,6 +12,9 @@ import { useAuth0 } from "../react-auth0-spa";
 function HomeView() {
   const { getTokenSilently, user } = useAuth0();
   const [homeData, setHomeData] = useState(null)
+  const [pbUser, setPbUser] = useState({})
+  const [showAlert, setShowAlert] = useState();
+
   useEffect(() => {
     triggerListRefresh();
   }, [user]);
@@ -26,9 +30,8 @@ function HomeView() {
     AuthApi('/api/home', getTokenSilently, formData)
     .then(res => {
       setHomeData(res)
-      
+      setPbUser(res.user)
     })  
-
   }
   function showFinishedOa() {
     if (homeData.finishedOa && homeData.finishedOa[0].length === 0 ) {
@@ -104,8 +107,14 @@ function HomeView() {
 
   return (
     <div className='homeLayout'>
+        {pbUser.oaCredits > 0 && <Alert className="mb-0" variant='success'>
+            You have <b>{pbUser.oaCredits}</b> Office Action processing credit{pbUser.oaCredits > 1 && 's'} remaining.
+        </Alert>}
+        {pbUser.oaCredits <=0 && !pbUser.paymentAdded && <Alert className="mb-0" variant='warning'>
+            Please add <Link to='/account'>payment information</Link> to upload more office actions.
+        </Alert>}        
         <div className='uploadOa'>
-          <UploadView triggerListRefresh={triggerListRefresh} />
+          <UploadView triggerListRefresh={triggerListRefresh} pbUser={pbUser} />
         </div>
         {elementsToShow}
     </div>
