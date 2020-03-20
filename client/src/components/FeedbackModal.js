@@ -3,12 +3,14 @@ import Modal from 'react-bootstrap/Modal'
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import Alert from 'react-bootstrap/Alert'
+import { useLocation } from 'react-router-dom';
 
 function FeedbackModal(props) {
     const [email, setEmail] = useState('');
     const [comment, setComment] = useState('');
     const [showAlert, setShowAlert] = useState();
     const [validated, setValidated] = useState(false);
+    const location = useLocation();  
 
     useEffect(() => {
         if (props.user) {
@@ -24,6 +26,7 @@ function FeedbackModal(props) {
     
         setValidated(true);
         sendFeedback()
+        setTimeout(props.onHide, 2000)
         event.preventDefault();
         event.stopPropagation();
 
@@ -45,7 +48,7 @@ function FeedbackModal(props) {
         var formData = new FormData();
         formData.append('email', email);
         formData.append('comment', comment);
-
+        formData.append('path', location.pathname);
         fetch('/api/email', {
             method: 'POST',
             body: formData
@@ -68,10 +71,10 @@ function FeedbackModal(props) {
           We'd love to hear from you!
           </Modal.Title>
         </Modal.Header>
-        <Form onSubmit={handleSubmit} validated={validated}>
+        <Form onSubmit={handleSubmit} validated={validated} style={{padding: '1rem'}}>
         <Modal.Body>
         {showAlert && <Alert variant='success'>
-            Thank you for your feedback.
+            Your message has been sent.  Thank you for your feedback.
         </Alert>}
             <Form.Row>
             <Form.Label>Email</Form.Label>
@@ -79,7 +82,7 @@ function FeedbackModal(props) {
             </Form.Row>
             <Form.Row style={{marginTop: '1rem'}}>
                 <Form.Label>Comment</Form.Label>
-                <Form.Control required value={comment} as="textarea" name='comment' rows="5" placeholder="Enter question or comment"  onChange={handleChange} />
+                <Form.Control required value={comment} as="textarea" name='comment' rows="5" placeholder="Enter question or comment."  onChange={handleChange} />
             </Form.Row>
         </Modal.Body>
         <Modal.Footer>

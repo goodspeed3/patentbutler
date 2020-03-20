@@ -49,7 +49,7 @@ function UploadView(props) {
         <div style={{display: 'flex', justifyContent: 'center'}}>
         <Form>
             <Form.Group controlId="formGroupFile">
-            <Form.Control disabled={!Object.keys(props.pbUser).length>0 || (!props.pbUser.paymentAdded && props.pbUser.oaCredits <= 0)}
+            <Form.Control disabled={!Object.keys(props.pbUser).length>0 || (!props.pbUser.customerId && props.pbUser.oaCredits <= 0)}
                 type="file"
                 onChange={handleUpload}
                 accept=".pdf"

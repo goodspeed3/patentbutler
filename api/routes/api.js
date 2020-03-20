@@ -4,11 +4,19 @@ var multer = require('multer');
 const crypto = require('crypto');
 const mime = require('mime');
 
-const stripeTestAPI = "pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR"
-const stripeTestSecret = "sk_test_v7Cq5PY6cfaLE52uEAYsnCWj00BYaAS8A3"
+//CHANGE THIS WHEN DEPLOYING TO LIVE
+var stripe_creds = {};
+if (process.env.NODE_ENV === 'production') {
+  stripe_creds.API = 'pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl'
+  stripe_creds.SECRET = 'sk_live_6LZ8nKG8v1bX8HFDH19tsgwc009mYJTJ2p'
+  stripe_creds.SUBPLAN = 'plan_GwW9xGjYtQKbWF'
+} else {
+  stripe_creds.API = 'pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR'
+  stripe_creds.SECRET = 'sk_test_v7Cq5PY6cfaLE52uEAYsnCWj00BYaAS8A3'
+  stripe_creds.SUBPLAN = 'plan_GwW9xGjYtQKbWF'
+}
 
-const stripeLiveAPI = 'pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl'
-const stripeLiveSecret = 'sk_live_6LZ8nKG8v1bX8HFDH19tsgwc009mYJTJ2p'
+const stripe = require('stripe')(stripe_creds.SECRET);
 
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
@@ -69,13 +77,28 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
   const userKey = datastore.key(['user', req.body.userEmail]);
   var [userEntity] = await datastore.get(userKey);
   userEntity.numOaProcessed = userEntity.numOaProcessed + 1
-  if (userEntity.oaCredits <= 0 && !userEntity.paymentAdded) {
-    console.log('no credits to continue')
-    res.json({ error: 'need to add payment'})
-    return
+  if (userEntity.oaCredits <= 0) {
+    if (!userEntity.customerId) {
+      console.log('no credits to continue')
+      res.json({ error: 'need to add payment'})
+      return  
+    } else {
+      await stripe.subscriptionItems.createUsageRecord(
+        userEntity.subscriptionItemId,
+        {
+          quantity: 1,
+          timestamp: Math.ceil(Date.now() / 1000),
+          action: "increment"
+        }
+      );
+      
+    }
   }
   if (userEntity.oaCredits > 0)
     userEntity.oaCredits = userEntity.oaCredits - 1
+
+
+
 
   // console.log(req.file.destination + req.file.filename)
   await Promise.all([
@@ -204,7 +227,7 @@ router.post('/email', upload.none(), (req, res) => {
     from: req.body.email,
     to: 'Jon Liu, jon@patentbutler.com',
     subject: 'Feedback',
-    text: req.body.comment
+    html: 'Sent from: ' + req.body.path + '<br /><br />' + req.body.comment
   };
   mg.messages().send(data, function (error, body) {
     res.json({success: 'done'})
@@ -216,7 +239,6 @@ const addUser = async (email) => {
   var data = {
     createdDate: Date.now(),
     oaCredits: 1, //give every new user a free OA
-    paymentAdded: false,
     numOaProcessed: 0
   }
   return datastore.save({
@@ -238,5 +260,60 @@ router.post('/user', checkJwt, upload.none(), async function(req, res, next) {
   res.json({ user: userEntity })    
 
 });
+router.post('/handleCustomer', checkJwt, upload.none(), async function(req, res, next) {
+  const userKey = datastore.key(['user', req.body.email]);
+  var [userEntity] = await datastore.get(userKey);
+
+  if (req.body.action === 'updateCard') {
+    await stripe.paymentMethods.attach(
+      req.body.payment_method,
+      {customer: userEntity.customerId}
+    );
+  } else if (req.body.action === 'removeCard') {
+    await stripe.subscriptions.del(
+      userEntity.subscriptionId, {
+        invoice_now: true
+      }
+    );
+    userEntity.customerId = null;
+    userEntity.last4 = null;
+    userEntity.subscriptionId = null;
+    userEntity.subscriptionItemId = null;
+  } else if (!userEntity.customerId) {
+    const customer = await stripe.customers.create({
+      payment_method: req.body.payment_method,
+      email: req.body.email,
+      invoice_settings: {
+        default_payment_method: req.body.payment_method,
+      },
+    });  
+    userEntity.customerId = customer.id; //store customer id in our db
+  }
+  userEntity.last4 = req.body.last4;
+
+
+  var subscription
+  if (!userEntity.subscriptionId && req.body.action !== 'removeCard') {
+     subscription = await stripe.subscriptions.create({
+      customer: userEntity.customerId,
+      items: [{ plan: stripe_creds.SUBPLAN }],
+      expand: ["latest_invoice.payment_intent"]
+    });  
+    userEntity.subscriptionId = subscription.id
+    userEntity.subscriptionItemId = subscription.items.data[0].id
+  } else if (userEntity.subscriptionId && req.body.action !== 'removeCard') {
+    subscription = await stripe.subscriptions.retrieve(userEntity.subscriptionId);
+  }
+  await datastore.upsert(userEntity)
+
+
+
+  res.json({ 
+    subscription: subscription,
+    user: userEntity
+  })    
+
+});
+
 
 module.exports = router;

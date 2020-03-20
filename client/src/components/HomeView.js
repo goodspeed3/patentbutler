@@ -13,7 +13,6 @@ function HomeView() {
   const { getTokenSilently, user } = useAuth0();
   const [homeData, setHomeData] = useState(null)
   const [pbUser, setPbUser] = useState({})
-  const [showAlert, setShowAlert] = useState();
 
   useEffect(() => {
     triggerListRefresh();
@@ -110,7 +109,7 @@ function HomeView() {
         {pbUser.oaCredits > 0 && <Alert className="mb-0" variant='success'>
             You have <b>{pbUser.oaCredits}</b> Office Action processing credit{pbUser.oaCredits > 1 && 's'} remaining.
         </Alert>}
-        {pbUser.oaCredits <=0 && !pbUser.paymentAdded && <Alert className="mb-0" variant='warning'>
+        {pbUser.oaCredits <=0 && !pbUser.customerId && <Alert className="mb-0" variant='warning'>
             Please add <Link to='/account'>payment information</Link> to upload more office actions.
         </Alert>}        
         <div className='uploadOa'>

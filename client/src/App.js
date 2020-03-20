@@ -13,6 +13,13 @@ import AccountView from './components/AccountView';
 // import history from "./utils/history";
 import PrivateRoute from "./components/PrivateRoute";
 // import { Auth0Context } from "./react-auth0-spa";
+import {Elements} from '@stripe/react-stripe-js';
+import {loadStripe} from '@stripe/stripe-js';
+
+// Make sure to call `loadStripe` outside of a component’s render to avoid
+// recreating the `Stripe` object on every render.
+const stripePromise = loadStripe("pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR");
+// const stripePromise = loadStripe("pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl");
 
 class App extends Component {
   constructor(props) {
@@ -36,9 +43,11 @@ class App extends Component {
           <Route exact path="/about" component={AboutView} />
           {/* <Route exact path="/terms" component={TermsView} />
           <Route exact path="/privacy" component={PrivacyView} /> */}
-          <PrivateRoute path="/account" component={AccountView} />
           <PrivateRoute path="/home" component={HomeView} />
           <PrivateRoute path="/view/:filename" component={OaOverview} />
+          <Elements stripe={stripePromise}>
+            <PrivateRoute path="/account" component={AccountView} />
+          </Elements>
           {/* <PrivateRoute path="/profile" component={ProfileView} /> */}
         </Switch>
       </Router>

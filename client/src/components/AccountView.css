@@ -1,6 +1,6 @@
 .account {
-    padding-left: 25rem;
-    padding-right: 25rem;
+    padding-left: 20rem;
+    padding-right: 20rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -22,3 +22,4 @@
     font-family: 'Arvo', sans-serif;
     margin-top: 3rem;
 }
+

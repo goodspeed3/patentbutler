@@ -34,7 +34,7 @@
 .marks {
     margin-right: 1rem;
 }
-.pricingText > p > span{
+.pricingText > p > .unit {
     font-size: 1rem;
 }
 
