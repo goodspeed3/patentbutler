@@ -28,7 +28,8 @@ function HeaderView () {
         <Button size='sm' variant='link' onClick={() => setModalShow(true)}>Give Feedback</Button>
         <Link to='/home'><Button size='sm' variant='link' >Home</Button></Link>
         <Link to='/account'><Button size='sm' variant='link' >Account</Button></Link>
-        <Button size='sm' variant='info' onClick={() => logout()}>Log out</Button>        
+        <Button size='sm' variant='info' onClick={() => logout({
+      returnTo: window.location.origin })}>Log out</Button>        
         </div>
       ) 
     } else if (!loading && !isAuthenticated) {

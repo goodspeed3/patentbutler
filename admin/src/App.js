@@ -15,7 +15,8 @@ function App() {
   var component = <div />;
   if (isAuthenticated && !loading) {
     component = (<div className='accountDiv'>
-      <Button size='sm' variant='danger' onClick={() => logout()}>Log out {user.email}</Button>        
+      <Button size='sm' variant='danger' onClick={() => logout({
+      returnTo: window.location.origin })}>Log out {user.email}</Button>        
       </div>
     ) 
   } else if (!isAuthenticated && !loading) {

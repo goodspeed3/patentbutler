@@ -18,8 +18,9 @@ import {loadStripe} from '@stripe/stripe-js';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
-const stripePromise = loadStripe("pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR");
-// const stripePromise = loadStripe("pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl");
+let key = (process.env.NODE_ENV === 'production') ? "pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl" : "pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR"
+const stripePromise = loadStripe(key);
+
 
 class App extends Component {
   constructor(props) {
