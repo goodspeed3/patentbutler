@@ -7,7 +7,7 @@ import Button from 'react-bootstrap/Button'
 pdfjs.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js'
 
 function PdfView (props) {
-    let { fileData, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList, setPriorArtList, rejectionList } = props
+    let { fileData, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList, setPriorArtList, rejectionList, citationObj, setCitationObj } = props
 
     const [scale, setScale] = useState(1.0)
     const [fitScale, setFitScale] = useState(1.0)
@@ -24,7 +24,6 @@ function PdfView (props) {
       height: 0
     })
     const [showCitationDiv, setShowCitationDiv] = useState(false)
-    const [citationObj, setCitationObj] = useState({})
     const [selectedCitation, setSelectedCitation] = useState('')
 
     useEffect(() => {
@@ -37,7 +36,6 @@ function PdfView (props) {
           }
           return prefilledCitationObj
         }
-
         //copy citations over
         var newCitationList=[]
         for (var i=0; i<rejectionList.length; i++) {
@@ -68,7 +66,6 @@ function PdfView (props) {
           }
         }
         if (newCitationList.length === 0) return c
-
         var newCitationObj = {}
         //clear citationObj 
         for (i=0; i<newCitationList.length; i++) {
@@ -98,8 +95,9 @@ function PdfView (props) {
         return newCitationObj
 
       })
-    }, [rejectionList, setCitationObj, fileData])
+    }, [rejectionList, setCitationObj, fileData, setPriorArtList])
     useEffect(() => {
+      if (!citationObj) return
       setPriorArtList(pal => {
         let pubnums = Object.keys(citationObj) 
         if (pubnums.length === 0) return pal
@@ -130,7 +128,7 @@ function PdfView (props) {
 
     useEffect(() => {
         if (showPriorArt && priorArtList.length > 0) {
-            setPdfToLoad('/' + priorArtList[paToLoad].pdfUrl)
+            setPdfToLoad(priorArtList[paToLoad].cloudUrl)
         } else {
             setPdfToLoad(downloadedData)
         }
@@ -253,9 +251,10 @@ function PdfView (props) {
         setShowCitationDiv(false)
       }
       const showCitationDivElements = () => {
-        if (!showPriorArt || !showCitationDiv || priorArtList.length === 0 || !citationObj[priorArtList[paToLoad].publicationNumber]) {
+        if (!showPriorArt || !showCitationDiv || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].publicationNumber]) {
           return
         }
+
         const pdfDiv = document.querySelector('#pdfDiv')
     
         if (!pdfDiv) {
@@ -319,7 +318,7 @@ function PdfView (props) {
         setCitationObj({...citationObj})
       }
       const generateOverlay = () => {
-        if (!showPriorArt || priorArtList.length === 0 || !citationObj[priorArtList[paToLoad].publicationNumber]) return
+        if (!showPriorArt || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].publicationNumber]) return
         const pdfDiv = document.querySelector('#pdfDiv')
         var styleArray = []
         var citationList = citationObj[priorArtList[paToLoad].publicationNumber]

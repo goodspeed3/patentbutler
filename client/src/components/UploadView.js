@@ -38,7 +38,7 @@ function UploadView(props) {
     AuthApi('/api/upload', getTokenSilently, formData)
     .then(res => {
         setShowLoading(false)
-        setUploadStatus({uploadedFilename: res.filename})
+        setUploadStatus({uploadedFilename: res.originalname})
     })
 
   }
@@ -49,7 +49,7 @@ function UploadView(props) {
         <div style={{display: 'flex', justifyContent: 'center'}}>
         <Form>
             <Form.Group controlId="formGroupFile">
-            <Form.Control disabled={!Object.keys(props.pbUser).length>0 || (!props.pbUser.customerId && props.pbUser.oaCredits <= 0)}
+            <Form.Control disabled={!Object.keys(props.pbUser).length>0 || (!props.pbUser.customerId && props.pbUser.oaCredits <= 0) || showLoading}
                 type="file"
                 onChange={handleUpload}
                 accept=".pdf"
@@ -62,7 +62,7 @@ function UploadView(props) {
         <Modal.Header closeButton>
           <Modal.Title>Uploaded Office Action</Modal.Title>
         </Modal.Header>
-        <Modal.Body>We will email you when processing completes.</Modal.Body>
+        <Modal.Body>We will email you when we complete processing '{uploadStatus.uploadedFilename}'.</Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={handleClose}>
             Done

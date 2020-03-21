@@ -1,10 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var multer = require('multer');
-const crypto = require('crypto');
-const mime = require('mime');
+// const mime = require('mime');
+const shortid = require('shortid');
 
-//CHANGE THIS WHEN DEPLOYING TO LIVE
 var stripe_creds = {};
 if (process.env.NODE_ENV === 'production') {
   stripe_creds.API = 'pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl'
@@ -57,22 +56,59 @@ const checkJwt = jwt({
   algorithm: ["RS256"]
 });
 
-//MAKE SURE oaUploads EXISTS ON THE SERVER
-var mStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './files/oa/')
-  },
-  filename: function (req, file, cb) {
-    crypto.pseudoRandomBytes(16, function (err, raw) {
-      cb(null, raw.toString('hex') + Date.now() + '.' + mime.getExtension(file.mimetype));
-    });
-  }
-});
+//why is this being ignored
+// var mStorage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, './tmp/') 
+//   },
+//   filename: function (req, file, cb) {
+//     crypto.pseudoRandomBytes(16, function (err, raw) {
+//       cb(null, raw.toString('hex') + Date.now() + '.' + mime.getExtension(file.mimetype));
+//     });
+//   }
+// });
 
-const upload = multer({ storage: mStorage });
+const upload = multer({ storage: multer.memoryStorage() });
 /* POST upload OA. */
+
+const uploadBuffer = (originalname, buffer) => {
+  const directory = 'uploaded-office-actions/'
+  return new Promise((resolve, reject) => {
+    const filename = shortid.generate()
+    const blob = storage.bucket(bucketName).file(directory + filename);
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+    });
+  
+    blobStream.on('error', err => {
+      reject(err);
+    });
+  
+    blobStream.on('finish', () => {
+      // The public URL can be used to directly access the file via HTTP.
+      const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + blob.name;
+      resolve({
+        cloudUrl: cloudUrl, 
+        originalname: originalname, 
+        filename: filename
+      })
+    });
+  
+    blobStream.end(buffer);
+  
+  })
+}
+
+
 router.post('/upload', checkJwt, upload.single('file'), async function(req, res, next) {
-  console.log('----uploaded oa----')
+  if (!req.file) {
+    res.status(400).send('No file uploaded.');
+    return;
+  }  
+
+  console.log('----uploading to cloud----')
+
+
   //decrease credits and increase processed
   const userKey = datastore.key(['user', req.body.userEmail]);
   var [userEntity] = await datastore.get(userKey);
@@ -98,32 +134,34 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
     userEntity.oaCredits = userEntity.oaCredits - 1
 
 
+  // Create a new blob in the bucket and upload the file data to Google CLoud.
+  uploadBuffer(req.file.originalname, req.file.buffer).then(({cloudUrl, originalname, filename}) => {
 
+    const txt = req.body.userEmail + ' uploaded ' + req.file.originalname + " for processing.  Go <a href='https://patentbutler.com/admin'>here</a> to process."
+    const data = {
+      from: req.body.userEmail,
+      to: 'Jon Liu, jon@patentbutler.com',
+      subject: 'Uploaded new OA for processing',
+      html: txt
+    };
 
-  // console.log(req.file.destination + req.file.filename)
-  await Promise.all([
-    // do not upload to google for now
-    // uploadFileToGoogle(req.file.destination, req.file.filename),
-    datastore.upsert(userEntity),
-    insertOaObject({
-      user: req.body.userEmail,
-      filename: req.file.filename,
-      originalname: req.file.originalname,
-      uploadTime: Date.now(),
-      processed: false
-    })])
-  const txt = req.body.userEmail + ' uploaded ' + req.file.originalname + " for processing.  Go <a href='https://patentbutler.com/admin'>here</a> to process."
-  const data = {
-    from: req.body.userEmail,
-    to: 'Jon Liu, jon@patentbutler.com',
-    subject: 'Uploaded new OA for processing',
-    html: txt
-  };
-  mg.messages().send(data, function (error, body) {
-    console.log(body)
-    res.json({ filename: req.file.filename })    
+    return Promise.all([
+      datastore.upsert(userEntity),
+      insertOaObject({
+        user: req.body.userEmail,
+        cloudUrl: cloudUrl,
+        filename: filename,
+        originalname: originalname,
+        uploadTime: Date.now(),
+        processed: false
+      }),
+      mg.messages().send(data)
+    ])
+  }).then(r => {
+    res.json({ originalname: req.file.originalname })    
 
-  });  
+  });
+
 });
 
 const mailgun = require("mailgun-js");
@@ -132,26 +170,6 @@ const api_key = '395890d26aad6ccac5435c933c0933a3-9a235412-6950caab'
 const mg = mailgun({apiKey: api_key, domain: DOMAIN});
 
 
-/*
-function uploadFileToGoogle(path, filename) {
-  console.log(`${filename} uploading to ${bucketName}.`);
-  // Uploads a local file to the bucket
-  return storage.bucket(bucketName).upload(path + filename, {
-    destination: `uploaded-office-actions/${filename}`,
-    // Support for HTTP requests made with `Accept-Encoding: gzip`
-    gzip: true,
-    // By setting the option `destination`, you can change the name of the
-    // object you are uploading to a bucket.
-    metadata: {
-      // Enable long-lived HTTP caching headers
-      // Use only if the contents of the file will never change
-      // (If the contents will change, use cacheControl: 'no-cache')
-      cacheControl: 'public, max-age=31536000',
-    },
-  });
-
-}
-*/
 /**
  * Insert a visit record into the database.
  *
@@ -241,6 +259,15 @@ const addUser = async (email) => {
     oaCredits: 1, //give every new user a free OA
     numOaProcessed: 0
   }
+  const mailData = {
+    from: req.body.userEmail,
+    to: 'Jon Liu, jon@patentbutler.com',
+    subject: req.body.userEmail + ' has just signed up',
+    html: ''
+  };
+  mg.messages().send(mailData, function (error, body) {
+   });  
+
   return datastore.save({
     key: datastore.key(['user', email]),
     data: data
@@ -315,5 +342,15 @@ router.post('/handleCustomer', checkJwt, upload.none(), async function(req, res,
 
 });
 
+router.post('/demo', upload.none(), async (req, res) => {
+  //get demo oa stuff
+  const [entity] = await datastore.get(datastore.key(['processedOa', 'TIs4K0RoB']));
+  res.json(
+    {
+      processedOa: entity
+    })
+  
+
+})
 
 module.exports = router;

@@ -109,6 +109,7 @@ class ClaimArgumentList extends Component {
     }
 
     var re = new RegExp('(' + regMappedCitations.join('|') + ')', 'gi');
+    let prefix = (this.props.demo ? '/demo' : '/view/' + this.props.match.params.filename)
     var linkifiedText = reactStringReplace(
       snippetObject.examinerText,
       re,
@@ -116,7 +117,7 @@ class ClaimArgumentList extends Component {
         <Link
           key={'l'+ i}
           to={{
-            pathname: '/view/' + this.props.match.params.filename + '/' + mappedCitations[match] + '/' + match,
+            pathname: prefix + '/' + mappedCitations[match] + '/' + match,
             // state: { updateMe: true }
           }}
         >

@@ -10,7 +10,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 class PriorArtSubview extends Component {
   constructor(props) {
     super(props);
-
     let priorArt = this.getPriorArt(this.props.uiData);
     this.state = {
       uiData: this.props.uiData,
@@ -299,7 +298,7 @@ class PriorArtSubview extends Component {
         </div> 
         <div className='pdfDiv' id="pdfDiv" >
           <Document
-            file={'/' + this.state.priorArt.pdfUrl}
+            file={this.state.priorArt.cloudUrl}
             cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
             cMapPacked={true}
             onLoadSuccess={this.onDocumentLoadSuccess}

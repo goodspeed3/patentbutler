@@ -7,6 +7,7 @@ import LandingView from './components/LandingView';
 import PricingView from './components/PricingView';
 import HeaderView from './components/HeaderView';
 import AboutView from './components/AboutView';
+import DemoView from './components/DemoView';
 import AccountView from './components/AccountView';
 // import TermsView from './components/TermsView';
 // import PrivacyView from './components/PrivacyView';
@@ -42,6 +43,7 @@ class App extends Component {
           <Route exact path="/" component={LandingView} />
           <Route exact path="/pricing" component={PricingView} />
           <Route exact path="/about" component={AboutView} />
+          <Route path="/demo" component={DemoView} />
           {/* <Route exact path="/terms" component={TermsView} />
           <Route exact path="/privacy" component={PrivacyView} /> */}
           <PrivateRoute path="/home" component={HomeView} />

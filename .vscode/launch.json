@@ -12,5 +12,12 @@
             "restart": true,
             "protocol": "inspector",
         },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome against localhost",
+            "url": "http://localhost:3002",
+            "webRoot": "${workspaceFolder}"
+          }        
     ]
 }

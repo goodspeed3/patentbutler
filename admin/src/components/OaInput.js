@@ -156,7 +156,7 @@ function OaInput (props) {
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
   }
   
-  const addClaimArgument = (rejectionIndex, claimArgIndex = 0) => {
+  const addClaimArgument = (rejectionIndex, claimArgIndex = 0, addCitToNext = false) => {
     let rejection = rejectionList[rejectionIndex]
     var number = ''
     if (claimArgIndex > 0) {
@@ -169,7 +169,7 @@ function OaInput (props) {
       citationList: [],
       id: shortid.generate()
     })
-    addCitation(rejectionIndex, claimArgIndex + 1) //has to be no citations      
+    addCitation(rejectionIndex, (addCitToNext ? claimArgIndex + 1 : claimArgIndex)) //has to be no citations      
 
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
@@ -184,6 +184,7 @@ function OaInput (props) {
 
 
   const claimArgumentListElements = (rejectionIndex) => {
+    // debugger
     let rejection = rejectionList[rejectionIndex]
     // if (rejection.claimArgumentList.length === 0) {
     //   addClaimArgument(rejectionIndex)
@@ -210,7 +211,7 @@ function OaInput (props) {
           }
           {
             index === rejection.claimArgumentList.length - 1 &&
-            <Button size='sm' variant={"outline-success"} onClick={() => addClaimArgument(rejectionIndex, index)}>+Snip</Button>
+            <Button size='sm' variant={"outline-success"} onClick={() => addClaimArgument(rejectionIndex, index, true)}>+Snip</Button>
           }
         </Form.Group>
         </Form.Row>
@@ -390,8 +391,13 @@ function OaInput (props) {
         paObj.publicationNumber = uniquePubNumList[0]
       }  
     }
+    // console.log(res.paObjects)
     setPriorArtList(res.paObjects)
     setShowPriorArt(true)
+    //consider, instead of these 2 lines, just forcing rejectionList to update by making another copy
+    setRejectionList(...rejectionList)
+    // let newCo = props.copyCitations({}, rejectionList)
+    // setCitationObj(newCo)
   }
 
 
@@ -485,7 +491,7 @@ function OaInput (props) {
         Close
       </Button>
       <Button variant="primary" onClick={saveOaObj}>
-        Save & notify {email}
+        Process for {email}
       </Button>
     </Modal.Footer>
   </Modal>

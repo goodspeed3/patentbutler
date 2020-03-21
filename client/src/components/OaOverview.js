@@ -8,6 +8,7 @@ import PriorArtSubview from './PriorArtSubview.js';
 // import PrivateRoute from "./PrivateRoute";
 import { Auth0Context } from "../react-auth0-spa";
 import AuthApi from './AuthApi'
+import Alert from 'react-bootstrap/Alert'
 
 import OaMetadata from './OaMetadata';
 import './OaOverview.css'
@@ -29,23 +30,37 @@ class OaOverview extends Component {
       // uiData: this.props.uiData,
       uiData: {},
       filename: this.props.match.params.filename,
-      path: '/view',
       panePosition: '70%',
     };
   }
   componentDidMount() {
-    const filename = this.props.match.params.filename;
-    var formData = new FormData();
-    formData.append('filename', filename);
-
-    AuthApi('/api/getProcessedOa', this.context.getTokenSilently, formData)
-    .then(res => {
-      // console.log(res.processedOa)
-      this.setState({
-        uiData: res.processedOa
+    if (this.props.demo) {
+      fetch('/api/demo', {
+        method: 'POST',
+        body: null
+      }).then( res => {
+        return res.json()
+      }).then(r => {
+        this.setState({
+          uiData: r.processedOa
+        })
       })
-      
-    })  
+
+    } else {
+      const filename = this.props.match.params.filename;
+      var formData = new FormData();
+      formData.append('filename', filename);
+  
+      AuthApi('/api/getProcessedOa', this.context.getTokenSilently, formData)
+      .then(res => {
+        // console.log(res.processedOa)
+        this.setState({
+          uiData: res.processedOa
+        })
+        
+      })  
+  
+    }
 
   }
 
@@ -65,9 +80,10 @@ class OaOverview extends Component {
     return (
       <div className='row'>
           <div className='bookmark leftCol'>
-            <OaMetadata uiData={this.state.uiData} />
+            <OaMetadata demo={this.props.demo} uiData={this.state.uiData} />
           </div>
           <div className='middleAndRightCol'>
+          {this.props.demo && <Alert className='mb-0' variant='warning'>Demo only includes 2 mapped claims. <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up</Alert.Link> for more.</Alert>}
             <SplitPane 
               split="vertical" 
               defaultSize={this.state.panePosition} 
@@ -77,14 +93,20 @@ class OaOverview extends Component {
               minSize={500}
             >
               <div className='middleCol'>
-                <ClaimArgumentList uiData={this.state.uiData} />
+                <ClaimArgumentList demo={this.props.demo} uiData={this.state.uiData} />
               </div>
               <div className='rightCol'>
                 <Switch>
-                  <Route exact path={this.state.path+'/:filename'}>
+                  <Route exact path={'/demo'}>
+                      <PriorArtOverview demo={true} uiData={this.state.uiData} />
+                  </Route>
+                  <Route exact path={'/demo/:publicationNumber/:citation'}>
+                    <PriorArtSubview demo={true} uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
+                  </Route>
+                  <Route exact path={'/view/:filename'}>
                       <PriorArtOverview uiData={this.state.uiData} />
                   </Route>
-                  <Route path={`${this.state.path}/:filename/:publicationNumber/:citation`}>
+                  <Route path={'/view/:filename/:publicationNumber/:citation'}>
                       <PriorArtSubview uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
                   </Route>
                 </Switch>

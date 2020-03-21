@@ -19,7 +19,8 @@ function ProcessView (props) {
     const [rejectionList, setRejectionList] = useState([])
     const [redirectToHome, setRedirectToHome] = useState(false)
     let { filename, user:email } = props.location.state
-    
+    const [citationObj, setCitationObj] = useState({})
+
     
     useEffect(() => {
         if (!user || !filename || !email ) {
@@ -56,7 +57,66 @@ function ProcessView (props) {
         return AuthApi('/adminApi/uploadPa', getTokenSilently, formData)
 
     }
+    const copyCitations = (c, rejectionList) => {
 
+        //copy citations over
+        var newCitationList=[]
+        for (var i=0; i<rejectionList.length; i++) {
+          const rejection = rejectionList[i]
+          if (!rejection.claimArgumentList) continue
+          for (var j=0; j<rejection.claimArgumentList.length; j++) {
+            const claimArgument = rejection.claimArgumentList[j]
+            if (!claimArgument.citationList) continue
+            for (var k=0; k<claimArgument.citationList.length; k++) {
+              const citationObj = claimArgument.citationList[k]
+              
+              let preExistingData = c[citationObj.publicationNumber]
+              var boundingBoxes = [];
+              if (preExistingData) {
+                for (var x = 0; x<preExistingData.length; x++) {
+                  var preExistingCitation = preExistingData[x]
+                  if (preExistingCitation.citation === citationObj.citation) {
+                    boundingBoxes = preExistingCitation.boundingBoxes
+                  }
+                }
+              }
+              var newObj = {
+                ...citationObj,
+                boundingBoxes: boundingBoxes
+              }
+              newCitationList.push(newObj)
+            }
+          }
+        }
+        if (newCitationList.length === 0) return c
+        var newCitationObj = {}
+        //clear citationObj 
+        for (i=0; i<newCitationList.length; i++) {
+          const co = newCitationList[i]
+          if (!co.publicationNumber) continue
+          newCitationObj[co.publicationNumber] = []
+        }
+
+        let keyObj = Object.keys(newCitationObj) 
+        for (i=0; i<keyObj.length; i++) {
+          const pubnum = keyObj[i]
+          const citList = newCitationObj[pubnum]
+          for (j=0; j<newCitationList.length; j++) {
+            const co = newCitationList[j]
+            if (co.publicationNumber === pubnum) {
+              //only add to list if it doesn't already exist
+              let tCit = co.citation
+              if (!citList.some(o => o.citation === tCit )) {
+                // delete co.publicationNumber //don't need it anymore
+                citList.push(co)
+              }
+            }
+          }
+          //sort the citations
+          newCitationObj[pubnum].sort((first, second) => (second.citation < first.citation) ? 1 : -1 )
+        }
+        return newCitationObj
+    }
     var elementsToShow = <div />;
     if (user && downloadedData) {
         elementsToShow = (
@@ -70,10 +130,10 @@ function ProcessView (props) {
               minSize={500}
             >
               <div className='leftCol'>
-                  <OaInput fileData={props.location.state} setOaObject={setOaObject} setShowPriorArt={setShowPriorArt} savePaToCloud={(formData) => savePaToCloud(formData)} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} setRejectionList={setRejectionList} />
+                  <OaInput fileData={props.location.state} setOaObject={setOaObject} setShowPriorArt={setShowPriorArt} savePaToCloud={(formData) => savePaToCloud(formData)} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} setRejectionList={setRejectionList} copyCitations={copyCitations} setCitationObj={setCitationObj} />
               </div>
               <div className='rightCol'>
-                  <PdfView fileData={props.location.state} downloadedData={downloadedData} panePosition={panePosition} setShowPriorArt={setShowPriorArt} showPriorArt={showPriorArt} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} />
+                  <PdfView fileData={props.location.state} downloadedData={downloadedData} panePosition={panePosition} setShowPriorArt={setShowPriorArt} showPriorArt={showPriorArt} priorArtList={priorArtList} setPriorArtList={setPriorArtList} rejectionList={rejectionList} citationObj={citationObj} setCitationObj={setCitationObj} copyCitations={copyCitations} />
               </div> 
             </SplitPane>
         </div>

@@ -1,10 +1,10 @@
 var express = require('express');
 var router = express.Router();
 var multer = require('multer');
-const crypto = require('crypto');
 var path = require('path');
-const fs = require('fs')
-const mime = require('mime');
+// const fs = require('fs')
+// const mime = require('mime');
+const shortid = require('shortid');
 
 const mailgun = require("mailgun-js");
 const DOMAIN = 'mail.patentbutler.com';
@@ -12,18 +12,7 @@ const api_key = '395890d26aad6ccac5435c933c0933a3-9a235412-6950caab'
 const mg = mailgun({apiKey: api_key, domain: DOMAIN});
 
 
-var mStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './files/art/')
-  },
-  filename: function (req, file, cb) {
-    crypto.pseudoRandomBytes(16, function (err, raw) {
-      cb(null, raw.toString('hex') + Date.now() + '.' + mime.getExtension(file.mimetype));
-    });
-  }
-});
-
-const upload = multer({ storage: mStorage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 var jwt = require('express-jwt');
 const jwksRsa = require("jwks-rsa");
@@ -95,37 +84,25 @@ router.post('/downloadOa', checkJwt, upload.none(), async function(req, res, nex
 
 
 
-  // var srcFilename = 'uploaded-office-actions/'+req.body.filename;
-  var destFilename = './files/oa/' + req.body.filename;
+  var srcFilename = 'uploaded-office-actions/'+req.body.filename;
+  // var destFilename = './files/oa/' + req.body.filename;
 
-  // skip downloading from google for now
-  // await downloadFile(srcFilename, destFilename).catch(console.error);
-
-  res.sendFile(path.join(__dirname, '../', destFilename))
-});
-/*
-async function downloadFile(src, dest) {
-  if (fs.existsSync(dest)) {
-    //file exists
-    console.log('file exists already, do not dl from goog')
-    return
-  }
-  const options = {
-    // The path to which the file should be downloaded, e.g. "./file.txt"
-    destination: dest,
-  };
-
-  // Downloads the file
-  await storage
+  storage
     .bucket(bucketName)
-    .file(src)
-    .download(options);
+    .file(srcFilename)
+    .download(function (err, contents) {
+      if (err) {
+        throw new Error(err)
+      }
+      console.log(
+        `gs://${bucketName}/${srcFilename} downloaded to memory`
+      );
+      res.send(contents)
+    });
 
-  console.log(
-    `gs://${bucketName}/${src} downloaded to ${dest}.`
-  );
-}
-*/
+});
+
+
 router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, next) {
   const oaObject = JSON.parse(req.body.oaObject);
   var processedOaEntity = {
@@ -136,45 +113,51 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   const [oaUploadEntity] = await datastore.get(oaUploadKey);
   oaUploadEntity.processed = true
 
+  //only email if email not already sent
+  if (!oaUploadEntity.emailSent) {
+    const link = 'https://patentbutler.com/view/'+oaObject.filename
+    const maildate = new Date(oaObject.mailingDate)
+    const txt = 'Hello,<br /><br />Our systems have processed \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
+    maildateString = (1+maildate.getMonth()) + "/" + maildate.getDate() + "/" + maildate.getFullYear()
+    const data = {
+      from: 'Team team@patentbutler.com',
+      to: oaObject.user,
+      subject: 'Your Office Action \'' + oaObject.originalname + '\' mailed on ' + maildateString + ' has finished processing',
+      html: txt
+    };
+    mg.messages().send(data);    
+    oaUploadEntity.emailSent = true
+  }
   await datastore.upsert([processedOaEntity, oaUploadEntity])
-  
-  const link = 'https://patentbutler.com/view/'+oaObject.filename
-  const maildate = new Date(oaObject.mailingDate)
-  const txt = 'Hello,<br /><br />Our systems have processed \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
-  maildateString = (1+maildate.getMonth()) + "/" + maildate.getDate() + "/" + maildate.getFullYear()
-  const data = {
-    from: 'Team team@patentbutler.com',
-    to: oaObject.user,
-    subject: 'Your Office Action \'' + oaObject.originalname + '\' mailed on ' + maildateString + ' has finished processing',
-    html: txt
-  };
-  mg.messages().send(data, function (error, body) {
-    console.log(body)
-    res.json({ filename: oaObject.filename })    
+  res.json({ filename: oaObject.filename })    
 
-  });  
 });
 
 router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, res, next) {
   console.log('----uploaded pa----')
-  // var promiseArray = []
+  const directory = 'uploaded-cited-art/'
+
+  var promiseArray = []
   const paObjects = []
   for (var i=0; i<req.files.length; i++) {
     var fileObj = req.files[i]
+    const filename = shortid.generate()
+    const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + directory + filename;
     paObjects.push({
-      pdfUrl: fileObj.path,
-      filename: fileObj.filename,
+      // pdfUrl: fileObj.path,
+      filename: filename,
       originalname: fileObj.originalname,
+      cloudUrl: cloudUrl,
       abbreviation: '', //need these empty fields so elements are controlled on client-side
       publicationNumber: '',
       assignee: '',
       title: '',
       citationList: []
     })
-    // promiseArray.push(uploadFileToGoogle(fileObj.destination, fileObj.filename))
+    promiseArray.push(uploadBuffer(fileObj.originalname, fileObj.buffer, filename, directory))
   }  
-  // skip uploading to google for now
-  // let results = await Promise.all(promiseArray)
+
+  let results = await Promise.all(promiseArray)
   console.log(req.files)
   res.json({ 
     // files: req.files,
@@ -182,23 +165,51 @@ router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, r
   })    
 });
 
-function uploadFileToGoogle(path, filename) {
-  console.log(`${filename} uploading to ${bucketName}.`);
-  // Uploads a local file to the bucket
-  return storage.bucket(bucketName).upload(path + filename, {
-    destination: `uploaded-prior-art/${filename}`,
-    // Support for HTTP requests made with `Accept-Encoding: gzip`
-    gzip: true,
-    // By setting the option `destination`, you can change the name of the
-    // object you are uploading to a bucket.
-    metadata: {
-      // Enable long-lived HTTP caching headers
-      // Use only if the contents of the file will never change
-      // (If the contents will change, use cacheControl: 'no-cache')
-      cacheControl: 'public, max-age=31536000',
-    },
-  });
-
+const uploadBuffer = (originalname, buffer, filename, directory) => {
+  return new Promise((resolve, reject) => {
+    const blob = storage.bucket(bucketName).file(directory + filename);
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+    });
+  
+    blobStream.on('error', err => {
+      reject(err);
+    });
+  
+    blobStream.on('finish', () => {
+      //make all prior art public
+      blob.makePublic(function (err, apiResponse) {
+      // The public URL can be used to directly access the file via HTTP.
+        resolve({
+          originalname: originalname, 
+          filename: filename
+        })
+      })
+    });
+  
+    blobStream.end(buffer);
+  
+  })
 }
+
+
+// function uploadFileToGoogle(path, filename) {
+//   console.log(`${filename} uploading to ${bucketName}.`);
+//   // Uploads a local file to the bucket
+//   return storage.bucket(bucketName).upload(path + filename, {
+//     destination: `uploaded-prior-art/${filename}`,
+//     // Support for HTTP requests made with `Accept-Encoding: gzip`
+//     gzip: true,
+//     // By setting the option `destination`, you can change the name of the
+//     // object you are uploading to a bucket.
+//     metadata: {
+//       // Enable long-lived HTTP caching headers
+//       // Use only if the contents of the file will never change
+//       // (If the contents will change, use cacheControl: 'no-cache')
+//       cacheControl: 'public, max-age=31536000',
+//     },
+//   });
+
+// }
 
 module.exports = router;

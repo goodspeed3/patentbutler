@@ -1,0 +1,8 @@
+[
+    {
+      "origin": ["https://patentbutler.com", "http://localhost:3002", "http://localhost:3000"],
+      "responseHeader": ["Content-Type"],
+      "method": ["GET", "HEAD", "DELETE"],
+      "maxAgeSeconds": 3600
+    }
+]

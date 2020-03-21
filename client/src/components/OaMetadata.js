@@ -25,7 +25,8 @@ class OaMetadata extends Component {
         <br />
         {
           metadata.rejectionList.map( (element) => {
-            return (<div className="rejectionType" key={element.type}><Link to={'/view/'+metadata.filename+'#' +element.type}>{element.typeText}</Link></div>)
+            let prefix = (this.props.demo ? '/demo' : '/view/' + metadata.filename)
+            return (<div className="rejectionType" key={element.type}><Link to={prefix+'#' +element.type}>{element.typeText}</Link></div>)
           })
         }
       </div>

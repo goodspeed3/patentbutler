@@ -110,7 +110,7 @@ function HomeView() {
             You have <b>{pbUser.oaCredits}</b> Office Action processing credit{pbUser.oaCredits > 1 && 's'} remaining.
         </Alert>}
         {pbUser.oaCredits <=0 && !pbUser.customerId && <Alert className="mb-0" variant='warning'>
-            Please add <Link to='/account'>payment information</Link> to upload more office actions.
+            You have <b>0</b> Office Action processing credits remaining.  Please add <Link to='/account'>payment information</Link> to upload more office actions.
         </Alert>}        
         <div className='uploadOa'>
           <UploadView triggerListRefresh={triggerListRefresh} pbUser={pbUser} />

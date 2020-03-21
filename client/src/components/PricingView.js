@@ -24,7 +24,7 @@ function PricingView () {
                 <Card.Body>
                 <Card.Title>Legal Pro</Card.Title>
                 <Card.Title className='pricingText'>
-                    <p>{!savingsPressed ? '$199' : <span style={{color: 'green'}}>$601</span>}<span className='unit'>{savingsPressed && <span style={{color: 'green'}}> saved </span>}/ office action</span></p>
+                    <p>{!savingsPressed ? '$199' : <span style={{color: '#22BC66'}}>$601</span>}<span className='unit'>{savingsPressed && <span style={{color: '#22BC66'}}> saved </span>}/ office action</span></p>
                 </Card.Title>
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>

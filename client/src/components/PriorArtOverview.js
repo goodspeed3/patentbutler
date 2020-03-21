@@ -21,13 +21,12 @@ class PriorArtOverview extends Component {
     })
   }
   displayOverview = listOfPriorArt => {
-    // console.log(listOfPriorArt[0].pdfUrl);
     return listOfPriorArt.map(priorArt => (
       <Card key={priorArt.publicationNumber} className="card">
         <Card.Header className='cardHeader'>{priorArt.abbreviation} ({priorArt.publicationNumber})</Card.Header>
         {/* <Card.Img className='cardImg' variant="top" src={priorArt.figureThumb} /> */}
         <Document 
-          file={'/' + priorArt.pdfUrl}
+          file={priorArt.cloudUrl}
           cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
           cMapPacked={true} >
         <Page 
