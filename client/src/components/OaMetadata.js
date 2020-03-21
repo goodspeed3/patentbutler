@@ -9,7 +9,7 @@ class OaMetadata extends Component {
 
   render() {
     var metadata = this.props.uiData;
-
+    console.log(metadata)
     return (
       <div className='OaMetadata'>
         <div className='metadata metadataTitle'>App No</div>
@@ -29,6 +29,9 @@ class OaMetadata extends Component {
             return (<div className="rejectionType" key={element.type}><Link to={prefix+'#' +element.type}>{element.typeText}</Link></div>)
           })
         }
+        {/* //link should work, not in dev b/c request is proxied to server.  localhost:3001/.... should work */}
+        <div className='rejectionType external'><Link to={'/api/getOa/'+metadata.filename} target='_blank'>Office Action</Link></div>
+
       </div>
     );
   }

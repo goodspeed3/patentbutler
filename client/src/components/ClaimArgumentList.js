@@ -27,8 +27,8 @@ class ClaimArgumentList extends Component {
         <h2 className="rejectionTitle" >
           <b>{rejectionObject.typeText}</b>
         </h2>
-        {(rejectionObject.type === '101') && (
-          <div className='blurbBlock'>{this.sec101Blurb(rejectionObject)}</div>
+        {(rejectionObject.type === '101' || rejectionObject.type === 'exrem' || rejectionObject.type === '112' || rejectionObject.type === 'other') && (
+          <Container><Row className='blurbBlock'>{rejectionObject.blurb}</Row></Container>
         )}
 
         {(rejectionObject.type === '102' || rejectionObject.type === '103') && (
@@ -37,9 +37,6 @@ class ClaimArgumentList extends Component {
       </div>
     ));
   };
-  sec101Blurb = (rejectionObject) => {
-    return rejectionObject.blurb
-  }
   doesReformattedListHaveClaim = (list, obj) => {
     return list.some(e => e.number === obj.number)
   }
@@ -117,7 +114,7 @@ class ClaimArgumentList extends Component {
         <Link
           key={'l'+ i}
           to={{
-            pathname: prefix + '/' + mappedCitations[match] + '/' + match,
+            pathname: prefix + '/' + encodeURIComponent(mappedCitations[match]) + '/' + encodeURIComponent(match),
             // state: { updateMe: true }
           }}
         >

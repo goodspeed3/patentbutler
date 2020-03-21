@@ -31,7 +31,6 @@ function AccountView () {
         .then(res => {
             setPbUser(res.user)
         })
-        console.log(user)
     }, [user])
 
 

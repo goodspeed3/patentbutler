@@ -43,9 +43,9 @@ app.get('/admin/*', (req, res) => {
 })
 
 //server PA for admin
-app.get('/files/:type/:filename', (req, res) => {
-  res.sendFile(path.join(__dirname, './files/' + req.params.type + '/' + req.params.filename))
-})
+// app.get('/files/:type/:filename', (req, res) => {
+//   res.sendFile(path.join(__dirname, './files/' + req.params.type + '/' + req.params.filename))
+// })
 
 app.get('*', function (req, res) {
   res.sendFile(path.join(__dirname, './client-build/index.html'));

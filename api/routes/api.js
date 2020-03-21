@@ -353,4 +353,24 @@ router.post('/demo', upload.none(), async (req, res) => {
 
 })
 
+//serve uploaded office action
+router.get('/getOa/:filename', async function(req, res, next) {
+  var srcFilename = 'uploaded-office-actions/'+req.params.filename;
+  // var destFilename = './files/oa/' + req.body.filename;
+  storage
+    .bucket(bucketName)
+    .file(srcFilename)
+    .download(function (err, contents) {
+      if (err) {
+        throw new Error(err)
+      }
+      console.log(
+        `gs://${bucketName}/${srcFilename} downloaded to memory`
+      );
+      res.contentType("application/pdf");
+      res.send(contents)
+    });
+
+});
+
 module.exports = router;
