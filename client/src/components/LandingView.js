@@ -43,6 +43,9 @@ function LandingView () {
                 <h1 className='secondTagline'>FAQ</h1>
                 <h4 className='subTagline'>How does PatentButler work?</h4>
                 <p className='faqText'>Through a combination of machine learning and human optimization, PatentButler takes an office action, gathers relevant art, and highlights actionable areas for a practitioner to focus on.</p>
+                <h4 className='subTagline'>How does PatentButler access cited art?</h4>
+                <p className='faqText'>Our system automatically grabs publicly available cited art available on the Internet.  In the uncommon event the cited art is not publicly available, we may ask you for a copy of the cited art so our systems can map office actions to the cited art.</p>
+
             </div>
         </div>    
         <div className='block2'>
@@ -51,7 +54,7 @@ function LandingView () {
                 <h4 className='subTagline'>See what people say about us</h4>
             </div>
             <div style={{marginTop: '3rem'}}>
-                <div className='testimonial'>I save hours for each office action I handle using PatentButler.  <div>- Lawyer at Fish & Richardson, P.C.</div></div>
+                <div className='testimonial'>I save hours for each office action I handle using PatentButler.  The worst part of responding to actions was always getting all the files in one place and flipping back and forth between the art and the office action.  PatentButler is so much easier to use!<div>- Lawyer at Fish & Richardson, P.C.</div></div>
                 <div className='testimonial'>PatentButler makes it easy to come up with OA responses because I see everything in one place.  <div>- Agent at Sheppard Mullin, LLP</div></div>
                 <div className='testimonial'>Where was PatentButler when I started practicing patent law?  <div>- Lawyer at Baker Botts, LLP</div></div>
 

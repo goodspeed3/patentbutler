@@ -4,7 +4,6 @@ import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import Alert from 'react-bootstrap/Alert'
 import { useLocation } from 'react-router-dom';
-
 function FeedbackModal(props) {
     const [email, setEmail] = useState('');
     const [comment, setComment] = useState('');
@@ -16,6 +15,7 @@ function FeedbackModal(props) {
         if (props.user) {
             setEmail(props.user.email)
         }
+
     }, [props.user])
     const handleSubmit = event => {
         const form = event.currentTarget;

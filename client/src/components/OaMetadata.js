@@ -9,7 +9,6 @@ class OaMetadata extends Component {
 
   render() {
     var metadata = this.props.uiData;
-    console.log(metadata)
     return (
       <div className='OaMetadata'>
         <div className='metadata metadataTitle'>App No</div>

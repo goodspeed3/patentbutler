@@ -106,17 +106,18 @@
 
 .faqText {
     text-align: left;
-    padding-left: 15rem;
-    padding-right: 15rem;
+    width: 50%;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.3rem;
     margin-top: 1.5rem;
+    margin-bottom: 2.5rem;
 }
 .testimonial {
-    padding-left: 13rem;
-    padding-right: 13rem;
+    width: 50%;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;

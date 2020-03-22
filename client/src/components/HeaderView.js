@@ -3,6 +3,7 @@ import './HeaderView.css'
 import { HashLink as Link } from 'react-router-hash-link';
 import { useLocation } from 'react-router-dom';
 import logo from '../img/logo.svg'
+import ReactGA from 'react-ga'
 
  
 // import moment from 'moment-timezone'
@@ -25,7 +26,8 @@ function HeaderView () {
    if (!loading && isAuthenticated) {
       component = (<div className='accountDiv'>
         {landingLinks}
-        <Button size='sm' variant='link' onClick={() => setModalShow(true)}>Give Feedback</Button>
+        <Button size='sm' variant='link' onClick={() => { ReactGA.modalview('/give-feedback');
+        setModalShow(true)} }>Give Feedback</Button>
         <Link to='/home'><Button size='sm' variant='link' >Home</Button></Link>
         <Link to='/account'><Button size='sm' variant='link' >Account</Button></Link>
         <Button size='sm' variant='info' onClick={() => logout({

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Router, Route, Switch } from 'react-router-dom';
 import './App.css';
 import OaOverview from './components/OaOverview';
 import HomeView from './components/HomeView';
@@ -16,11 +16,19 @@ import PrivateRoute from "./components/PrivateRoute";
 // import { Auth0Context } from "./react-auth0-spa";
 import {Elements} from '@stripe/react-stripe-js';
 import {loadStripe} from '@stripe/stripe-js';
+import { createBrowserHistory } from "history";
+import ReactGA from 'react-ga';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 let key = (process.env.NODE_ENV === 'production') ? "pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl" : "pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR"
 const stripePromise = loadStripe(key);
+const history = createBrowserHistory()
+ReactGA.initialize('UA-161542654-1');
+history.listen((location, action) => {
+    ReactGA.pageview(location.pathname + location.search);
+    // console.log(location.pathname)
+});
 
 
 class App extends Component {
@@ -32,12 +40,17 @@ class App extends Component {
     };
   }
   // static contextType = Auth0Context;
+  componentDidMount() {
+    ReactGA.pageview(window.location.pathname + window.location.search)
+    // console.log(window.location.pathname)
+
+  }
 
   render() {
     // const { isAuthenticated, loginWithRedirect, logout, loading } = this.context;
 
     return (
-      <Router>
+      <Router history={history}>
         <HeaderView />
         <Switch>
           <Route exact path="/" component={LandingView} />

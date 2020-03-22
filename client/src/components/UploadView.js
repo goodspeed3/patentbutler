@@ -4,6 +4,7 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Spinner from 'react-bootstrap/Spinner'
+import ReactGA from 'react-ga'
 
 import './UploadView.css'
 
@@ -29,6 +30,7 @@ function UploadView(props) {
   }, [uploadStatus]);
 
   function handleUpload(event) {
+    ReactGA.modalview('/uploadOa')
     var formData = new FormData();
     var oaFile = event.target.files[0];
     formData.append('file', oaFile);
