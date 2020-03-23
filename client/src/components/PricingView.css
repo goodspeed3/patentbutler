@@ -1,6 +1,4 @@
 .pricing {
-    padding-left: 13rem;
-    padding-right: 13rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -9,7 +7,9 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;
-
+      padding-left: 4rem;
+      padding-right: 4rem;
+  
 
 }
 .header {
@@ -41,4 +41,12 @@
 .benefits {
     text-align: left;
     padding-left: 0.7rem;
+}
+@media (min-width: 700px) {
+    .pricing {
+        padding-left: 13rem;
+        padding-right: 13rem;    
+    }
+
+
 }

@@ -20,7 +20,7 @@ function PricingView () {
         <div className='header'>Simple, transparent pricing.</div>
         <div className="toggle"><ButtonGroup><Button onClick={toggleSavings} variant={savingsPressed ? 'outline-primary' : 'primary'}>Pricing</Button><Button onClick={toggleSavings} variant={savingsPressed ? 'primary' : 'outline-primary'}>Include Potential Savings<sup>*</sup></Button></ButtonGroup></div>
         <CardDeck className='cd'>
-            <Card style={{ width: '18rem' }}>
+            <Card style={{ width: '22rem' }}>
                 <Card.Body>
                 <Card.Title>Legal Pro</Card.Title>
                 <Card.Title className='pricingText'>
@@ -48,7 +48,7 @@ function PricingView () {
                 <br /><small>No credit card required</small>
                 </Card.Footer>
             </Card>
-            <Card style={{ width: '24rem' }}>
+            <Card style={{ width: '22rem' }}>
                 <Card.Body>
                 <Card.Title>Legal Enterprise</Card.Title>
                 <Card.Title className='pricingText'>

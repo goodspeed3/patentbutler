@@ -14,8 +14,8 @@ function LandingView () {
     <div className='landing'>
         <div className='block1'>
             <div>
-                <h1 className='tagline'>The fastest way to respond to Office Actions</h1>
-                <h4 className='subTagline'>Upload an OA (.pdf), get a new experience</h4>
+                <h1 className='tagline'>The Fastest Way to Prosecute Patents</h1>
+                <h4 className='subTagline'>Upload an Office Action (.pdf), get a new experience</h4>
                 <div className='cta'><Button onClick={loginWithRedirect}>Sign Up for Free</Button><Link style={{marginLeft: '1rem'}} to='/demo'><Button variant='outline-secondary'>Try a demo</Button></Link></div>
             </div>
             <img className='landingImg' width='1200' alt='landingA' src={process.env.PUBLIC_URL + '/landingA.png'} />

@@ -1,6 +1,6 @@
 .about {
-    padding-left: 13rem;
-    padding-right: 13rem;
+    padding-left: 4rem;
+    padding-right: 4rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -30,4 +30,13 @@
 }
 .about > p {
     font-family: 'Arvo', sans-serif;
+}
+
+@media (min-width: 700px) {
+    .about {
+        padding-left: 13rem;
+        padding-right: 13rem;
+    
+    }
+
 }
