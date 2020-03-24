@@ -260,18 +260,26 @@ const addUser = async (email) => {
     numOaProcessed: 0
   }
   const mailData = {
-    from: req.body.userEmail,
+    from: email,
     to: 'Jon Liu, jon@patentbutler.com',
-    subject: req.body.userEmail + ' has just signed up',
-    html: ''
+    subject: email + ' has just signed up',
+    text: 'success!'
   };
   mg.messages().send(mailData, function (error, body) {
-   });  
+    if (error) {
+      console.log(error)
+    }
+    if (body) {
+      console.log(body)
+    }
 
+
+  });  
   return datastore.save({
     key: datastore.key(['user', email]),
     data: data
   }).then(r => data);
+
 }
 
 router.post('/user', checkJwt, upload.none(), async function(req, res, next) {

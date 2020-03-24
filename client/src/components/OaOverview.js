@@ -8,7 +8,6 @@ import PriorArtSubview from './PriorArtSubview.js';
 // import PrivateRoute from "./PrivateRoute";
 import { Auth0Context } from "../react-auth0-spa";
 import AuthApi from './AuthApi'
-import Alert from 'react-bootstrap/Alert'
 
 import OaMetadata from './OaMetadata';
 import './OaOverview.css'
@@ -32,6 +31,7 @@ class OaOverview extends Component {
       filename: this.props.match.params.filename,
       panePosition: '70%',
     };
+
   }
   componentDidMount() {
     if (this.props.demo) {
@@ -66,7 +66,7 @@ class OaOverview extends Component {
 
   handlePane = (val) => {
     // localStorage.setItem('splitPos', size)
-
+    // console.log('handling: ' + val)
     this.setState({
       panePosition: val
     })
@@ -83,7 +83,7 @@ class OaOverview extends Component {
             <OaMetadata demo={this.props.demo} uiData={this.state.uiData} />
           </div>
           <div className='middleAndRightCol'>
-          {this.props.demo && <Alert className='mb-0' variant='warning'>Demo only includes 2 mapped claims. <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up</Alert.Link> for more.</Alert>}
+
             <SplitPane 
               split="vertical" 
               defaultSize={this.state.panePosition} 

@@ -91,6 +91,8 @@ function HomeView() {
   let elementsToShow;
   if (!user || !homeData) {
     elementsToShow = <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div>
+  } else if (homeData.finishedOa && homeData.finishedOa[0].length === 0 && homeData.processingOa && homeData.processingOa[0].length === 0) {
+    elementsToShow = <></>
   } else {
     elementsToShow = <div className='oaList'>
     <div className='oaColumn'>

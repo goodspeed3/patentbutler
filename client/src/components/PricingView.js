@@ -17,14 +17,14 @@ function PricingView () {
 
     return (
     <div className='pricing'>
-        <div className='header'>Simple, transparent pricing.</div>
+        <div className='header'>Plans That Pay For Themselves</div>
         <div className="toggle"><ButtonGroup><Button onClick={toggleSavings} variant={savingsPressed ? 'outline-primary' : 'primary'}>Pricing</Button><Button onClick={toggleSavings} variant={savingsPressed ? 'primary' : 'outline-primary'}>Include Potential Savings<sup>*</sup></Button></ButtonGroup></div>
         <CardDeck className='cd'>
             <Card style={{ width: '22rem' }}>
                 <Card.Body>
                 <Card.Title>Legal Pro</Card.Title>
                 <Card.Title className='pricingText'>
-                    <p>{!savingsPressed ? '$199' : <span style={{color: '#22BC66'}}>$601</span>}<span className='unit'>{savingsPressed && <span style={{color: '#22BC66'}}> saved </span>}/ office action</span></p>
+                    <p>{!savingsPressed ? '$199' : <span style={{color: '#22BC66'}}>$701</span>}<span className='unit'>{savingsPressed && <span style={{color: '#22BC66'}}> saved </span>}/ Office Action</span></p>
                 </Card.Title>
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
@@ -36,7 +36,7 @@ function PricingView () {
                 </Card.Text>                
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                20 mapped claims per OA
+                20 mapped claims per Office Action
                 </Card.Text>           
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
@@ -64,7 +64,7 @@ function PricingView () {
                 </Card.Text>                
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                20 mapped claims per OA
+                20 mapped claims per Office Action
                 </Card.Text>           
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
@@ -76,7 +76,7 @@ function PricingView () {
                 </Card.Footer>
             </Card>
         </CardDeck>
-        <small className='text-muted'><sup>*</sup>Savings assume 2 hours saved per OA with a $400 billable hour rate</small>
+        <small className='text-muted'><sup>*</sup>Savings assume 2 hours saved per Office Action with a $450 billable hour rate</small>
         <FeedbackModal
                 show={modalShow}
                 onHide={() => setModalShow(false)}

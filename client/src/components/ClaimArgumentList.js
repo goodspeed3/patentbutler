@@ -4,6 +4,7 @@ import { withRouter } from 'react-router-dom';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import Alert from 'react-bootstrap/Alert'
 
 import './ClaimArgumentList.css'
 
@@ -17,7 +18,11 @@ class ClaimArgumentList extends Component {
 
   render() {
     var claimArgumentList = this.state.uiData.rejectionList;
-    return <div className="claimArgumentListBlock">{this.claimArgumentUi(claimArgumentList)}</div>;
+    return <div className="claimArgumentListBlock">
+      {this.props.demo && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo includes 2 mapped claims. <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>}
+      {this.claimArgumentUi(claimArgumentList)}
+
+    </div>;
   }
   claimArgumentUi = claimArgumentList => {
     // console.log(claimArgumentList);
@@ -115,7 +120,7 @@ class ClaimArgumentList extends Component {
           key={'l'+ i}
           to={{
             pathname: prefix + '/' + encodeURIComponent(mappedCitations[match]) + '/' + encodeURIComponent(match),
-            // state: { updateMe: true }
+            state: { updateMe: true }
           }}
         >
           {match}

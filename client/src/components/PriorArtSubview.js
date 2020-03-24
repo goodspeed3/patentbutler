@@ -4,6 +4,8 @@ import { withRouter } from 'react-router-dom';
 // import Col from 'react-bootstrap/Col';
 // import Row from 'react-bootstrap/Row';
 import { Document, Page, pdfjs } from 'react-pdf'
+import Spinner from 'react-bootstrap/Spinner'
+
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
 
@@ -28,7 +30,6 @@ class PriorArtSubview extends Component {
 
   componentDidUpdate(prevProps){
     if(prevProps !== this.props){  
-
       let priorArt = this.getPriorArt(this.props.uiData);
       let pageToLoad = this.getPageToLoad(priorArt, decodeURIComponent(this.props.match.params.citation), prevProps.match.url !== this.props.match.url)
       var updateStateObj = {
@@ -37,6 +38,7 @@ class PriorArtSubview extends Component {
         pageNumber: pageToLoad,
         priorArt: priorArt,
       }
+
       if (!this.state.isScaleLocked) {
         //this is needed for when user drags pane
         const parentDiv = document.querySelector('#PAView')
@@ -54,7 +56,6 @@ class PriorArtSubview extends Component {
 
   componentDidMount() {
     this.props.handler('50%');
-
   }
   componentWillUnmount() {
     this.props.handler('70%');
@@ -86,9 +87,11 @@ class PriorArtSubview extends Component {
     return null;
   }
   getPageToLoad(priorArt, citation, didUserChangeUrl) {
-    if (!didUserChangeUrl && this.state.pageNumber !== 0) {
-      return this.state.pageNumber
-    }
+    //don't remember why i had this if statement
+    // if (!didUserChangeUrl && this.state.pageNumber !== 0) {
+    //   console.log("needed")
+    //   return this.state.pageNumber
+    // }
     // console.log(priorArt)
     var paList = priorArt.citationList
     for (var i=0; i<paList.length; i++) {
@@ -122,6 +125,7 @@ class PriorArtSubview extends Component {
     }
   }
   onRenderSuccessHandler = () => {
+
     this.setState({
       didFinishRenderingPage: true
     }, () => { this.scrollToFocus() })
@@ -170,7 +174,8 @@ class PriorArtSubview extends Component {
       
     } else {
       this.setState({
-        pageNumber: pageNo
+        pageNumber: pageNo,
+        didFinishRenderingPage: false
       })  
     }
   }
@@ -262,10 +267,9 @@ class PriorArtSubview extends Component {
     return (
       <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
-        <div className="pageMetadata"><Link to="/view">Prior Art Overview</Link>
+        <div className="pageMetadata"><Link to={this.props.demo ? '/demo' : "/view/" + this.props.uiData.filename }>Prior Art Overview</Link>
      &nbsp;| {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
           <div>
-            <input type="text" size={5} placeholder='Page #' onChange={this.handlePageEntry}/>
             <button
               type="button"
               disabled={pageNumber <= 1}
@@ -294,6 +298,8 @@ class PriorArtSubview extends Component {
             >
               Smaller
             </button>        
+            <input type="text" size={5} placeholder='Page #' onChange={this.handlePageEntry}/>
+
           </div>      
         </div> 
         <div className='pdfDiv' id="pdfDiv" >
@@ -302,8 +308,11 @@ class PriorArtSubview extends Component {
             cMapUrl={process.env.PUBLIC_URL + '/cmaps/'}
             cMapPacked={true}
             onLoadSuccess={this.onDocumentLoadSuccess}
+            loading=""
           >
+            {!this.state.didFinishRenderingPage && <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> }
             <Page 
+              loading=""
               pageNumber={pageNumber} 
               onLoadSuccess={this.onPageLoad}
               scale={this.state.scale}
