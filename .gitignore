@@ -3,6 +3,8 @@
 # dependencies
 /client/node_modules
 /api/node_modules
+/brain/node_modules
+/brain/results
 /.pnp
 .pnp.js
 

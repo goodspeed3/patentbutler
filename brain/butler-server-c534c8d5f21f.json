@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "crafty-valve-269403",
+  "private_key_id": "c534c8d5f21fd663d09a5f6244462b6acd8cdf6d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDFE5lw7tB07rBo\nf4pHglAYweWUIny4J9Ob75/8ae90qIxhHsLxwD4HfVwj/x7gVrg3mVebV3nSWBzx\nH1xgO4GxwmMgaKM77VVLQUOLZ7Rpn/WhgTdDy1eVX5q4meezXFwn6wk9n3HLTGO2\nA2l3AeKabW/TJWqQ2080DnoIUvhVRTEgKr0vCw7GvWzKy15xJ4bR7hTA7nlYwRAB\nM0lpSlxRTsaLCcS3OzBSMo6nocojZzfaRIV9NYonBCaqYnSwyNaGEwuCdpIBk+mx\nr622bRA3wUCzgAdHXnjXh9aqjLmCSCKKtsntjiicRqr/pcYPMFEV0uY3fmVanY6Z\nttEDcl71AgMBAAECggEAARP63mXICSO3HlM4R+zcEE6bOWS45u781tkIOILB1xMG\n9Y8MBPOGw1a5ts6x9gszZcZ2driTR4XI3r7LrBEXRAgqr6Yy4mSJd2hrfKs8Dunb\nl58T1NCbcYs81u6smEwUivlbqxUgs7p+vyOko4yEl1Cq8G4/d3xjogbEPyBpEFpW\nlajZZZ6hB/lmwJTBIWx/fhmDoQncLmPVbPAlR0dpjKVnztN3b7QR458lB4eqvxBN\niFYmVYxSDylV9f7RLNCA5Z8VkrsZIQAnpDbCYRHMPa9bZJ09wZ/hBXbDhyjIBLBR\nNabEPw1tinHpTBquBvUxWojISsGbJisYmZilIrnNcQKBgQDmX+XSs5iFj/uJJTyD\nxmQG8SrnY+gOFiEFW58hPTPzGioE8jHE1vo2p4akz30Oq4e9hXd3vZIgjBEr5vbx\nOjZ0GESYjFEwOch3cJwOQVztBZ7BZp4NlLfzhfTUravTfZ1qGSNEMqweIUDErivS\nN++qhj2LQ5sA4FXQgwqMi80YDQKBgQDa/4Nbr+oJrPyjv54OT6A2Qd+TzBLCM0L8\nK8az1HnKpYCMltzPjcW6sLeWh0+8u1Gpt+3HoHcQABE9pqhyOyzVTsHQSCTEnGPN\nZNoSjCT7OCJxCgUO2/iJW7mTAJXK54G7re7/nGjvywjwqVNMShA6NvCGe/6YaPeS\nv7yGnNKAiQKBgGMZnaOl3laWOX4lpoKJNT5HQE2JjKmCm3HSmAGUcmSBPNIj3YTv\ndXNNXX5IQ2OsJhhA8cNwqQuXNUvNby0V/ZazWc7FjadRNAstRfRb6b2MTV6k5hix\ngPAhD9DtZJz1zGF3rtQHeEL9yv7Qbclghpi0ZoUh7+vQlRm9RSxwdymBAoGBAITK\nqKEhAx3I2gyEtVdiKvibavGYrcs6ACUeekcy0ILzZgZZuBzWj44Ld9b7x3rebr8l\nuzXv9CIsmEe01bEmdqIFNnqQNFNPrSivPZg/iHEYcbHvbG+9LHBFwToFAc9eH4lp\nB2HROsQkbhBX7B13T22tQJ2bdB6Aj5ZZUvyg/PdZAoGBAMWxsOtCJ4DPLEFAMhBa\npojKXDVtGoyQ/OOJBaifqxp6CaU0eDd/dDNfgvdGhMVXFizZva4YpqILhbdm2wkW\nVBAGKci3ER62yqg1nFej7nFcu7/o5mdJtACcyaTH4YFHoBWu16IGalsj2blZKkA7\n3/K3P7KPhvgAm21sqCUephX5\n-----END PRIVATE KEY-----\n",
+  "client_email": "crafty-valve-269403@appspot.gserviceaccount.com",
+  "client_id": "104041579858176324442",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/crafty-valve-269403%40appspot.gserviceaccount.com"
+}

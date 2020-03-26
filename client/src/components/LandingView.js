@@ -67,7 +67,8 @@ function LandingView () {
             </div>
         </div>    
         <div className='block2'>
-            <div>© 2020 PatentButler <br /><Link to='/about'><Button variant='link'>About</Button></Link>
+            <div>© 2020 PatentButler <br />
+            {/* <Link to='/about'><Button variant='link'>About</Button></Link> */}
             {/* <Link to='/privacy'><Button variant='link'>Privacy</Button></Link><Link to='/terms'><Button variant='link'>Terms</Button></Link> */}
             </div>
         </div>            
