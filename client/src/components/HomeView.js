@@ -47,7 +47,7 @@ function HomeView() {
       <tbody>
         {homeData.finishedOa[0].map( oaEntity => {
           return (
-              <tr key={oaEntity.finishedProcessingTime} >
+              <tr key={oaEntity.filename} >
                 <td><Link to={"/view/" + oaEntity.filename}>{oaEntity.attyDocket}</Link></td>
                 <td>{timeHelper(oaEntity.mailingDate)}</td>
               </tr>

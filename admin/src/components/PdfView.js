@@ -3,8 +3,9 @@ import './process.css'
 import { Document, Page, pdfjs} from 'react-pdf'
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
+import Spinner from 'react-bootstrap/Spinner'
 
-pdfjs.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js'
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
 function PdfView (props) {
     let { fileData, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList, setPriorArtList, rejectionList, citationObj, setCitationObj } = props
@@ -24,12 +25,14 @@ function PdfView (props) {
       height: 0
     })
     const [showCitationDiv, setShowCitationDiv] = useState(false)
+    const [didFinishRenderingPage, setDidFinishRenderingPage] = useState(false)
     const [selectedCitation, setSelectedCitation] = useState('')
 
     useEffect(() => {
       setCitationObj(c => {
-        if (fileData && fileData.finishedProcessingTime && Object.keys(c).length === 0) { //prefill!
+        if (fileData && (fileData.computerProcessingTime || fileData.finishedProcessingTime) && Object.keys(c).length === 0) { //prefill!
           var prefilledCitationObj = {}
+          if (!fileData.priorArtList) return prefilledCitationObj
           for (var a=0; a<fileData.priorArtList.length; a++) {
             let pa = fileData.priorArtList[a]
             prefilledCitationObj[pa.publicationNumber] = pa.citationList
@@ -146,7 +149,8 @@ function PdfView (props) {
       const previousPage = () => changePage(-1);
       const nextPage = () => changePage(1);
       const changePage = offset => {
-          setPageNumber(pageNumber + offset)
+        setDidFinishRenderingPage(false)
+        setPageNumber(pageNumber + offset)
       };
     
       const zoomIn = () => changeZoom(0.25);
@@ -158,6 +162,7 @@ function PdfView (props) {
           setIsScaleLocked(false)
         }
         setScale(scale+offset)
+        setDidFinishRenderingPage(false)
       }
 
       const handlePageEntry = (event) => {
@@ -166,6 +171,7 @@ function PdfView (props) {
           
         } else {
             setPageNumber(pageNo)
+            setDidFinishRenderingPage(false)
         }
       }
       const onDocumentLoadSuccess = (document) => {
@@ -184,6 +190,7 @@ function PdfView (props) {
         }
       }
       const onRenderSuccessHandler = () => {
+        setDidFinishRenderingPage(true)
         removeTextLayerOffset()
       }
 
@@ -193,7 +200,7 @@ function PdfView (props) {
                 <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
                 <button type="button" disabled={showPriorArt} onClick={() => {setPageNumber(1); setShowPriorArt(true)}}>Prior Art</button>
                 {
-                    priorArtList.length > 0 &&
+                    priorArtList && priorArtList.length > 0 &&
                     <>
                         &nbsp; 
                         <select onChange={(e) => {setShowPriorArt(true); setPageNumber(1); setPaToLoad(parseInt(e.target.value))}}>
@@ -318,7 +325,7 @@ function PdfView (props) {
         setCitationObj({...citationObj})
       }
       const generateOverlay = () => {
-        if (!showPriorArt || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].publicationNumber]) return
+        if (!showPriorArt || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].publicationNumber] || !didFinishRenderingPage) return
         const pdfDiv = document.querySelector('#pdfDiv')
         var styleArray = []
         var citationList = citationObj[priorArtList[paToLoad].publicationNumber]
@@ -371,7 +378,6 @@ function PdfView (props) {
         <div className='subviewHeader' id="subviewHeader">
         <div className="pageMetadata">{toggleElements()}</div>
           <div>
-            <input type="text" size={5} placeholder='Page #' onChange={handlePageEntry}/>
             <button
               type="button"
               disabled={pageNumber <= 1}
@@ -399,7 +405,10 @@ function PdfView (props) {
               onClick={zoomOut}
             >
               Smaller
-            </button>     | Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}   
+            </button>
+            <input type="text" size={5} placeholder='Page #' onChange={handlePageEntry}/>
+            
+                 | Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}   
           </div>      
         </div> 
         <div style={showPriorArt ? {cursor: 'crosshair'}: {cursor: 'default'}} className='pdfDiv' id="pdfDiv" onMouseDown={mouseDown} onMouseUp={mouseUp}>
@@ -409,6 +418,7 @@ function PdfView (props) {
             cMapPacked={true}
             onLoadSuccess={onDocumentLoadSuccess}
           >
+            {!didFinishRenderingPage && <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> }
             <Page 
               pageNumber={pageNumber} 
               onLoadSuccess={onPageLoad}

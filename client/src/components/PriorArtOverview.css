@@ -69,3 +69,5 @@
     left: 0;
     pointer-events: none;
 }
+
+.custom-dialog { max-width: 65% !important; }

@@ -43,7 +43,7 @@ function App() {
         </Navbar>
         <Switch>
           <PrivateRoute exact path="/admin" component={HomeView} />
-          <PrivateRoute path="/admin/process" component={ProcessView} />
+          <PrivateRoute path="/admin/process/:filename" component={ProcessView} />
 
         </Switch>
       </Router>  );

@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/datastore": "^5.1.0",
+    "@google-cloud/storage": "^4.7.0",
     "@google-cloud/vision": "^1.11.0"
   }
 }

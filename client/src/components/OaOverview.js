@@ -64,6 +64,7 @@ class OaOverview extends Component {
 
   }
 
+
   handlePane = (val) => {
     // localStorage.setItem('splitPos', size)
     // console.log('handling: ' + val)
@@ -113,6 +114,8 @@ class OaOverview extends Component {
               </div> 
             </SplitPane>
           </div>
+
+
       </div>
     );
   }

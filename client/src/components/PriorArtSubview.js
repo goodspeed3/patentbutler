@@ -5,6 +5,8 @@ import { withRouter } from 'react-router-dom';
 // import Row from 'react-bootstrap/Row';
 import { Document, Page, pdfjs } from 'react-pdf'
 import Spinner from 'react-bootstrap/Spinner'
+import Modal from 'react-bootstrap/Modal'
+import Button from 'react-bootstrap/Button'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
@@ -25,8 +27,13 @@ class PriorArtSubview extends Component {
       isScaleLocked: false,
       fitScale: 1.0,
       didFinishRenderingPage: false,
+      showTutorial: (localStorage.getItem('showTutorial') == null)
     };
   }
+  handleClose = () => {
+    this.setState({showTutorial: false});
+    localStorage.setItem('showTutorial', false)
+  };
 
   componentDidUpdate(prevProps){
     if(prevProps !== this.props){  
@@ -324,6 +331,17 @@ class PriorArtSubview extends Component {
           {this.generateOverlay()}
         </div>
         {/* {this.showPriorArt(this.state.selectedParagraphs)} */}
+        <Modal show={this.state.showTutorial} onHide={this.handleClose} dialogClassName="custom-dialog">
+        <Modal.Header closeButton>
+          <Modal.Title>Quick Tip</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Adjust the pane to focus on either the Office Action or the cited art.<img className='landingImg' width='1200' alt='nuxA' src={process.env.PUBLIC_URL + '/nuxA.png'} /></Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={this.handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>        
         </div>
     );
   }

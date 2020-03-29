@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var multer = require('multer');
 // const mime = require('mime');
-const shortid = require('shortid');
+const nanoid = require('nanoid');
 
 var stripe_creds = {};
 if (process.env.NODE_ENV === 'production') {
@@ -74,7 +74,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const uploadBuffer = (originalname, buffer) => {
   const directory = 'uploaded-office-actions/'
   return new Promise((resolve, reject) => {
-    const filename = shortid.generate()
+    const filename = nanoid()
     const blob = storage.bucket(bucketName).file(directory + filename);
     const blobStream = blob.createWriteStream({
       resumable: false,
@@ -155,6 +155,13 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
         uploadTime: Date.now(),
         processed: false
       }),
+      insertProcessedOaObject({
+        user: req.body.userEmail,
+        filename: filename,
+        originalname: originalname,
+        rejectionList: [],
+        priorArtList: []
+      }),
       mg.messages().send(data)
     ])
   }).then(r => {
@@ -176,11 +183,15 @@ const mg = mailgun({apiKey: api_key, domain: DOMAIN});
  * @param {object} visit The visit record to insert.
  */
 const insertOaObject = oaObject => {
-  console.log("saving to datastore: ")
-  console.log(oaObject);
   return datastore.save({
     key: datastore.key(['oaUpload', oaObject.filename]),
     data: oaObject,
+  });
+};
+const insertProcessedOaObject = processedOaObject => {
+  return datastore.save({
+    key: datastore.key(['processedOa', processedOaObject.filename]),
+    data: processedOaObject,
   });
 };
 

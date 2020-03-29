@@ -32,7 +32,7 @@ class ClaimArgumentList extends Component {
         <h2 className="rejectionTitle" >
           <b>{rejectionObject.typeText}</b>
         </h2>
-        {(rejectionObject.type === '101' || rejectionObject.type === 'exrem' || rejectionObject.type === '112' || rejectionObject.type === 'other') && (
+        {(rejectionObject.type === '101' || rejectionObject.type === '112' || rejectionObject.type === 'otherRej') && (
           <Container><Row className='blurbBlock'>{rejectionObject.blurb}</Row></Container>
         )}
 

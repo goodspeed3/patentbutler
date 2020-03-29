@@ -34,11 +34,11 @@ function HomeView () {
     return <div>
         {homeData.finishedOa[0].map (processedOaEntity => {
             let linkWithState = {
-                pathname: '/admin/process',
-                state: processedOaEntity
+                pathname: '/admin/process/' + processedOaEntity.filename,
+                // state: processedOaEntity
             }
 
-        return <div key={processedOaEntity.finishedProcessingTime}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attyDocket}</Link> for {processedOaEntity.user} </div>
+        return <div key={processedOaEntity.filename}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attyDocket}</Link> for {processedOaEntity.user} </div>
         })}
     </div>
 
@@ -61,10 +61,10 @@ function HomeView () {
         <tbody>
         {homeData.processingOa[0].map( processingEntity => {
             let linkWithState = {
-                pathname: '/admin/process',
-                state: {
-                    ...processingEntity
-                }
+                pathname: '/admin/process/'+processingEntity.filename,
+                // state: {
+                //     ...processingEntity
+                // }
             }
             return (
                 <tr key={processingEntity.uploadTime} >

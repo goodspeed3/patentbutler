@@ -5,10 +5,10 @@ import Col from 'react-bootstrap/Col'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Spinner from 'react-bootstrap/Spinner'
-const shortid = require('shortid');
+import { nanoid } from 'nanoid'
 
 function OaInput (props) {
-  let { fileData, setOaObject, setShowPriorArt, savePaToCloud, priorArtList, setPriorArtList, rejectionList, setRejectionList } = props
+  let { fileData, saveOaToCloud, setShowPriorArt, savePaToCloud, priorArtList, setPriorArtList, rejectionList, setRejectionList } = props
   let { filename, user:email, originalname} = fileData
   const [applicationNumber, setApplicationNumber] = useState('')
   const [attyDocket, setAttyDocket] = useState('')
@@ -23,7 +23,7 @@ function OaInput (props) {
   const handleShow = () => setShow(true);
 
   useEffect(() => {
-    if (fileData && fileData.finishedProcessingTime) { //prefill the page with what was processed
+    if (fileData && (fileData.computerProcessingTime || fileData.finishedProcessingTime)) { //prefill the page with what was processed
       setApplicationNumber(fileData.applicationNumber)
       setAttyDocket(fileData.attyDocket)
       setMailingDate(fileData.mailingDate)
@@ -35,6 +35,7 @@ function OaInput (props) {
 
   useEffect(() => {
     const newUniquePubNumList =[]
+    if (!rejectionList) return
     for (var i=0; i<rejectionList.length; i++) {
       const rejection = rejectionList[i]
       if (!rejection.claimArgumentList) continue
@@ -56,11 +57,11 @@ function OaInput (props) {
 
   const addRejection = () => {
     const newRejection = {
-      type: 'exrem', //it's the first default rejection
-      typeText: 'Examiner Remarks',
+      type: 'otherRej', //it's the first default rejection
+      typeText: '',
       claimArgumentList: [],
       blurb: '',
-      id: shortid.generate()
+      id: nanoid()
     }
 
     rejectionList.push(newRejection)
@@ -75,9 +76,6 @@ function OaInput (props) {
   const setRejType = (index, value) => {
     rejectionList[index].type = value
     switch(value) {
-      case 'exrem':
-        rejectionList[index].typeText = 'Examiner Remarks'
-        break;
       case '101':
         rejectionList[index].typeText = '§ 101 Rejection'
         break;
@@ -96,14 +94,19 @@ function OaInput (props) {
           addClaimArgument(index)
         }    
         break;
-      case 'other':
-        rejectionList[index].typeText = 'Other'
+      case 'otherRej':
+        rejectionList[index].typeText = ''
         break;
       default:
         console.log('error rej type')
     }    
     setRejectionList([...rejectionList])
   }
+  const changeTypeText = (index, value) => {
+    rejectionList[index].typeText = value
+    setRejectionList([...rejectionList])
+  }
+
   const setBlurb = (index, value) => {
     rejectionList[index].blurb = value
     setRejectionList([...rejectionList])
@@ -118,16 +121,15 @@ function OaInput (props) {
           <Form.Group as={Col} md={2}><Form.Label><b>Rejection Type:</b></Form.Label></Form.Group>
         <Form.Group as={Col} md={2}>
         <Form.Control size='sm' as="select" onChange={(e) => setRejType(index, e.target.value)} value={rejection.type}>
-            <option value='exrem'>Ex. Remarks</option>
+        <option value='otherRej'>Other</option>
             <option value='101'>101</option>
             <option value='112'>112</option>
             <option value='102'>102</option>
             <option value='103'>103</option>
-            <option value='other'>Other</option>
-
           </Form.Control>
         </Form.Group>
-        <Form.Group md={3} as={Col}>
+        {rejection.type === 'otherRej' && <Form.Group md={2} as={Col}><Form.Control required size='sm' type="text" placeholder="Enter header" value={rejection.typeText} onChange={(e) => changeTypeText(index, e.target.value)} /></Form.Group>}
+        <Form.Group md={2} as={Col}>
           <Button size='sm' variant="warning" onClick={() => removeRejection(index)}>Remove</Button>
         </Form.Group>
         </Form.Row>
@@ -167,7 +169,7 @@ function OaInput (props) {
       snippetText: '', //onsubmit, will convert all snippets into snippetList, kept in this form for now due to ease of removal / addition
       examinerText: '',
       citationList: [],
-      id: shortid.generate()
+      id: nanoid()
     })
     addCitation(rejectionIndex, (addCitToNext ? claimArgIndex + 1 : claimArgIndex)) //has to be no citations      
 
@@ -225,7 +227,7 @@ function OaInput (props) {
     rejection.claimArgumentList[claimArgIndex].citationList.push({
       citation: '',  //empty citations will be ignored by server
       publicationNumber: prevPubNum,
-      id: shortid.generate()
+      id: nanoid()
     })
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
@@ -324,25 +326,28 @@ function OaInput (props) {
   const handleSubmit = (e) => {
     const form = e.currentTarget;
     //if not all citations have overlays...
-    var allOverlaysAdded = true
-    var citationOverlayNeeded = ''
-    priorArtList.forEach((pa) => {
-      pa.citationList.forEach((citation) => {
-        if (citation.boundingBoxes.length === 0) {
-          allOverlaysAdded = false
-          citationOverlayNeeded = citation.citation
-        }
+    if (priorArtList) {
+      var allOverlaysAdded = true
+      var citationOverlayNeeded = ''
+      priorArtList.forEach((pa) => {
+        pa.citationList.forEach((citation) => {
+          if (citation.boundingBoxes.length === 0) {
+            allOverlaysAdded = false
+            citationOverlayNeeded = citation.citation
+          }
+        })
       })
-    })
-    if (!allOverlaysAdded || (priorArtList.length > 0 && priorArtList.some((pa) => pa.citationList.length === 0))) {
-      allOverlaysAdded = false
-      alert(citationOverlayNeeded + ' overlay still needed!')
-    }
-
-    if (form.checkValidity() === false || !allOverlaysAdded) {
-      e.preventDefault();
-      e.stopPropagation();
-      return
+      if (!allOverlaysAdded || (priorArtList.length > 0 && priorArtList.some((pa) => pa.citationList.length === 0))) {
+        allOverlaysAdded = false
+        alert(citationOverlayNeeded + ' overlay still needed!')
+      }
+  
+      if (form.checkValidity() === false || !allOverlaysAdded) {
+        e.preventDefault();
+        e.stopPropagation();
+        return
+      }
+  
     }
 
     setValidated(true);
@@ -356,8 +361,9 @@ function OaInput (props) {
     return "Are you sure you want to proceed?"
   }
 
-  const saveOaObj = () => {
+  const saveOaObj = (sendEmail) => {
     let finalizedOaObject = {
+      computerProcessingTime: (fileData && fileData.computerProcessingTime) || Date.now(),
       finishedProcessingTime: Date.now(),
       filename: filename,
       originalname: originalname,
@@ -370,7 +376,7 @@ function OaInput (props) {
       priorArtList: priorArtList
     }
 
-    setOaObject(finalizedOaObject)
+    saveOaToCloud(finalizedOaObject, sendEmail)
     
     handleClose()
   }
@@ -460,7 +466,7 @@ function OaInput (props) {
       <Form.Control required size='sm' name="filingDate" type="text" value={filingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
-  {rejectionListElements()}
+  {rejectionList && rejectionListElements()}
   <Button variant="info" onClick={addRejection}>
     Add Rejection
   </Button>
@@ -476,7 +482,7 @@ function OaInput (props) {
     </Form.Group>
   { showLoading ? <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> : null}
   </div>  
-  {showPriorArtElements()}
+  {priorArtList && showPriorArtElements()}
   <Button className='submitButton' variant="primary" type="submit">
     Save
   </Button>
@@ -490,8 +496,11 @@ function OaInput (props) {
       <Button variant="secondary" onClick={handleClose}>
         Close
       </Button>
-      <Button variant="primary" onClick={saveOaObj}>
-        Process for {email}
+      <Button variant="primary" onClick={() => saveOaObj(false)}>
+        Save
+      </Button>
+      <Button variant="primary" onClick={() => saveOaObj(true)}>
+        Save & Notify {email}
       </Button>
     </Modal.Footer>
   </Modal>

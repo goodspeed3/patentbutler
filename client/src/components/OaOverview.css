@@ -98,3 +98,12 @@
 .Resizer.disabled:hover {
     border-color: transparent;
 }
+.landingImg {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+    margin-top: 3rem;
+    border-radius: 20px;
+    border: 1px solid #e4e4e4;
+
+}

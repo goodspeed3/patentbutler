@@ -4,7 +4,7 @@ var multer = require('multer');
 var path = require('path');
 // const fs = require('fs')
 // const mime = require('mime');
-const shortid = require('shortid');
+const nanoid = require('nanoid');
 
 const mailgun = require("mailgun-js");
 const DOMAIN = 'mail.patentbutler.com';
@@ -82,8 +82,6 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
 //download uploaded office action
 router.post('/downloadOa', checkJwt, upload.none(), async function(req, res, next) {
 
-
-
   var srcFilename = 'uploaded-office-actions/'+req.body.filename;
   // var destFilename = './files/oa/' + req.body.filename;
 
@@ -97,10 +95,18 @@ router.post('/downloadOa', checkJwt, upload.none(), async function(req, res, nex
       console.log(
         `gs://${bucketName}/${srcFilename} downloaded to memory`
       );
+    
       res.send(contents)
     });
 
 });
+
+router.post('/getOaObj', checkJwt, upload.none(), async function(req, res, next) {
+  const processedOaKey = datastore.key(['processedOa', req.body.filename]);
+  const [processedOaEntity] = await datastore.get(processedOaKey);
+  res.json({fileData: processedOaEntity})
+});
+
 
 
 router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, next) {
@@ -114,7 +120,8 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   oaUploadEntity.processed = true
 
   //only email if email not already sent
-  if (!oaUploadEntity.emailSent) {
+  if (req.body.sendEmail === 'true') {
+    console.log('sending email')
     const link = 'https://patentbutler.com/view/'+oaObject.filename
     const maildate = new Date(oaObject.mailingDate)
     const txt = 'Hello,<br /><br />Our systems have processed \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
@@ -126,7 +133,6 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
       html: txt
     };
     mg.messages().send(data);    
-    oaUploadEntity.emailSent = true
   }
   await datastore.upsert([processedOaEntity, oaUploadEntity])
   res.json({ filename: oaObject.filename })    
@@ -141,7 +147,7 @@ router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, r
   const paObjects = []
   for (var i=0; i<req.files.length; i++) {
     var fileObj = req.files[i]
-    const filename = shortid.generate()
+    const filename = nanoid()
     const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + directory + filename;
     paObjects.push({
       // pdfUrl: fileObj.path,
