@@ -28,10 +28,13 @@ class OaMetadata extends Component {
         {
           metadata.rejectionList.map( (element) => {
             let prefix = (this.props.demo ? '/demo' : '/view/' + metadata.filename)
-            return (<div className="rejectionType" key={element.type}><Link to={prefix+'#' +element.type}>{element.typeText}</Link></div>)
+            return (<div className="rejectionType" key={element.id}><Link to={prefix+'#' +element.type}>{element.typeText}</Link></div>)
           })
         }
         {/* //link should work, not in dev b/c request is proxied to server.  localhost:3001/.... should work */}
+
+        <div className='divider'></div>
+        <br />
         <div className='rejectionType external'><Link to={'/api/getOa/'+metadata.filename} target='_blank'>Office Action</Link></div>
 
       </div>

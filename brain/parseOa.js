@@ -22,6 +22,7 @@ const {Storage} = require('@google-cloud/storage');
 const storage = new Storage();
 
 const automl = require('@google-cloud/automl');
+const nanoid = require('nanoid').nanoid;
 
 // Create client for prediction service.
 const autoMlClient = new automl.PredictionServiceClient();
@@ -217,38 +218,53 @@ const generateOaObjectFromText = async (gcsEvent) => {
         if (err) {
             reject(err)
         } else {
-                
             var parsedOaObject = JSON.parse(contents)
+            console.log(`Parsed OCR object: ${parsedOaObject.responses.length} pages`);
+            //comment out the bottom 2 lines b/c the model might be more accurate
             // var metadataObj = getOaMetadata(parsedOaObject.responses[0]) //send in the first page of the OA
-            var predictedObt = getOaObjectFromModel(parsedOaObject, filename)
-
             // for (var key in metadataObj) processedOaEntity[key] = metadataObj[key]
-            // processedOaEntity.computerProcessingTime = Date.now()
-            // processedOaEntity.textAnnotations = getTextAnnotations(parsedOaObject)
-            // processedOaEntity.rejectionList = getRejectionList(parsedOaObject.responses)
-            resolve(processedOaEntity)
+            processedOaEntity.computerProcessingTime = Date.now()
+            processedOaEntity.textAnnotations = getTextAnnotations(parsedOaObject)
+
+            getOaObjectFromModel(filename, JSON.parse(processedOaEntity.textAnnotations)).then(predictedObt => {
+                for (var key in predictedObt) processedOaEntity[key] = predictedObt[key]
+                
+                resolve(processedOaEntity)    
+            })
         }
     })        
     })
 }
 
-const getOaObjectFromModel = async (oaObj, filename) => {
+const getOaObjectFromModel = async (filename, textAnnotations) => {
   const projectId = `crafty-valve-269403`;
   const computeRegion = `us-central1`;
-  const modelId = `TEN7087148487434829824`;
-  const scoreThreshold = 0.5
+  const modelId = `TEN8646238383435153408`;
+//   const scoreThreshold = 0.5
 
   // Get the full path of the model.
   const modelFullId = autoMlClient.modelPath(projectId, computeRegion, modelId);
-
-  // Read the file content for prediction.
-  const file_path = `gs://crafty-valve-269403.appspot.com/uploaded-office-actions/${filename}`
-
   const params = {};
 
+  
+  //cannot use PDFs b/c google only processes 5 pages of the pdf
 
-  // Set the payload by giving the content and type of the file.
-  const payload = {'payload': {'document': {'input_config': {'gcs_source': {'input_uris': file_path } } }} };
+  // Read the file content for prediction.
+//   const file_path = `gs://crafty-valve-269403.appspot.com/uploaded-office-actions/${filename}`
+
+//   // Set the payload by giving the content and type of the file.
+//   const payload = {'document': {'inputConfig': {'gcsSource': {'inputUris': [file_path] } } } };
+    
+
+  //need to loop textsnippets....
+  var content = ""
+  for (const page in textAnnotations) {
+      if (parseInt(page) > 2) continue
+      var pageText = textAnnotations[page]
+    content = content + pageText + "\n"
+  }
+  const payload = {'textSnippet': {'content': content, mimeType: 'text/plain'}}
+
   // params is additional domain-specific parameters.
   // currently there is no additional parameters supported.
   const [response] = await autoMlClient.predict({
@@ -256,14 +272,44 @@ const getOaObjectFromModel = async (oaObj, filename) => {
     payload: payload,
     params: params,
   })
-  console.log(`Prediction results:`);
-  response.payload.forEach(result => {
-    console.log(`Predicted class name: ${result.displayName}`);
-    console.log(`Predicted class score: ${result.classification.score}`);
-  });
-  
-}
+//   console.log(`Prediction results for ${filename}: ${response.preprocessedInput.document.pageCount} pages`);
+  var predictedObt = {}
+  var rejectionList = []
+  for (const annotationPayload of response.payload) {
+    const textSegment = annotationPayload.textExtraction.textSegment;
+    if (annotationPayload.displayName === 'attyDocket' || annotationPayload.displayName === 'applicationNumber' || annotationPayload.displayName === 'filingDate' || annotationPayload.displayName === 'mailingDate') {
+        predictedObt[annotationPayload.displayName] = textSegment.content
+      } else if (annotationPayload.displayName === 'header') {
+        var rejectionObj = {}
+        const [type, typeText] = getTypeAndTypeText(textSegment.content)
+        rejectionObj.blurb = ''
+        rejectionObj.type = type
+        rejectionObj.typeText = typeText
+        rejectionObj.id = nanoid()
+        rejectionObj.claimArgumentList = []
 
+        rejectionList.push(rejectionObj)
+      }
+
+    // console.log(`Text Score: ${annotationPayload.textExtraction.score}`);
+  }
+  predictedObt.rejectionList = rejectionList
+  return predictedObt
+
+}
+const getTypeAndTypeText = (content) => {
+    if (content.includes("101")) {
+        return ["101", "§ 101 Rejection"]
+    } else if (content.includes("102")) {
+        return ["102", "§ 102 Rejection"]
+    } else if (content.includes("112")) {
+        return ["112", "§ 112 Rejection"]
+    } else if (content.includes("103")) {
+        return ["103", "§ 103 Rejection"]
+    } else {
+        return ["otherRej", content]
+    }
+}
 
 const saveObjectToDatastore = processedOaObject => {
     return datastore.save({
@@ -275,14 +321,14 @@ const saveObjectToDatastore = processedOaObject => {
   
 const main = async () => {
     // OCRFile('WUDPrMHxN') //if you OCR, it creates a file in ocr/office-actions/<filename>+output....json
-    const tempName = 'ocr/office-actions/hZHzgZ_a1.pdf+output-1-to-8.json'
+    const tempName = 'ocr/office-actions/YnCrrFGz2gEXZXj2EjHPp.pdf+output-1-to-11.json'
 
     var oaObject = await generateOaObjectFromText({name: tempName, bucket: bucketName})
-    console.log(oaObject)
+    // console.log(oaObject)
     await saveObjectToDatastore(oaObject)
 }
 
-// main()
+main()
 
 const temp = async () => {
     const filenames = ['EAT-BCgMgFlYf4v252Fpa', 'TIs4K0RoB', 'WUDPrMHxN', 'hZHzgZ_a1']
@@ -303,4 +349,4 @@ const temp = async () => {
         
     }
 }
-temp()
+// temp()

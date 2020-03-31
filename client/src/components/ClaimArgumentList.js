@@ -27,7 +27,7 @@ class ClaimArgumentList extends Component {
   claimArgumentUi = claimArgumentList => {
     // console.log(claimArgumentList);
     return claimArgumentList.map(rejectionObject => (
-      <div className="rejectionBlock" key={'r' + rejectionObject.type}>
+      <div className="rejectionBlock" key={'r' + rejectionObject.id}>
         <div className="anchor" id={rejectionObject.type}></div>
         <h2 className="rejectionTitle" >
           <b>{rejectionObject.typeText}</b>

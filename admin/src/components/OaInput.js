@@ -128,7 +128,7 @@ function OaInput (props) {
             <option value='103'>103</option>
           </Form.Control>
         </Form.Group>
-        {rejection.type === 'otherRej' && <Form.Group md={2} as={Col}><Form.Control required size='sm' type="text" placeholder="Enter header" value={rejection.typeText} onChange={(e) => changeTypeText(index, e.target.value)} /></Form.Group>}
+        {rejection.type === 'otherRej' && <Form.Group md={4} as={Col}><Form.Control required size='sm' type="text" placeholder="Enter header" value={rejection.typeText} onChange={(e) => changeTypeText(index, e.target.value)} /></Form.Group>}
         <Form.Group md={2} as={Col}>
           <Button size='sm' variant="warning" onClick={() => removeRejection(index)}>Remove</Button>
         </Form.Group>
