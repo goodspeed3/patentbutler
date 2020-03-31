@@ -248,7 +248,7 @@ const getOaObjectFromModel = async (oaObj, filename) => {
 
 
   // Set the payload by giving the content and type of the file.
-  const payload = {'document': {'input_config': {'gcs_source': {'input_uris': file_path } } } };
+  const payload = {'payload': {'document': {'input_config': {'gcs_source': {'input_uris': file_path } } }} };
   // params is additional domain-specific parameters.
   // currently there is no additional parameters supported.
   const [response] = await autoMlClient.predict({
@@ -275,11 +275,32 @@ const saveObjectToDatastore = processedOaObject => {
   
 const main = async () => {
     // OCRFile('WUDPrMHxN') //if you OCR, it creates a file in ocr/office-actions/<filename>+output....json
-    const tempName = 'ocr/office-actions/hZHzgZ_a1+output-1-to-8.json'
+    const tempName = 'ocr/office-actions/hZHzgZ_a1.pdf+output-1-to-8.json'
 
     var oaObject = await generateOaObjectFromText({name: tempName, bucket: bucketName})
     console.log(oaObject)
     await saveObjectToDatastore(oaObject)
 }
 
-main()
+// main()
+
+const temp = async () => {
+    const filenames = ['EAT-BCgMgFlYf4v252Fpa', 'TIs4K0RoB', 'WUDPrMHxN', 'hZHzgZ_a1']
+    for (var keyname of filenames) {
+        const [entity] = await datastore.get(datastore.key(['processedOa', keyname]));
+        await datastore.save({
+            key: datastore.key(['processedOa', keyname + '.pdf']),
+            data: entity,
+            excludeFromIndexes: ['textAnnotations']
+          });
+          const [entity2] = await datastore.get(datastore.key(['oaUpload', keyname]));
+          await datastore.save({
+              key: datastore.key(['oaUpload', keyname + '.pdf']),
+              data: entity2,
+            });
+  
+        console.log(`${keyname} copied`)
+        
+    }
+}
+temp()

@@ -148,7 +148,7 @@ router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, r
   const paObjects = []
   for (var i=0; i<req.files.length; i++) {
     var fileObj = req.files[i]
-    const filename = nanoid()
+    const filename = nanoid() + '.pdf'
     const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + directory + filename;
     paObjects.push({
       // pdfUrl: fileObj.path,

@@ -6,7 +6,7 @@ import HomeView from './components/HomeView';
 import LandingView from './components/LandingView';
 import PricingView from './components/PricingView';
 import HeaderView from './components/HeaderView';
-import AboutView from './components/AboutView';
+// import AboutView from './components/AboutView';
 import DemoView from './components/DemoView';
 import AccountView from './components/AccountView';
 // import TermsView from './components/TermsView';
