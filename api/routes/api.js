@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var multer = require('multer');
 // const mime = require('mime');
-const nanoid = require('nanoid');
+const nanoid = require('nanoid').nanoid;
 
 var stripe_creds = {};
 if (process.env.NODE_ENV === 'production') {
@@ -74,7 +74,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const uploadBuffer = (originalname, buffer) => {
   const directory = 'uploaded-office-actions/'
   return new Promise((resolve, reject) => {
-    const filename = nanoid()
+    const filename = nanoid() + '.pdf'
     const blob = storage.bucket(bucketName).file(directory + filename);
     const blobStream = blob.createWriteStream({
       resumable: false,

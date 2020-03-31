@@ -4,7 +4,7 @@ var multer = require('multer');
 var path = require('path');
 // const fs = require('fs')
 // const mime = require('mime');
-const nanoid = require('nanoid');
+const nanoid = require('nanoid').nanoid;
 
 const mailgun = require("mailgun-js");
 const DOMAIN = 'mail.patentbutler.com';
@@ -113,7 +113,8 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   const oaObject = JSON.parse(req.body.oaObject);
   var processedOaEntity = {
     key: datastore.key(['processedOa', oaObject.filename]),
-    data: oaObject
+    data: oaObject,
+    excludeFromIndexes: ['textAnnotations']
   }
   const oaUploadKey = datastore.key(['oaUpload', oaObject.filename]);
   const [oaUploadEntity] = await datastore.get(oaUploadKey);

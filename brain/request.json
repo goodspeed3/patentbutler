@@ -1,0 +1,11 @@
+{
+    "payload": {
+      "document": {
+        "input_config": {
+          "gcs_source": {
+            "input_uris": "gs://crafty-valve-269403.appspot.com/uploaded-office-actions/hZHzgZ_a1.pdf"
+          }
+        }
+      }
+    }
+  }

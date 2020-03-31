@@ -1,4 +1,13 @@
-//RUN this: export GOOGLE_APPLICATION_CREDENTIALS="/Users/jonliu/Documents/code/patentbutler/brain/butler-server-c534c8d5f21f.json"
+//RUN this to test: export GOOGLE_APPLICATION_CREDENTIALS="/Users/jonliu/Documents/code/patentbutler/brain/butler-server-c534c8d5f21f.json"
+//NOTE: A version of this is in Cloud Functions that is triggered upon any OA Upload.  Mirror this code there (but be careful)
+
+
+/*
+To train the model:
+Upload OAs to the patentbutler-brain bucket -> office actions folder
+Add new jsonl or update oaTraining.jsonl to point to the files
+Update and upload oaTraining.csv to the Google UI to start labelling
+*/
 
 // Imports the Google Cloud client libraries
 const vision = require('@google-cloud/vision').v1;
@@ -11,6 +20,12 @@ const {Datastore} = require('@google-cloud/datastore');
 const datastore = new Datastore();
 const {Storage} = require('@google-cloud/storage');
 const storage = new Storage();
+
+const automl = require('@google-cloud/automl');
+
+// Create client for prediction service.
+const autoMlClient = new automl.PredictionServiceClient();
+
 
 async function OCRFile(filename) {
     // Creates a client
@@ -116,7 +131,7 @@ function getOaMetadata(pageObj) {
     return metadataObj
 }
 
-//find the closest paragraph
+//find the closest paragraph; has to be below the metadatafield bounding box
 function findRelevantParagraph(metadataFieldVertexArray, blocks) {
     var shortestDistance = 1;
     var shortestParagraph = null;
@@ -132,6 +147,7 @@ function findRelevantParagraph(metadataFieldVertexArray, blocks) {
             const paraMidpoint = {}
             paraMidpoint.x = (vertices[0].x + vertices[1].x) / 2
             paraMidpoint.y = (vertices[0].y + vertices[3].y) / 2      
+            if (paraMidpoint.y < relevantMidpoint.y) continue
             let distance = Math.hypot(relevantMidpoint.x-paraMidpoint.x, relevantMidpoint.y-paraMidpoint.y)
             if (distance < shortestDistance && distance !== 0) {
                 shortestDistance = distance;
@@ -143,9 +159,12 @@ function findRelevantParagraph(metadataFieldVertexArray, blocks) {
 
     return shortestParagraph
 }
-function getTextAnnotation(obj) {
-
-
+function getTextAnnotations(obj) {
+    var textAnnotations = {}
+    for (let page of obj.responses) {
+        textAnnotations[page.context.pageNumber] = page.fullTextAnnotation.text
+    }
+    return JSON.stringify(textAnnotations) //need to do this to exclude from index correctly
 }
 function getRejectionList(obj) {
     var rejectionList = []
@@ -183,9 +202,13 @@ function getRejectionList(obj) {
 
     return rejectionList
 }
-const generateOaObjectFromText = (gcsEvent) => {
+const generateOaObjectFromText = async (gcsEvent) => {
+    const filename = gcsEvent.name.split('ocr/office-actions/')[1].split('+')[0]
+    const processedOaKey = datastore.key(['processedOa', filename]);
+    const [processedOaEntity] = await datastore.get(processedOaKey);
+
     //download json into memory
-    console.log("saving oaObject to datastore from ocr'ed pdf...")
+    console.log("creating oaObject from ocr'ed pdf...")
     return new Promise(function (resolve, reject) {
         storage
         .bucket(gcsEvent.bucket)
@@ -194,34 +217,69 @@ const generateOaObjectFromText = (gcsEvent) => {
         if (err) {
             reject(err)
         } else {
+                
             var parsedOaObject = JSON.parse(contents)
-            var oaObject = getOaMetadata(parsedOaObject.responses[0]) //send in the first page of the OA
-            // oaObject.textAnnotation = getTextAnnotation(parsedOaObject)
-            // oaObject.rejectionList = getRejectionList(parsedOaObject.responses)
-            resolve(oaObject)
+            // var metadataObj = getOaMetadata(parsedOaObject.responses[0]) //send in the first page of the OA
+            var predictedObt = getOaObjectFromModel(parsedOaObject, filename)
+
+            // for (var key in metadataObj) processedOaEntity[key] = metadataObj[key]
+            // processedOaEntity.computerProcessingTime = Date.now()
+            // processedOaEntity.textAnnotations = getTextAnnotations(parsedOaObject)
+            // processedOaEntity.rejectionList = getRejectionList(parsedOaObject.responses)
+            resolve(processedOaEntity)
         }
     })        
     })
 }
+
+const getOaObjectFromModel = async (oaObj, filename) => {
+  const projectId = `crafty-valve-269403`;
+  const computeRegion = `us-central1`;
+  const modelId = `TEN7087148487434829824`;
+  const scoreThreshold = 0.5
+
+  // Get the full path of the model.
+  const modelFullId = autoMlClient.modelPath(projectId, computeRegion, modelId);
+
+  // Read the file content for prediction.
+  const file_path = `gs://crafty-valve-269403.appspot.com/uploaded-office-actions/${filename}`
+
+  const params = {};
+
+
+  // Set the payload by giving the content and type of the file.
+  const payload = {'document': {'input_config': {'gcs_source': {'input_uris': file_path } } } };
+  // params is additional domain-specific parameters.
+  // currently there is no additional parameters supported.
+  const [response] = await autoMlClient.predict({
+    name: modelFullId,
+    payload: payload,
+    params: params,
+  })
+  console.log(`Prediction results:`);
+  response.payload.forEach(result => {
+    console.log(`Predicted class name: ${result.displayName}`);
+    console.log(`Predicted class score: ${result.classification.score}`);
+  });
+  
+}
+
+
 const saveObjectToDatastore = processedOaObject => {
     return datastore.save({
       key: datastore.key(['processedOa', processedOaObject.filename]),
       data: processedOaObject,
+      excludeFromIndexes: ['textAnnotations']
     });
 };
   
 const main = async () => {
+    // OCRFile('WUDPrMHxN') //if you OCR, it creates a file in ocr/office-actions/<filename>+output....json
     const tempName = 'ocr/office-actions/hZHzgZ_a1+output-1-to-8.json'
-    var oaObject = await generateOaObjectFromText({name: tempName, bucket: bucketName})
-    oaObject.computerProcessingTime = Date.now()
-    oaObject.filename = tempName.split('ocr/office-actions/')[1].split('+')[0]
 
-    const processedOaKey = datastore.key(['processedOa', oaObject.filename]);
-    const [processedOaEntity] = await datastore.get(processedOaKey);
-    for(var k in processedOaEntity) oaObject[k]=processedOaEntity[k];
+    var oaObject = await generateOaObjectFromText({name: tempName, bucket: bucketName})
     console.log(oaObject)
     await saveObjectToDatastore(oaObject)
 }
-// OCRFile('hZHzgZ_a1')
 
 main()

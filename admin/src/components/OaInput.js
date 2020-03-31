@@ -364,6 +364,7 @@ function OaInput (props) {
   const saveOaObj = (sendEmail) => {
     let finalizedOaObject = {
       computerProcessingTime: (fileData && fileData.computerProcessingTime) || Date.now(),
+      textAnnotations: (fileData && fileData.textAnnotations) || {},
       finishedProcessingTime: Date.now(),
       filename: filename,
       originalname: originalname,
@@ -375,7 +376,6 @@ function OaInput (props) {
       rejectionList: rejectionList,
       priorArtList: priorArtList
     }
-
     saveOaToCloud(finalizedOaObject, sendEmail)
     
     handleClose()
@@ -452,7 +452,7 @@ function OaInput (props) {
     </Form.Group>
     <Form.Group as={Col} >
       <Form.Label>Attorney Docket</Form.Label>
-      <Form.Control required size='sm' name="attyDocket" value={attyDocket} type="text" placeholder="Enter docket"  onChange={handleChange} />
+      <Form.Control size='sm' name="attyDocket" value={attyDocket} type="text" placeholder="Enter docket"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
 

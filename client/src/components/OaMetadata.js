@@ -20,6 +20,9 @@ class OaMetadata extends Component {
         <div className='metadata metadataTitle'>Mailing Date</div>
         <div className='metadata'>{new Date(metadata.mailingDate).toLocaleDateString('en-US')}</div>
         <br />
+        <div className='metadata metadataTitle'>Filing Date</div>
+        <div className='metadata'>{new Date(metadata.filingDate).toLocaleDateString('en-US')}</div>
+        <br />        
         <div className='divider'></div>
         <br />
         {

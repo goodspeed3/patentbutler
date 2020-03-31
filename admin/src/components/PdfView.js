@@ -200,7 +200,7 @@ function PdfView (props) {
                 <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
                 <button type="button" disabled={showPriorArt} onClick={() => {setPageNumber(1); setShowPriorArt(true)}}>Prior Art</button>
                 {
-                    priorArtList && priorArtList.length > 0 &&
+                    priorArtList.length > 0 &&
                     <>
                         &nbsp; 
                         <select onChange={(e) => {setShowPriorArt(true); setPageNumber(1); setPaToLoad(parseInt(e.target.value))}}>
@@ -373,6 +373,12 @@ function PdfView (props) {
         </div>
       }
 
+      const showText = () => {
+        if (showPriorArt || !fileData.textAnnotations) return
+        const textAnnotations = JSON.parse(fileData.textAnnotations)
+        return <div>{textAnnotations[pageNumber]}</div>
+      }
+
     return (
         <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
@@ -408,7 +414,7 @@ function PdfView (props) {
             </button>
             <input type="text" size={5} placeholder='Page #' onChange={handlePageEntry}/>
             
-                 | Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}   
+               &nbsp; Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}   
           </div>      
         </div> 
         <div style={showPriorArt ? {cursor: 'crosshair'}: {cursor: 'default'}} className='pdfDiv' id="pdfDiv" onMouseDown={mouseDown} onMouseUp={mouseUp}>
@@ -430,6 +436,9 @@ function PdfView (props) {
           </Document>    
           {generateOverlay()}      
           {showCitationDivElements()}    
+        </div>
+        <div className='textDiv'>
+          {showText()}
         </div>
     </div>
     )
