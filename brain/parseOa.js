@@ -1,3 +1,4 @@
+//to port to server, COPY from HERE to STOP COPYING HERE.  ENSURE PACKAGE.JSON is mirrored
 //RUN this to test: export GOOGLE_APPLICATION_CREDENTIALS="/Users/jonliu/Documents/code/patentbutler/brain/butler-server-c534c8d5f21f.json"
 //NOTE: A version of this is in Cloud Functions that is triggered upon any OA Upload.  Mirror this code there (but be careful)
 
@@ -178,19 +179,20 @@ const generateOaObjectFromText = async (gcsEvent) => {
     const processedOaKey = datastore.key(['processedOa', filename]);
     const [processedOaEntity] = await datastore.get(processedOaKey);
 
-    const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(processedOaEntity.temp)
-    for (const rej of processedOaEntity.rejectionList) {
-        for (const rejType in combinedResponse) {
-            if (rej.type === rejType) {
-                rej.claimArgumentList = fillClaimArg(rejType, combinedResponse, syntaxResponse)
-            }
-        }
-    }
-    console.log(processedOaEntity.rejectionList)
+    //TESTING
+    // const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(processedOaEntity.temp)
+    // for (const rej of processedOaEntity.rejectionList) {
+    //     for (const rejType in combinedResponse) {
+    //         if (rej.type === rejType) {
+    //             rej.claimArgumentList = fillClaimArg(rejType, combinedResponse, syntaxResponse)
+    //         }
+    //     }
+    // }
+    // console.log(processedOaEntity.rejectionList)
     // processedOaEntity.priorArtList = await getPAList(combinedResponse, syntaxResponse)
     // console.log(processedOaEntity.priorArtList)
+    // return processedOaEntity
     //TESTING
-    return processedOaEntity
 
     //download json into memory
     console.log("creating oaObject from ocr'ed pdf...")
@@ -323,7 +325,7 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
       }
   }
 
-  predictedObt.temp = batchResponses2 //FOR TESTING PURPOSES ONLY TO SAVE MODEL CALLS, ERASE IN PROD
+//   predictedObt.temp = batchResponses2 //FOR TESTING PURPOSES ONLY TO SAVE MODEL CALLS, ERASE IN PROD
   const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(batchResponses2)
   for (const rej of predictedObt.rejectionList) {
     for (const rejType in combinedResponse) {
@@ -382,28 +384,32 @@ const fillClaimArg = (rejType, response, syntaxResponse) => {
    const synResponse = syntaxResponse[rejType]
    var claimArgumentList = []
    var didFindClaim = false
+   var forceDummy = false
    for (var i=0; i<rejResponse.entities.length; i++) {
         var entity = rejResponse.entities[i]
         // check if a citation exists before a claim
         if (entity.displayName === 'citation') {
             if (!didFindClaim) {
+                forceDummy = true
                 console.log('citation occurred before a claim; should create snippetObj with dummy claim header for the citation!')
             }
         }
 
         //create obj for every claim header, and add to citation lists
-        if (entity.displayName === 'claim') {
+        if (entity.displayName === 'claim' || forceDummy) {
             didFindClaim = true
             const snippetObj = {
                 "id": nanoid()
             }
-            snippetObj.number = entity.textExtraction.textSegment.content.toUpperCase()
-            var [guessedExaminerText, guessedSnippetText] = guessExamSnipText(response[rejType].entities, i, synResponse)
+            snippetObj.number = (forceDummy) ? 'START' : entity.textExtraction.textSegment.content.toUpperCase()
+            var [guessedExaminerText, guessedSnippetText] = guessExamSnipText(response[rejType].entities, i, synResponse, forceDummy)
             snippetObj.examinerText = guessedExaminerText
             snippetObj.snippetText = guessedSnippetText
-            snippetObj.citationList = guessCitationList(response[rejType].entities, i, synResponse)
+            snippetObj.citationList = guessCitationList(response[rejType].entities, i, synResponse, forceDummy)
 
             claimArgumentList.push(snippetObj)
+            forceDummy = false
+
         }
     }
     
@@ -419,9 +425,10 @@ const fillClaimArg = (rejType, response, syntaxResponse) => {
     return claimArgumentList
 }
 
-const guessExamSnipText = (entityList, currentEntityIndex, syntax) => {
+const guessExamSnipText = (entityList, currentEntityIndex, syntax, forceDummy = false) => {
     /*
-    find text from this claim to the next claim
+    if force dummy is false, this entity is a claim and we want to find text from this claim to the next claim
+    if forcedummy is true, that means this entity is a citation (not a claim), and we want to start text from the beginning.
     */
     const currentEntity = entityList[currentEntityIndex]
     // if (currentEntity.textExtraction.textSegment.content.toUpperCase() === "CLAIM 21") {
@@ -429,16 +436,18 @@ const guessExamSnipText = (entityList, currentEntityIndex, syntax) => {
     // }
     var startSentenceIndex = 0;
     var endSentenceIndex = 0;
-    for (var i=0; i<syntax.sentences.length; i++) {
-        const sentence = syntax.sentences[i]
-        if (sentence.text.beginOffset + sentence.text.content.length > currentEntity.textExtraction.textSegment.startOffset) { //sentence including the currentEntity
-            startSentenceIndex = i
-            break;
+    if (!forceDummy) {
+        for (var i=0; i<syntax.sentences.length; i++) {
+            const sentence = syntax.sentences[i]
+            if (sentence.text.beginOffset + sentence.text.content.length > currentEntity.textExtraction.textSegment.startOffset) { //sentence including the currentEntity
+                startSentenceIndex = i
+                break;
+            }
         }
-    }
-    if (startSentenceIndex < 0) {
-        startSentenceIndex = 0
-        console.log('how did this happen??')
+        if (startSentenceIndex < 0) {
+            startSentenceIndex = 0
+            console.log('how did this happen??')
+        }    
     }
 
     var didHitClaim = false
@@ -481,9 +490,31 @@ const guessExamSnipText = (entityList, currentEntityIndex, syntax) => {
     return [examText.replace(/\n/g, ' '), snipText]
 }
 
-const guessCitationList = (entityList, currentEntityIndex, syntax) => {
+const guessCitationList = (entityList, currentEntityIndex, syntax, forceDummy) => {
+    //current entity is a claim or citation, iterate through citations until you hit the next "claim" or the end of the entitylist
     const currentEntity = entityList[currentEntityIndex]
-    return []
+    var citationList = []
+
+    //start at entity after this one unless forcedummy, in which case start at the citation entity
+    if (forceDummy) {
+        currentEntityIndex--
+    }
+    for (var i=currentEntityIndex+1; i<entityList.length; i++) {
+        const tempEntity = entityList[i]
+        if (tempEntity.displayName === 'claim') {
+            break;
+        }
+        if (tempEntity.displayName === 'citation') {
+            citationList.push({
+                id: nanoid(),
+                citation: tempEntity.textExtraction.textSegment.content.replace(/\n/g, ''), //remove all \n from citation
+                abbreviation: guessAbbrev(entityList, i, syntax)
+            })
+        }
+
+    }
+
+    return citationList
 }
 
 const getPAList = async (response, syntaxResponse) => {
@@ -625,6 +656,7 @@ const guessAbbrev = (entityList, currentEntityIndex, syntax) => {
         const entity = entityList[i]
         if (entity.displayName === 'abbreviation') {
             formerAbbrev = entity
+            break;
         }
     }
     const formerAbbrevPathToRoot = getPathToRoot(formerAbbrev, syntax)
@@ -635,6 +667,7 @@ const guessAbbrev = (entityList, currentEntityIndex, syntax) => {
         const entity = entityList[i]
         if (entity.displayName === 'abbreviation') {
             latterAbbrev = entity
+            break;
         }
     }
     const latterAbbrevPathToRoot = getPathToRoot(latterAbbrev, syntax)
@@ -688,7 +721,7 @@ const shortestOverlappingPath = (currentEntityPathToRoot, formerEntityPathToRoot
                 return latterEntityPathToRoot.content
             }
         }
-        return ''
+        return formerEntityPathToRoot.content //return former if all goes to shiz
     }
 }
 //textANnotations is NOT zero-indexed
@@ -781,8 +814,12 @@ const saveObjectToDatastore = processedOaObject => {
     return datastore.save({
       key: datastore.key(['processedOa', processedOaObject.filename]),
       data: processedOaObject,
-      excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList','temp.102[].blurb', 'temp.103[].blurb']
+      excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
     });
+
+    //testing
+    // excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'temp.102[].blurb', 'temp.103[].blurb']
+
 };
   
 
@@ -857,7 +894,7 @@ const temp = async () => {
         await datastore.save({
             key: datastore.key(['processedOa', keyname + '.pdf']),
             data: entity,
-            excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList']
+            excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
           });
           const [entity2] = await datastore.get(datastore.key(['oaUpload', keyname]));
           await datastore.save({

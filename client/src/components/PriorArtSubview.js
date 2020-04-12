@@ -17,7 +17,7 @@ class PriorArtSubview extends Component {
     let priorArt = this.getPriorArt(this.props.uiData);
     this.state = {
       uiData: this.props.uiData,
-      publicationNumber: decodeURIComponent(this.props.match.params.publicationNumber),
+      abbreviation: decodeURIComponent(this.props.match.params.abbreviation),
       citation: decodeURIComponent(this.props.match.params.citation),
       priorArt: priorArt,
       numPages: null,
@@ -40,7 +40,7 @@ class PriorArtSubview extends Component {
       let priorArt = this.getPriorArt(this.props.uiData);
       let pageToLoad = this.getPageToLoad(priorArt, decodeURIComponent(this.props.match.params.citation), prevProps.match.url !== this.props.match.url)
       var updateStateObj = {
-        publicationNumber: decodeURIComponent(this.props.match.params.publicationNumber),
+        abbreviation: decodeURIComponent(this.props.match.params.abbreviation),
         citation: decodeURIComponent(this.props.match.params.citation),
         pageNumber: pageToLoad,
         priorArt: priorArt,
@@ -84,8 +84,8 @@ class PriorArtSubview extends Component {
     for (var i = 0; i < this.props.uiData.priorArtList.length; i++) {
       var candidatePriorArt = this.props.uiData.priorArtList[i];
       if (
-        candidatePriorArt.publicationNumber ===
-        decodeURIComponent(this.props.match.params.publicationNumber)
+        candidatePriorArt.abbreviation ===
+        decodeURIComponent(this.props.match.params.abbreviation)
       ) {
         priorArt = candidatePriorArt;
         return priorArt;

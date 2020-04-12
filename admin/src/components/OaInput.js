@@ -22,21 +22,21 @@ function OaInput (props) {
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  function useTraceUpdate(props) {
-    const prev = useRef(props);
-    useEffect(() => {
-      const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-        if (prev.current[k] !== v) {
-          ps[k] = [prev.current[k], v];
-        }
-        return ps;
-      }, {});
-      if (Object.keys(changedProps).length > 0) {
-        console.log('Changed props:', changedProps);
-      }
-      prev.current = props;
-    });
-  }
+  // function useTraceUpdate(props) {
+  //   const prev = useRef(props);
+  //   useEffect(() => {
+  //     const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+  //       if (prev.current[k] !== v) {
+  //         ps[k] = [prev.current[k], v];
+  //       }
+  //       return ps;
+  //     }, {});
+  //     if (Object.keys(changedProps).length > 0) {
+  //       console.log('Changed props:', changedProps);
+  //     }
+  //     prev.current = props;
+  //   });
+  // }
   
   useEffect(() => {
     if (fileData && (fileData.computerProcessingTime || fileData.finishedProcessingTime)) { //prefill the page with what was processed
@@ -60,7 +60,7 @@ function OaInput (props) {
     if (index === -1) {
       rejectionList.push(newRejection)
     } else {
-      rejectionList.splice(index+1, 0, newRejection)
+      rejectionList.splice(index, 0, newRejection)
     }
     //needs ... to trigger update of array
     setRejectionList([...rejectionList])
@@ -128,7 +128,7 @@ function OaInput (props) {
         {rejection.type === 'otherRej' && <Form.Group md={4} as={Col}><Form.Control required size='sm' type="text" placeholder="Enter header" value={rejection.typeText} onChange={(e) => changeTypeText(index, e.target.value)} /></Form.Group>}
         <Form.Group md={2} as={Col}>
           <Button size='sm' variant="warning" onClick={() => removeRejection(index)}>Remove</Button>
-          &nbsp; <Button size='sm' variant="info" onClick={() => addRejection(index)}>Add Rej</Button>
+          &nbsp; <Button size='sm' variant="info" onClick={() => addRejection(index)}>^Rej</Button>
         </Form.Group>
         </Form.Row>
         { rejection.type !== '102' && rejection.type !== '103' ? 
@@ -248,7 +248,14 @@ function OaInput (props) {
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
 
   }
-
+  const citationInExamRemark = (rejectionIndex, claimArgIndex, citationIndex) => {
+    let citationText = rejectionList[rejectionIndex].claimArgumentList[claimArgIndex].citationList[citationIndex]['citation']
+    if (rejectionList[rejectionIndex].claimArgumentList[claimArgIndex].examinerText.includes(citationText)) {
+      return <span role='img' aria-label='y'>&#9989;</span> //green check
+    } else {
+      return <span role='img' aria-label='x'>&#10060;</span> //red x
+    }
+  }
 
   const citationListElements = (rejectionIndex, claimArgIndex) => {
     let rejection = rejectionList[rejectionIndex]
@@ -259,12 +266,13 @@ function OaInput (props) {
         <Form.Group as={Col} md={1} >
         </Form.Group>
         <Form.Group as={Col} md={5} >
-          <Form.Label>Citation</Form.Label>
+        <Form.Label>Citation { citationInExamRemark(rejectionIndex, claimArgIndex, index)}</Form.Label>
           <Form.Control size='sm' type="text" placeholder="citation should match ex remarks" value={citation.citation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'citation')} />
         </Form.Group>
         <Form.Group md={4} as={Col} >
           <Form.Label>Abbreviation</Form.Label>
           <Form.Control size='sm' as="select" value={citation.abbreviation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'abbreviation')}>
+              <option key='none' value=''>--</option>
             {priorArtList.map((pa) => 
                    <option key={pa.id || pa.filename} value={pa.abbreviation}>{pa.abbreviation}</option>)}
             </Form.Control>

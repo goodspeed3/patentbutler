@@ -210,7 +210,7 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
     const finishedOaQuery = datastore
     .createQuery('processedOa')
     .filter('user', '=', req.body.userEmail)
-    .order('finishedProcessingTime');
+    .order('finishedProcessingTime', {descending: true});
 
     promiseArray.push(datastore.runQuery(processingOaQuery))
     promiseArray.push(datastore.runQuery(finishedOaQuery))

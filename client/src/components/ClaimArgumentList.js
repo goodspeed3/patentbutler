@@ -73,19 +73,21 @@ class ClaimArgumentList extends Component {
       <Container className="claimBlock" key={'claimArgument' + index}>
         <Row>
           <Col>
-            <b>Claim {claimArgumentObject.number}:</b>
+            <b>{claimArgumentObject.number}:</b>
           </Col>
           <Col>
-            <b>Examiner Comments:</b>
+              <b></b>
           </Col>
         </Row>
         <hr />        
         {claimArgumentObject.snippetList.map((snippetObject, index) => (
           <Container key={'snippetText' + index}>
           <Row>
+              {snippetObject.snippetText.length > 0 && 
               <Col >
                   {snippetObject.snippetText}
               </Col>
+              }
               <Col>
                   {this.linkifySnippetBlock(snippetObject)}
               </Col>
@@ -107,7 +109,7 @@ class ClaimArgumentList extends Component {
         '\\$&'
       );
       regMappedCitations.push(escapedRegExp);
-      mappedCitations[citationObj.citation] = citationObj.publicationNumber;
+      mappedCitations[citationObj.citation] = citationObj.abbreviation;
     }
 
     var re = new RegExp('(' + regMappedCitations.join('|') + ')', 'gi');

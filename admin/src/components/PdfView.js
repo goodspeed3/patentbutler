@@ -298,7 +298,7 @@ function PdfView (props) {
               <option value=''>--</option>
               {
                 citationObj[priorArtList[paToLoad].abbreviation].map(c => 
-                <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && 'p. ' + c.boundingBoxes[0].page}</option>
+                <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && ' -- p. ' + c.boundingBoxes[0].page}</option>
                 )
               }
             </Form.Control>

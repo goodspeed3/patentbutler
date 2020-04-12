@@ -101,13 +101,13 @@ class OaOverview extends Component {
                   <Route exact path={'/demo'}>
                       <PriorArtOverview demo={true} uiData={this.state.uiData} />
                   </Route>
-                  <Route exact path={'/demo/:publicationNumber/:citation'}>
+                  <Route exact path={'/demo/:abbreviation/:citation'}>
                     <PriorArtSubview demo={true} uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
                   </Route>
                   <Route exact path={'/view/:filename'}>
                       <PriorArtOverview uiData={this.state.uiData} />
                   </Route>
-                  <Route path={'/view/:filename/:publicationNumber/:citation'}>
+                  <Route path={'/view/:filename/:abbreviation/:citation'}>
                       <PriorArtSubview uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
                   </Route>
                 </Switch>

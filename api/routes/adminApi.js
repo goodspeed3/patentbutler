@@ -114,7 +114,7 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   var processedOaEntity = {
     key: datastore.key(['processedOa', oaObject.filename]),
     data: oaObject,
-    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList']
+    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
   }
   const oaUploadKey = datastore.key(['oaUpload', oaObject.filename]);
   const [oaUploadEntity] = await datastore.get(oaUploadKey);
