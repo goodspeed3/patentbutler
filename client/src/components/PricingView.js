@@ -36,10 +36,6 @@ function PricingView () {
                 </Card.Text>                
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                20 mapped claims per Office Action
-                </Card.Text>           
-                <Card.Text className='benefits'>
-                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
                 Unlimited Prior Art processing
                 </Card.Text>                           
                 </Card.Body>
@@ -62,10 +58,6 @@ function PricingView () {
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
                 2-day turnaround time
                 </Card.Text>                
-                <Card.Text className='benefits'>
-                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                20 mapped claims per Office Action
-                </Card.Text>           
                 <Card.Text className='benefits'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
                 Unlimited Prior Art processing

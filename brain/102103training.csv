@@ -1,0 +1,3 @@
+TRAIN,gs://patentbutler-brain/102103training-train.jsonl
+VALIDATION,gs://patentbutler-brain/102103training-validation.jsonl
+TEST,gs://patentbutler-brain/102103training-test.jsonl

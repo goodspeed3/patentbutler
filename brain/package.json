@@ -11,8 +11,12 @@
   "dependencies": {
     "@google-cloud/automl": "^1.11.0",
     "@google-cloud/datastore": "^5.1.0",
+    "@google-cloud/language": "^3.8.0",
     "@google-cloud/storage": "^4.7.0",
     "@google-cloud/vision": "^1.11.0",
-    "nanoid": "^3.0.2"
+    "cheerio": "^1.0.0-rc.3",
+    "mailgun-js": "^0.22.0",
+    "nanoid": "^3.0.2",
+    "node-fetch": "^2.6.0"
   }
 }

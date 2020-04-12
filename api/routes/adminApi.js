@@ -114,7 +114,7 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   var processedOaEntity = {
     key: datastore.key(['processedOa', oaObject.filename]),
     data: oaObject,
-    excludeFromIndexes: ['textAnnotations']
+    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList']
   }
   const oaUploadKey = datastore.key(['oaUpload', oaObject.filename]);
   const [oaUploadEntity] = await datastore.get(oaUploadKey);
@@ -140,35 +140,24 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
 
 });
 
-router.post('/uploadPa', checkJwt, upload.array('paList'), async function(req, res, next) {
+router.post('/uploadPa', checkJwt, upload.single('file'), async function(req, res, next) {
   console.log('----uploaded pa----')
   const directory = 'uploaded-cited-art/'
 
-  var promiseArray = []
-  const paObjects = []
-  for (var i=0; i<req.files.length; i++) {
-    var fileObj = req.files[i]
-    const filename = nanoid() + '.pdf'
-    const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + directory + filename;
-    paObjects.push({
-      // pdfUrl: fileObj.path,
-      filename: filename,
-      originalname: fileObj.originalname,
-      cloudUrl: cloudUrl,
-      abbreviation: '', //need these empty fields so elements are controlled on client-side
-      publicationNumber: '',
-      assignee: '',
-      title: '',
-      citationList: []
-    })
-    promiseArray.push(uploadBuffer(fileObj.originalname, fileObj.buffer, filename, directory))
-  }  
+  var fileObj = req.file
+  const filename = nanoid() + '.pdf'
+  const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + directory + filename;
+  var response = {
+    // pdfUrl: fileObj.path,
+    filename: filename,
+    originalname: fileObj.originalname,
+    cloudUrl: cloudUrl,
+  }
+  await uploadBuffer(fileObj.originalname, fileObj.buffer, filename, directory)
 
-  let results = await Promise.all(promiseArray)
-  console.log(req.files)
   res.json({ 
     // files: req.files,
-    paObjects: paObjects
+    paObjects: response
   })    
 });
 

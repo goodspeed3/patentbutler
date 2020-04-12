@@ -35,7 +35,7 @@ function PdfView (props) {
           if (!fileData.priorArtList) return prefilledCitationObj
           for (var a=0; a<fileData.priorArtList.length; a++) {
             let pa = fileData.priorArtList[a]
-            prefilledCitationObj[pa.publicationNumber] = pa.citationList
+            prefilledCitationObj[pa.abbreviation] = pa.citationList
           }
           return prefilledCitationObj
         }
@@ -50,7 +50,7 @@ function PdfView (props) {
             for (var k=0; k<claimArgument.citationList.length; k++) {
               const citationObj = claimArgument.citationList[k]
               
-              let preExistingData = c[citationObj.publicationNumber]
+              let preExistingData = c[citationObj.abbreviation]
               var boundingBoxes = [];
               if (preExistingData) {
                 for (var x = 0; x<preExistingData.length; x++) {
@@ -73,17 +73,17 @@ function PdfView (props) {
         //clear citationObj 
         for (i=0; i<newCitationList.length; i++) {
           const co = newCitationList[i]
-          if (!co.publicationNumber) continue
-          newCitationObj[co.publicationNumber] = []
+          if (!co.abbreviation) continue
+          newCitationObj[co.abbreviation] = []
         }
 
         let keyObj = Object.keys(newCitationObj) 
         for (i=0; i<keyObj.length; i++) {
-          const pubnum = keyObj[i]
-          const citList = newCitationObj[pubnum]
+          const abbreviation = keyObj[i]
+          const citList = newCitationObj[abbreviation]
           for (j=0; j<newCitationList.length; j++) {
             const co = newCitationList[j]
-            if (co.publicationNumber === pubnum) {
+            if (co.abbreviation === abbreviation) {
               //only add to list if it doesn't already exist
               let tCit = co.citation
               if (!citList.some(o => o.citation === tCit )) {
@@ -93,7 +93,7 @@ function PdfView (props) {
             }
           }
           //sort the citations
-          newCitationObj[pubnum].sort((first, second) => (second.citation < first.citation) ? 1 : -1 )
+          newCitationObj[abbreviation].sort((first, second) => (second.citation < first.citation) ? 1 : -1 )
         }
         return newCitationObj
 
@@ -102,13 +102,13 @@ function PdfView (props) {
     useEffect(() => {
       if (!citationObj) return
       setPriorArtList(pal => {
-        let pubnums = Object.keys(citationObj) 
-        if (pubnums.length === 0) return pal
-        for (var i=0; i<pubnums.length; i++) {
-          let pubnum = pubnums[i]
-          let citationList = citationObj[pubnum]
+        let abbrevs = Object.keys(citationObj) 
+        if (abbrevs.length === 0) return pal
+        for (var i=0; i<abbrevs.length; i++) {
+          let abbrev = abbrevs[i]
+          let citationList = citationObj[abbrev]
           pal.forEach((pa) => {
-            if (pa.publicationNumber === pubnum) {
+            if (pa.abbreviation === abbrev) {
               pa.citationList = citationList
             }
           })
@@ -200,11 +200,11 @@ function PdfView (props) {
                 <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
                 <button type="button" disabled={showPriorArt} onClick={() => {setPageNumber(1); setShowPriorArt(true)}}>Prior Art</button>
                 {
-                    priorArtList.length > 0 &&
+                    priorArtList && priorArtList.length > 0 &&
                     <>
                         &nbsp; 
                         <select onChange={(e) => {setShowPriorArt(true); setPageNumber(1); setPaToLoad(parseInt(e.target.value))}}>
-                            {priorArtList.map((paFile, index) => <option key={paFile.filename} value={index}>{paFile.originalname}</option>)}
+                            {priorArtList.map((paFile, index) => <option key={paFile.id || paFile.filename} value={index}>{paFile.originalname}</option>)}
                         </select>
                     </>
                 }
@@ -244,7 +244,7 @@ function PdfView (props) {
       }
       const saveCitation = (e) => {
         if (!selectedCitation) return
-        var cList = citationObj[priorArtList[paToLoad].publicationNumber]
+        var cList = citationObj[priorArtList[paToLoad].abbreviation]
         for (var i=0; i<cList.length; i++) {
           var cObj = cList[i]  
           if (cObj.citation === selectedCitation) {
@@ -258,7 +258,7 @@ function PdfView (props) {
         setShowCitationDiv(false)
       }
       const showCitationDivElements = () => {
-        if (!showPriorArt || !showCitationDiv || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].publicationNumber]) {
+        if (!showPriorArt || !showCitationDiv || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].abbreviation]) {
           return
         }
 
@@ -290,13 +290,14 @@ function PdfView (props) {
           dimensions.height = pdfDiv.scrollHeight
     
         }
+
         return <div className='overlay' style={dimensions}><div style={styleObj} className='citationDiv' onMouseDown={(e) => e.stopPropagation()} onMouseUp={(e) => e.stopPropagation()}>
           <Form style={{padding: "1rem"}}>
           <Form.Group>
             <Form.Control size='sm' as="select" value={selectedCitation} onChange={selectCitation}>
               <option value=''>--</option>
               {
-                citationObj[priorArtList[paToLoad].publicationNumber].map(c => 
+                citationObj[priorArtList[paToLoad].abbreviation].map(c => 
                 <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && 'p. ' + c.boundingBoxes[0].page}</option>
                 )
               }
@@ -311,7 +312,7 @@ function PdfView (props) {
         </div></div>
       }
       const removeOverlay = (id, coordinateString) => {
-        var citationList = citationObj[priorArtList[paToLoad].publicationNumber]
+        var citationList = citationObj[priorArtList[paToLoad].abbreviation]
         for (var i=0; i<citationList.length; i++) {
           var citObj = citationList[i]
           for (var j=0 ;j<citObj.boundingBoxes.length ;j++) {
@@ -325,10 +326,10 @@ function PdfView (props) {
         setCitationObj({...citationObj})
       }
       const generateOverlay = () => {
-        if (!showPriorArt || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].publicationNumber] || !didFinishRenderingPage) return
+        if (!showPriorArt || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].abbreviation] || !didFinishRenderingPage) return
         const pdfDiv = document.querySelector('#pdfDiv')
         var styleArray = []
-        var citationList = citationObj[priorArtList[paToLoad].publicationNumber]
+        var citationList = citationObj[priorArtList[paToLoad].abbreviation]
         for (var i=0; i<citationList.length; i++) {
           let citationBox = citationList[i]
           for (var j=0; j<citationBox.boundingBoxes.length; j++) {

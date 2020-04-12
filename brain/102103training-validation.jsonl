@@ -1,0 +1,9 @@
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15708947.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15710548.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15712537.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15713420.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15741640.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15817248.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15843269.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15865458.pdf" ]}}}}
+{"document": {"input_config": {"gcs_source": {"input_uris": [ "gs://patentbutler-brain/officeActions/15866420.pdf" ]}}}}

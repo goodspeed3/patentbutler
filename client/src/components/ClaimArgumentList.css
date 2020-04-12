@@ -21,6 +21,7 @@
 
 .blurbBlock {
     padding: 1rem;
+    white-space: pre-wrap;
 }
 
 .anchor {
