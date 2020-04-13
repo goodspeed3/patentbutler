@@ -134,7 +134,7 @@ function AccountView () {
             </tr>
             }
             <tr>
-            <td>Office Actions Processed</td>
+            <td>Office Actions Processed<br /><small className='text-muted'>Data automatically deleted 6 months after upload</small></td>
             <td colSpan='2'>{pbUser.numOaProcessed}</td>
             </tr>
             <tr>

@@ -93,7 +93,9 @@ function PdfView (props) {
             }
           }
           //sort the citations
-          newCitationObj[abbreviation].sort((first, second) => (second.citation < first.citation) ? 1 : -1 )
+          newCitationObj[abbreviation].sort((first, second) => {
+            return (second.citation < first.citation) ? 1 : -1
+          })
         }
         return newCitationObj
 
@@ -193,7 +195,12 @@ function PdfView (props) {
         setDidFinishRenderingPage(true)
         removeTextLayerOffset()
       }
-
+      const getCitationToShow = () => {
+        const citObj = citationObj[priorArtList[paToLoad].abbreviation].find((e) =>  e.boundingBoxes.length === 0)
+        if (citObj) {
+          return citObj.citation
+        }
+      }
       const toggleElements = () => {
           return (
             <span>
@@ -207,6 +214,17 @@ function PdfView (props) {
                             {priorArtList.map((paFile, index) => <option key={paFile.id || paFile.filename} value={index}>{paFile.originalname}</option>)}
                         </select>
                     </>
+                }
+                {
+                  //select first option that does not have bounding boxes created
+                  showPriorArt && citationObj && citationObj[priorArtList[paToLoad].abbreviation] && 
+                  <select readOnly value={getCitationToShow()}>
+                    {
+                      citationObj[priorArtList[paToLoad].abbreviation].map(c => 
+                      <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && ' -- p. ' + c.boundingBoxes[0].page + ' --'}</option>
+                      )
+                    }                    
+                  </select>
                 }
             </span>
           )
@@ -367,7 +385,7 @@ function PdfView (props) {
           {
             styleArray.map((styleObj, i) =>  (
               <div id={styleObj.idName} style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}>
-                <button style={{margin: '1rem'}} onClick={(e) => removeOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Remove {styleObj.citation}</button>
+                <button className="noselect" style={{margin: '1rem'}} onClick={(e) => removeOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Remove {styleObj.citation}</button>
               </div>
             ))
           }

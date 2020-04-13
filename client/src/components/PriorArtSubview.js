@@ -22,8 +22,10 @@ class PriorArtSubview extends Component {
       priorArt: priorArt,
       numPages: null,
       pageNumber: 0,
+      rotation: 0,
       scale: 1.0,
       originalPageWidth: 0,
+      originalPageHeight: 0,
       isScaleLocked: false,
       fitScale: 1.0,
       didFinishRenderingPage: false,
@@ -49,7 +51,10 @@ class PriorArtSubview extends Component {
       if (!this.state.isScaleLocked) {
         //this is needed for when user drags pane
         const parentDiv = document.querySelector('#PAView')
-        let pageScale = parentDiv.clientWidth / this.state.originalPageWidth
+        var pageScale = parentDiv.clientWidth / this.state.originalPageWidth
+        if (this.state.rotation === 90 || this.state.rotation === 270 ) {
+          pageScale = parentDiv.clientWidth / this.state.originalPageHeight
+        }
         //only update scale if user did not zoom in or out
         updateStateObj['scale'] = pageScale
         updateStateObj['fitScale'] = pageScale
@@ -123,12 +128,17 @@ class PriorArtSubview extends Component {
 
   onPageLoad = (page) => {
     const parentDiv = document.querySelector('#PAView')
-    let pageScale = parentDiv.clientWidth / page.originalWidth
+    var pageScale = parentDiv.clientWidth / page.originalWidth
+    if (this.state.rotation === 90 ||  this.state.rotation === 2700 ) {
+      pageScale = parentDiv.clientWidth / page.originalHeight
+    }
     // console.log("pagescale: " + pageScale + " parentDiv width: " + parentDiv.clientWidth)
     if (this.state.scale !== pageScale && !this.state.isScaleLocked) {
       this.setState({ scale: pageScale,
         fitScale: pageScale,
-      originalPageWidth: page.originalWidth });
+      originalPageWidth: page.originalWidth,
+      originalPageHeight: page.originalHeight
+    });
     }
   }
   onRenderSuccessHandler = () => {
@@ -153,6 +163,13 @@ class PriorArtSubview extends Component {
     });
   }
   
+  rotatePage = () => {
+    this.setState(prevState => {
+      var changeObj = {}
+      changeObj.rotation = (prevState.rotation + 90) % 360
+      return changeObj 
+    })
+  }
 
   previousPage = () => this.changePage(-1);
   nextPage = () => this.changePage(1);
@@ -186,6 +203,35 @@ class PriorArtSubview extends Component {
       })  
     }
   }
+  transformCoord = (box) => {
+    switch (this.state.rotation % 360) {
+      case 90:
+        return {x: (100.0 -box.y - box.height).toFixed(2),
+          y: box.x,
+          width: box.height,
+          height: box.width
+        }
+      case 180:
+        return {x: (100 - box.x - box.width).toFixed(2),
+          y: (100.0 - box.y - box.height).toFixed(2),
+          width: box.width,
+          height: box.height
+        }
+      case 270:
+        return {x: box.y,
+          y: (100 - box.x - box.width).toFixed(2),
+          width: box.height,
+          height: box.width
+        }        
+      case 0:
+      default:
+        return {x: box.x,
+          y: box.y,
+          width: box.width,
+          height: box.height
+        }
+    }
+  }
 
   generateOverlay = () => {
     const pdfDiv = document.querySelector('#pdfDiv')
@@ -206,10 +252,12 @@ class PriorArtSubview extends Component {
         styleObj.idName=""
         styleObj.citation=citationBox.citation
         styleObj.position = "absolute"
-        styleObj.top = citationBoxIndividual.boundingBox.y + "%"
-        styleObj.left = citationBoxIndividual.boundingBox.x + "%"
-        styleObj.width = citationBoxIndividual.boundingBox.width + "%"
-        styleObj.height = citationBoxIndividual.boundingBox.height + "%"
+        var transformedCoord = this.transformCoord(citationBoxIndividual.boundingBox)
+
+        styleObj.top = transformedCoord.y + "%"
+        styleObj.left = transformedCoord.x + "%"
+        styleObj.width = transformedCoord.width + "%"
+        styleObj.height = transformedCoord.height + "%"
         if (citationBox.citation === this.state.citation) {
           styleObj.backgroundColor = "#FF4241"
           //store the farthest down highlighted element, b/c that's likely the start of the highlighted portion
@@ -234,7 +282,7 @@ class PriorArtSubview extends Component {
       dimensions.height = pdfDiv.scrollHeight
 
     }
-
+    
     return <div className='overlay' style={dimensions}>
       {
         styleArray.map((styleObj, i) =>  (
@@ -277,6 +325,12 @@ class PriorArtSubview extends Component {
         <div className="pageMetadata"><Link to={this.props.demo ? '/demo' : "/view/" + this.props.uiData.filename }>Prior Art Overview</Link>
      &nbsp;| {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
           <div>
+            <button
+              type="button"
+              onClick={this.rotatePage}
+            >
+              Rotate
+            </button>
             <button
               type="button"
               disabled={pageNumber <= 1}
@@ -325,6 +379,7 @@ class PriorArtSubview extends Component {
               scale={this.state.scale}
               onLoadProgress={this.onLoadProgress}
               onRenderSuccess={this.onRenderSuccessHandler}
+              rotate={this.state.rotation}
               // customTextRenderer={this.makeTextRenderer("0030")}
             />
           </Document>

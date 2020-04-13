@@ -118,19 +118,24 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   }
   const oaUploadKey = datastore.key(['oaUpload', oaObject.filename]);
   const [oaUploadEntity] = await datastore.get(oaUploadKey);
-  oaUploadEntity.processed = true
 
   //only email if email not already sent
   if (req.body.sendEmail === 'true') {
+    oaUploadEntity.processed = true //only truly processed after sending the email
+
     console.log('sending email')
     const link = 'https://patentbutler.com/view/'+oaObject.filename
     const maildate = new Date(oaObject.mailingDate)
+    var maildateString = ''
+    if (!isNaN(maildate)) { //a mailing date exists
+      maildateString = ' mailed on ' + (1+maildate.getMonth()) + "/" + maildate.getDate() + "/" + maildate.getFullYear()
+    }
     const txt = 'Hello,<br /><br />Our systems have processed \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
-    maildateString = (1+maildate.getMonth()) + "/" + maildate.getDate() + "/" + maildate.getFullYear()
+    
     const data = {
       from: 'Team team@patentbutler.com',
       to: oaObject.user,
-      subject: 'Your Office Action \'' + oaObject.originalname + '\' mailed on ' + maildateString + ' has finished processing',
+      subject: 'Your Office Action \'' + oaObject.originalname + '\'' + maildateString + ' has finished processing',
       html: txt
     };
     mg.messages().send(data);    

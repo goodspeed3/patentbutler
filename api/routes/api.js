@@ -373,8 +373,14 @@ router.post('/demo', upload.none(), async (req, res) => {
 })
 
 //serve uploaded office action
-router.get('/getOa/:filename', async function(req, res, next) {
-  var srcFilename = 'uploaded-office-actions/'+req.params.filename;
+router.get('/get/:type/:filename', async function(req, res, next) {
+  var srcFilename;
+  if (req.params.type === 'oa') {
+    srcFilename = 'uploaded-office-actions/'+req.params.filename;
+  } else if (req.params.type === 'pa') {
+    srcFilename = 'uploaded-cited-art/'+req.params.filename;
+  }
+  
   // var destFilename = './files/oa/' + req.body.filename;
   storage
     .bucket(bucketName)

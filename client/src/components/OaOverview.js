@@ -8,6 +8,7 @@ import PriorArtSubview from './PriorArtSubview.js';
 // import PrivateRoute from "./PrivateRoute";
 import { Auth0Context } from "../react-auth0-spa";
 import AuthApi from './AuthApi'
+// import Alert from 'react-bootstrap/Alert'
 
 import OaMetadata from './OaMetadata';
 import './OaOverview.css'
@@ -84,7 +85,7 @@ class OaOverview extends Component {
             <OaMetadata demo={this.props.demo} uiData={this.state.uiData} />
           </div>
           <div className='middleAndRightCol'>
-
+          {/* {true && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo includes 2 mapped claims. <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>} */}
             <SplitPane 
               split="vertical" 
               defaultSize={this.state.panePosition} 

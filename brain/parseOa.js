@@ -401,7 +401,7 @@ const fillClaimArg = (rejType, response, syntaxResponse) => {
             const snippetObj = {
                 "id": nanoid()
             }
-            snippetObj.number = (forceDummy) ? 'START' : entity.textExtraction.textSegment.content.toUpperCase()
+            snippetObj.number = (forceDummy) ? 'CLAIMS' : entity.textExtraction.textSegment.content.toUpperCase()
             var [guessedExaminerText, guessedSnippetText] = guessExamSnipText(response[rejType].entities, i, synResponse, forceDummy)
             snippetObj.examinerText = guessedExaminerText
             snippetObj.snippetText = guessedSnippetText
@@ -772,7 +772,9 @@ const getBlurb = (annotationPayload, batchResponses, currentIndex, currentHeader
             blurb += strippedText
         }
     }
-    return blurb.trim()
+    blurb = blurb.trim()
+
+    return blurb.replace(/\n/g, ' ') //replace \n with spaces
 }
 const stripText = (text) => {
     var rows = text.trim().split('\n')
@@ -827,8 +829,12 @@ const saveObjectToDatastore = processedOaObject => {
 
 const main = async () => {
     // OCRFile('WUDPrMHxN') //if you OCR, it creates a file in ocr/office-actions/<filename>+output....json
-    const tempName = 'ocr/office-actions/yHFK3WlcN5k0f_CdWcgqC.pdf+output-1-to-8.json'
-
+    if (process.argv.length != 4) {
+        console.log('-- node parseOa.js FILENAME NUMPAGES --')
+        return
+    }
+    const tempName = `ocr/office-actions/${process.argv[2]}+output-1-to-${process.argv[3]}.json`
+    console.log('parsing ' + tempName)
     var oaObject = await generateOaObjectFromText({name: tempName, bucket: bucketName})
     // return //TESTING
     // console.log(oaObject)

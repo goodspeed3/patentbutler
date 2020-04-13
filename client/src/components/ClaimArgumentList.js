@@ -18,7 +18,7 @@ class ClaimArgumentList extends Component {
 
   render() {
     var claimArgumentList = this.state.uiData.rejectionList;
-    return <div className="claimArgumentListBlock">
+    return <div>
       {this.props.demo && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo includes 2 mapped claims. <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>}
       {this.claimArgumentUi(claimArgumentList)}
 
@@ -28,7 +28,7 @@ class ClaimArgumentList extends Component {
     // console.log(claimArgumentList);
     return claimArgumentList.map(rejectionObject => (
       <div className="rejectionBlock" key={'r' + rejectionObject.id}>
-        <div className="anchor" id={rejectionObject.type}></div>
+        <div className="anchor" style={this.props.demo && {top: "-40px"}} id={rejectionObject.typeText}></div>
         <h2 className="rejectionTitle" >
           <b>{rejectionObject.typeText}</b>
         </h2>
@@ -112,7 +112,7 @@ class ClaimArgumentList extends Component {
       mappedCitations[citationObj.citation] = citationObj.abbreviation;
     }
 
-    var re = new RegExp('(' + regMappedCitations.join('|') + ')', 'gi');
+    var re = new RegExp('(' + regMappedCitations.join('|') + ')', 'g');
     let prefix = (this.props.demo ? '/demo' : '/view/' + this.props.match.params.filename)
     var linkifiedText = reactStringReplace(
       snippetObject.examinerText,

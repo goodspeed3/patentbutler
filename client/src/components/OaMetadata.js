@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { HashLink as Link } from 'react-router-hash-link';
 import './OaMetadata.css'
+import {withRouter} from 'react-router-dom';
+
 class OaMetadata extends Component {
   constructor(props) {
     super(props);
@@ -27,19 +29,26 @@ class OaMetadata extends Component {
         <br />
         {
           metadata.rejectionList.map( (element) => {
-            let prefix = (this.props.demo ? '/demo' : '/view/' + metadata.filename)
-            return (<div className="rejectionType" key={element.id}><Link to={prefix+'#' +element.type}>{element.typeText}</Link></div>)
+            // let prefix = (this.props.demo ? '/demo' : '/view/' + metadata.filename)
+            let prefix = this.props.location.pathname
+            return (<div className="rejectionType" key={element.id}><Link to={prefix+'#' +element.typeText}>{element.typeText}</Link></div>)
           })
         }
         {/* //link should work, not in dev b/c request is proxied to server.  localhost:3001/.... should work */}
 
         <div className='divider'></div>
         <br />
-        <div className='rejectionType external'><Link to={'/api/getOa/'+metadata.filename} target='_blank'>Office Action</Link></div>
-
+        <div className='rejectionType external'><Link to={'/api/get/oa/'+metadata.filename} target='_blank'>Office Action</Link></div>
+        <div className='divider'></div>
+        <br />
+        {
+          metadata.priorArtList.map((pa) => {
+            return <div key={pa.id} className='rejectionType external'><Link to={'/api/get/pa/'+pa.filename} target='_blank'>{pa.abbreviation}</Link></div>
+          })
+        }
       </div>
     );
   }
 }
 
-export default OaMetadata;
+export default withRouter(OaMetadata);

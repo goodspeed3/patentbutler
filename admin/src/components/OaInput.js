@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import './process.css'
 import Form from 'react-bootstrap/Form'
 import Col from 'react-bootstrap/Col'
@@ -6,6 +6,7 @@ import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import Spinner from 'react-bootstrap/Spinner'
 import { nanoid } from 'nanoid'
+const reactStringReplace = require('react-string-replace');
 
 
 function OaInput (props) {
@@ -181,7 +182,43 @@ function OaInput (props) {
     //needs a new object to trigger update of array
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
   }
+  const toggleExRemField = (rejectionIndex, claimArgIndex) => {
+    let rejection = rejectionList[rejectionIndex]
+    let claimArg = rejection.claimArgumentList[claimArgIndex]
+    if (!claimArg.showEdit) {
+      claimArg.showEdit = true
+    } else {
+      claimArg.showEdit = false
+    }
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
 
+  }
+  const highlightText = (claimRejection) => {
+    var regMappedCitations = [];
+    for (var i = 0; i < claimRejection.citationList.length; i++) {
+      var citationObj = claimRejection.citationList[i];
+      var escapedRegExp = citationObj.citation.replace(
+        /[-[\]{}()*+?.,\\^$|#\s]/g,
+        '\\$&'
+      );
+      regMappedCitations.push(escapedRegExp);
+    }
+
+    var re = new RegExp('(' + regMappedCitations.join('|') + ')', 'g');
+    var highlightedText = reactStringReplace(
+      claimRejection.examinerText,
+      re,
+      (match, i) => (
+        <span style={{color: "green", textDecoration: "underline"}}
+          key={'l'+ i}
+        >
+          {match}
+        </span>
+      )
+    );
+
+    return highlightedText
+  }
 
   const claimArgumentListElements = (rejectionIndex) => {
     // debugger
@@ -189,19 +226,20 @@ function OaInput (props) {
     // if (rejection.claimArgumentList.length === 0) {
     //   addClaimArgument(rejectionIndex)
     // }
+
     return rejection.claimArgumentList.map((claimRejection, index) => {
-      // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
+
       return (<div key={claimRejection.id}>
         <Form.Row  >
-        <Form.Group md={1} as={Col} >
+        <Form.Group md={2} as={Col} >
           <Form.Label><u>Claim</u></Form.Label>
           <Form.Control required size='sm' name={"claim"+index} as="textarea" rows="5" value={claimRejection.number} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'number')} />
         </Form.Group>
-        <Form.Group as={Col} md={5} >
+        <Form.Group as={Col} md={3} >
           <Form.Label><u>Claim Snippet</u></Form.Label>
           <Form.Control size='sm' as="textarea" rows="5" value={claimRejection.snippetText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'snippetText')} />
         </Form.Group>
-        <Form.Group md={6} as={Col} >
+        <Form.Group md={7} as={Col} >
           <Form.Label><u>Examiner Remarks</u>
           {rejection.claimArgumentList.length !==1 && 
           <Button style={{marginRight: "0.1rem", marginLeft: "0.1rem"}} size='sm' variant="outline-danger" onClick={() => removeClaimArgument(rejectionIndex, index)}>-Snip</Button>
@@ -209,9 +247,14 @@ function OaInput (props) {
           <Button style={{marginRight: "0.1rem"}} size='sm' variant="outline-warning" onClick={() => addClaimArgument(rejectionIndex, index-1)}>^Snip</Button>
           <Button style={{marginRight: "0.3rem"}} size='sm' variant={"outline-success"} onClick={() => addClaimArgument(rejectionIndex, index, true)}>+Snip</Button>
             <Button size='sm' variant="outline-success" onClick={() => addCitation(rejectionIndex, index, -1, '')}>+Cit</Button>
-          
+            <Button size='sm' style={{marginLeft: "0.3rem"}} variant="outline-info" onClick={() => toggleExRemField(rejectionIndex, index)}>Toggle Edit</Button>
           </Form.Label>
-          <Form.Control required size='sm' as="textarea" rows="5"  value={claimRejection.examinerText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'examinerText')} />
+          {
+            (claimRejection.showEdit) ? 
+            <Form.Control required size='sm' as="textarea" rows="5"  value={claimRejection.examinerText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'examinerText')} />
+            :
+            <div className='examRemText'>{highlightText(claimRejection)}</div>
+          }
         </Form.Group>
         {/* <Form.Group md={2} as={Col}>
         </Form.Group> */}
@@ -263,13 +306,13 @@ function OaInput (props) {
       // onChange={(e) => setBlurb(index, e.target.value)} value={rejection.blurb}
       return (<div key={citation.id}>
         <Form.Row  >
-        <Form.Group as={Col} md={1} >
+        <Form.Group as={Col} md={2} >
         </Form.Group>
-        <Form.Group as={Col} md={5} >
+        <Form.Group as={Col} md={3} >
         <Form.Label>Citation { citationInExamRemark(rejectionIndex, claimArgIndex, index)}</Form.Label>
           <Form.Control size='sm' type="text" placeholder="citation should match ex remarks" value={citation.citation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'citation')} />
         </Form.Group>
-        <Form.Group md={4} as={Col} >
+        <Form.Group md={5} as={Col} >
           <Form.Label>Abbreviation</Form.Label>
           <Form.Control size='sm' as="select" value={citation.abbreviation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'abbreviation')}>
               <option key='none' value=''>--</option>
@@ -334,6 +377,25 @@ function OaInput (props) {
   }
   const handleSubmit = (e) => {
     const form = e.currentTarget;
+    if (form.checkValidity() === false) { 
+      e.preventDefault();
+      e.stopPropagation();
+      return
+    }
+
+
+    setValidated(true);
+
+    handleShow()
+    e.preventDefault()
+    e.stopPropagation();
+  }
+
+  const finalizeRejectionList = () => {
+    return "Are you sure you want to proceed?"
+  }
+
+  const saveOaObj = (sendEmail) => {
     //if not all citations have overlays...
     if (priorArtList) {
       var allOverlaysAdded = true
@@ -348,29 +410,12 @@ function OaInput (props) {
       })
       if (!allOverlaysAdded || (priorArtList.length > 0 && priorArtList.some((pa) => pa.citationList.length === 0))) {
         allOverlaysAdded = false
-        alert(citationOverlayNeeded + ' overlay still needed!')
+        alert(citationOverlayNeeded + ' overlay still needed before notifying!')
       }
-  
-      if (form.checkValidity() === false || !allOverlaysAdded) {
-        e.preventDefault();
-        e.stopPropagation();
-        return
-      }
-  
+      if (!allOverlaysAdded && document.activeElement.innerText !== 'Save')
+        return //don't save if you click notify and not all overlays are there
     }
 
-    setValidated(true);
-
-    handleShow()
-    e.preventDefault()
-    e.stopPropagation();
-  }
-
-  const finalizeRejectionList = () => {
-    return "Are you sure you want to proceed?"
-  }
-
-  const saveOaObj = (sendEmail) => {
     let finalizedOaObject = {
       computerProcessingTime: (fileData && fileData.computerProcessingTime) || Date.now(),
       textAnnotations: (fileData && fileData.textAnnotations) || {},
