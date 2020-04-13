@@ -47,7 +47,6 @@ class PriorArtSubview extends Component {
         pageNumber: pageToLoad,
         priorArt: priorArt,
       }
-
       if (!this.state.isScaleLocked) {
         //this is needed for when user drags pane
         const parentDiv = document.querySelector('#PAView')
@@ -99,11 +98,10 @@ class PriorArtSubview extends Component {
     return null;
   }
   getPageToLoad(priorArt, citation, didUserChangeUrl) {
-    //don't remember why i had this if statement
-    // if (!didUserChangeUrl && this.state.pageNumber !== 0) {
-    //   console.log("needed")
-    //   return this.state.pageNumber
-    // }
+    if (!didUserChangeUrl && this.state.pageNumber !== 0) {
+      // if user drags pane while navigating different part of doc
+      return this.state.pageNumber
+    }
     // console.log(priorArt)
     var paList = priorArt.citationList
     for (var i=0; i<paList.length; i++) {
@@ -129,7 +127,7 @@ class PriorArtSubview extends Component {
   onPageLoad = (page) => {
     const parentDiv = document.querySelector('#PAView')
     var pageScale = parentDiv.clientWidth / page.originalWidth
-    if (this.state.rotation === 90 ||  this.state.rotation === 2700 ) {
+    if (this.state.rotation === 90 ||  this.state.rotation === 270 ) {
       pageScale = parentDiv.clientWidth / page.originalHeight
     }
     // console.log("pagescale: " + pageScale + " parentDiv width: " + parentDiv.clientWidth)
@@ -167,6 +165,8 @@ class PriorArtSubview extends Component {
     this.setState(prevState => {
       var changeObj = {}
       changeObj.rotation = (prevState.rotation + 90) % 360
+      changeObj.scale = this.state.fitScale
+      changeObj.isScaleLocked = false
       return changeObj 
     })
   }
@@ -235,7 +235,6 @@ class PriorArtSubview extends Component {
 
   generateOverlay = () => {
     const pdfDiv = document.querySelector('#pdfDiv')
-
     if (!this.state.didFinishRenderingPage || !pdfDiv) {
       return
     }
@@ -277,12 +276,18 @@ class PriorArtSubview extends Component {
     if (!this.state.isScaleLocked) {
       dimensions.width = pdfDiv.clientWidth
       dimensions.height = pdfDiv.clientHeight
+    // } else if (pdfDiv.cssWidth < pdfDiv.clientWidth) { //if zoom is hella small
+    //   console.log(this.state.scale)
+    //   dimensions.width = this.state.originalPageWidth * this.state.scale
+    //   dimensions.height = this.state.originalPageHeight * this.state.scale
+    
     } else {
       dimensions.width = pdfDiv.scrollWidth
       dimensions.height = pdfDiv.scrollHeight
 
     }
-    
+    console.log(`pdfDiv width: ${dimensions.width}, pdfDiv height: ${dimensions.height}`)
+
     return <div className='overlay' style={dimensions}>
       {
         styleArray.map((styleObj, i) =>  (
@@ -380,6 +385,7 @@ class PriorArtSubview extends Component {
               onLoadProgress={this.onLoadProgress}
               onRenderSuccess={this.onRenderSuccessHandler}
               rotate={this.state.rotation}
+              key={`${this.state.pageNumber}_${this.state.rotation}_${this.state.scale}`}
               // customTextRenderer={this.makeTextRenderer("0030")}
             />
           </Document>
