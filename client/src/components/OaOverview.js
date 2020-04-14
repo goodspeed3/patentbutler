@@ -36,9 +36,11 @@ class OaOverview extends Component {
   }
   componentDidMount() {
     if (this.props.demo) {
+      var formData = new FormData();
+      formData.append('filename', this.props.match.params.filename);
       fetch('/api/demo', {
         method: 'POST',
-        body: null
+        body: formData
       }).then( res => {
         return res.json()
       }).then(r => {
@@ -85,7 +87,7 @@ class OaOverview extends Component {
             <OaMetadata demo={this.props.demo} uiData={this.state.uiData} />
           </div>
           <div className='middleAndRightCol'>
-          {/* {true && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo includes 2 mapped claims. <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>} */}
+          {/* {true && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo - <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>} */}
             <SplitPane 
               split="vertical" 
               defaultSize={this.state.panePosition} 
@@ -99,10 +101,10 @@ class OaOverview extends Component {
               </div>
               <div className='rightCol'>
                 <Switch>
-                  <Route exact path={'/demo'}>
+                  <Route exact path={'/demo/:filename'}>
                       <PriorArtOverview demo={true} uiData={this.state.uiData} />
                   </Route>
-                  <Route exact path={'/demo/:abbreviation/:citation'}>
+                  <Route exact path={'/demo/:filename/:abbreviation/:citation'}>
                     <PriorArtSubview demo={true} uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
                   </Route>
                   <Route exact path={'/view/:filename'}>

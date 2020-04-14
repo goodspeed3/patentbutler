@@ -43,7 +43,7 @@ class OaMetadata extends Component {
         <br />
         {
           metadata.priorArtList.map((pa) => {
-            return <div key={pa.id} className='rejectionType external'><Link to={'/api/get/pa/'+pa.filename} target='_blank'>{pa.abbreviation}</Link></div>
+            return <div key={pa.id || pa.filename} className='rejectionType external'><Link to={'/api/get/pa/'+pa.filename} target='_blank'>{pa.abbreviation}</Link></div>
           })
         }
       </div>

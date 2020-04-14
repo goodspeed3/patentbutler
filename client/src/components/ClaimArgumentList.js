@@ -5,12 +5,15 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Alert from 'react-bootstrap/Alert'
+import { Auth0Context } from "../react-auth0-spa";
 
 import './ClaimArgumentList.css'
 
 const reactStringReplace = require('react-string-replace');
 
 class ClaimArgumentList extends Component {
+  static contextType = Auth0Context;
+
   constructor(props) {
     super(props);
     this.state = { uiData: this.props.uiData };
@@ -19,7 +22,7 @@ class ClaimArgumentList extends Component {
   render() {
     var claimArgumentList = this.state.uiData.rejectionList;
     return <div>
-      {this.props.demo && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo includes 2 mapped claims. <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>}
+      {this.props.demo && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo - <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>}
       {this.claimArgumentUi(claimArgumentList)}
 
     </div>;
@@ -113,7 +116,8 @@ class ClaimArgumentList extends Component {
     }
 
     var re = new RegExp('(' + regMappedCitations.join('|') + ')', 'g');
-    let prefix = (this.props.demo ? '/demo' : '/view/' + this.props.match.params.filename)
+    let prefix = (this.props.demo ? '/demo/' + this.props.match.params.filename : '/view/' + this.props.match.params.filename)
+    
     var linkifiedText = reactStringReplace(
       snippetObject.examinerText,
       re,

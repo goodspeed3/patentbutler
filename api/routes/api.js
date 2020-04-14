@@ -363,7 +363,7 @@ router.post('/handleCustomer', checkJwt, upload.none(), async function(req, res,
 
 router.post('/demo', upload.none(), async (req, res) => {
   //get demo oa stuff
-  const [entity] = await datastore.get(datastore.key(['processedOa', 'TIs4K0RoB.pdf']));
+  const [entity] = await datastore.get(datastore.key(['processedOa', req.body.filename]));
   res.json(
     {
       processedOa: entity

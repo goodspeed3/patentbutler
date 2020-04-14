@@ -78,6 +78,8 @@ class PriorArtSubview extends Component {
       var highlightedElement = document.getElementById('focusHighlight');
       if (highlightedElement) {
         highlightedElement.scrollIntoView();
+        // const subviewHeader = document.querySelector('#subviewHeader')
+        // highlightedElement.scrollTop += subviewHeader.clientHeight //doesn't do anything atm
       }
 
   }
@@ -286,7 +288,7 @@ class PriorArtSubview extends Component {
       dimensions.height = pdfDiv.scrollHeight
 
     }
-    console.log(`pdfDiv width: ${dimensions.width}, pdfDiv height: ${dimensions.height}`)
+    // console.log(`pdfDiv width: ${dimensions.width}, pdfDiv height: ${dimensions.height}`)
 
     return <div className='overlay' style={dimensions}>
       {
@@ -327,7 +329,8 @@ class PriorArtSubview extends Component {
     return (
       <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
-        <div className="pageMetadata"><Link to={this.props.demo ? '/demo' : "/view/" + this.props.uiData.filename }>Prior Art Overview</Link>
+        <div className="pageMetadata"><Link to={(this.props.demo ? '/demo/' + this.props.match.params.filename : '/view/' + this.props.match.params.filename)
+}>Prior Art Overview</Link>
      &nbsp;| {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
           <div>
             <button
