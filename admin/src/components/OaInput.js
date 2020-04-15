@@ -483,7 +483,7 @@ function OaInput (props) {
       {priorArtList.map((paFile, index) =>
         <div key={paFile.id || paFile.filename}>
           <Form.Row>
-          <Form.Label style={{marginTop: '1rem'}}><b>{paFile.originalname}</b></Form.Label>
+          <Form.Label style={{marginTop: '1rem'}}><b>{paFile.originalname || 'None'}</b></Form.Label>
           <Form.Group as={Col}>
           <Button size='sm' variant="warning" onClick={() => removeCitedArt(index)}>Remove</Button>
           </Form.Group>

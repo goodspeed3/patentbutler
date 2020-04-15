@@ -180,7 +180,7 @@ const generateOaObjectFromText = async (gcsEvent) => {
     const [processedOaEntity] = await datastore.get(processedOaKey);
 
     //TESTING
-    // const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(processedOaEntity.temp)
+    // const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(JSON.parse(processedOaEntity.temp))
     // for (const rej of processedOaEntity.rejectionList) {
     //     for (const rejType in combinedResponse) {
     //         if (rej.type === rejType) {
@@ -188,9 +188,9 @@ const generateOaObjectFromText = async (gcsEvent) => {
     //         }
     //     }
     // }
-    // console.log(processedOaEntity.rejectionList)
-    // processedOaEntity.priorArtList = await getPAList(combinedResponse, syntaxResponse)
-    // console.log(processedOaEntity.priorArtList)
+    // // console.log(processedOaEntity.rejectionList)
+    // // processedOaEntity.priorArtList = await getPAList(combinedResponse, syntaxResponse)
+    // // console.log(processedOaEntity.priorArtList)
     // return processedOaEntity
     //TESTING
 
@@ -268,10 +268,13 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
         if (annotationPayload.displayName === 'attyDocket' || annotationPayload.displayName === 'applicationNumber' || annotationPayload.displayName === 'filingDate' || annotationPayload.displayName === 'mailingDate') {
             predictedObt[annotationPayload.displayName] = textSegment.content
         } else if (annotationPayload.displayName === 'header') {
-            //skip creating Conclusion as a header
             var rejectionObj = {}
             const [type, typeText] = getTypeAndTypeText(textSegment.content)
             rejectionObj.blurb = getBlurb(annotationPayload, batchResponses, i, j, textAnnotations)
+            let token = "{NEWLINE-PB}"
+            rejectionObj.blurb = rejectionObj.blurb.replace(/\n/g, ' ')
+            rejectionObj.blurb = rejectionObj.blurb.split(token).join('\n\n')
+
             rejectionObj.type = type
             rejectionObj.typeText = typeText
             rejectionObj.id = nanoid()
@@ -305,7 +308,11 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
               if (i == numRequests - 1) { //last request
                 tempBlurb = rejectionObj.blurb.substring(oldSplitPos)
               } else {
-                newSplitPos = oldSplitPos + splitLength + rejectionObj.blurb.substring(oldSplitPos + splitLength).search(/\n/) //find next newline
+                var nextWordOffset = rejectionObj.blurb.substring(oldSplitPos + splitLength).search(/ /) //find next space
+                if (nextWordOffset <0) {
+                    nextWordOffset = 0
+                }
+                newSplitPos = oldSplitPos + splitLength + nextWordOffset
                 tempBlurb = rejectionObj.blurb.substring(oldSplitPos, newSplitPos)    
               }
 
@@ -325,7 +332,7 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
       }
   }
 
-//   predictedObt.temp = batchResponses2 //FOR TESTING PURPOSES ONLY TO SAVE MODEL CALLS, ERASE IN PROD
+//   predictedObt.temp = JSON.stringify(batchResponses2) //FOR TESTING PURPOSES ONLY TO SAVE MODEL CALLS, ERASE IN PROD
   const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(batchResponses2)
   for (const rej of predictedObt.rejectionList) {
     for (const rejType in combinedResponse) {
@@ -334,6 +341,8 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
         }
     }
 }
+//   predictedObt.priorArtList = []
+  // skip for now
   predictedObt.priorArtList = await getPAList(combinedResponse, syntaxResponse)
   return predictedObt
 
@@ -346,6 +355,8 @@ const combineResponseAndGetSyntax = async (batchResponses) => {
         for (const miniResponse of batchResponses[rejType]) {
             const miniListOfEntities = miniResponse.response.payload
             for (const entity of miniListOfEntities) {
+                console.log(`${entity.displayName}: ${entity.textExtraction.textSegment.content}`)
+
                 //change the offsets
                 entity.textExtraction.textSegment.startOffset = String(parseInt(entity.textExtraction.textSegment.startOffset) + lengthOfPreviousBlurbs)
                 entity.textExtraction.textSegment.endOffset = String(parseInt(entity.textExtraction.textSegment.endOffset) + lengthOfPreviousBlurbs)
@@ -402,17 +413,54 @@ const fillClaimArg = (rejType, response, syntaxResponse) => {
                 "id": nanoid()
             }
             snippetObj.number = (forceDummy) ? 'CLAIMS' : entity.textExtraction.textSegment.content.toUpperCase()
-            var [guessedExaminerText, guessedSnippetText] = guessExamSnipText(response[rejType].entities, i, synResponse, forceDummy)
+            var [guessedExaminerText, startingSentenceOffset] = guessExamText(response[rejType].entities, i, synResponse, forceDummy, rejResponse.blurb)
             snippetObj.examinerText = guessedExaminerText
-            snippetObj.snippetText = guessedSnippetText
-            snippetObj.citationList = guessCitationList(response[rejType].entities, i, synResponse, forceDummy)
+
+            //guess snippet text based off of one set of parentheses in the exam remarks, may have to do this below after splitting based off of newline token
+            snippetObj.snippetText = ''
+            snippetObj.citationList = guessCitationList(response[rejType].entities, i, synResponse, forceDummy, startingSentenceOffset)
 
             claimArgumentList.push(snippetObj)
             forceDummy = false
 
         }
     }
-    
+
+    //split out claimargument into more snippets based on newline token
+    for (i = 0; i<claimArgumentList.length; i++) {
+        var snippetObj = claimArgumentList[i]
+        var splitExamText = snippetObj.examinerText.split('\n\n')
+        if (splitExamText.length == 1) { //no newlines in the text, go to next
+            continue
+        } else {
+            //copy needed as reference point
+            let origCitationList = JSON.parse(JSON.stringify(snippetObj.citationList))
+            let origExaminerText = snippetObj.examinerText
+
+            //make copies of this obj and replace examiner text with each element
+            for (var j=0; j<splitExamText.length; j++) {
+                var chunkedExamText = splitExamText[j]
+                console.log(chunkedExamText)
+                if (j == 0) { //don't splice into array b/c already is there
+                    snippetObj.examinerText = chunkedExamText
+                    snippetObj.citationList = splitCitationList(chunkedExamText, origCitationList, origExaminerText)
+                    console.log(snippetObj.citationList)
+                } else {
+                    const snippetObjCopy = {}
+                    snippetObjCopy.number = snippetObj.number
+                    snippetObjCopy.id = nanoid()
+                    snippetObjCopy.snippetText = ''
+                    snippetObjCopy.examinerText = chunkedExamText
+                    snippetObjCopy.citationList = splitCitationList(chunkedExamText, origCitationList, origExaminerText)
+                    console.log(snippetObjCopy.citationList)
+                    //add the copies after the current 
+                    claimArgumentList.splice(i+j, 0, snippetObjCopy)
+                }
+            }
+
+        }
+    }
+
     if (claimArgumentList.length == 0) {
         claimArgumentList.push({
             number: '', 
@@ -424,16 +472,47 @@ const fillClaimArg = (rejType, response, syntaxResponse) => {
     }
     return claimArgumentList
 }
+const splitCitationList = (chunkedExamText, origCitationList, origExamText) => {
+    var chunkedCitationList = []
 
-const guessExamSnipText = (entityList, currentEntityIndex, syntax, forceDummy = false) => {
+    var lengthBeforeChunkedExamText = origExamText.indexOf(chunkedExamText)
+    var startingCitationIndex = -1
+    var endingCitationIndex = -1 
+    if (chunkedExamText.includes("obvious to one of ordinary skill in the art the time of invention to modify the method in Bathiche as modified by Joseph to provide an eye tracking mechanism")) {
+        console.log('------')
+    }
+    for (var i = 0; i<origCitationList.length; i++) {
+        let citationObj = origCitationList[i]
+        if (citationObj.startOffsetFromStartingSentence > lengthBeforeChunkedExamText && startingCitationIndex == -1) {
+            startingCitationIndex = i
+        }
+        if (citationObj.startOffsetFromStartingSentence > lengthBeforeChunkedExamText + chunkedExamText.length) {
+            endingCitationIndex = i
+            break;
+        }
+        if (i == origCitationList.length - 1) {
+            endingCitationIndex = i+1 //make sure to capture the last citation
+            break;
+        }
+    }
+    if (startingCitationIndex == -1) {
+        return [] // no citations
+    }
+    console.log(`startingCitIndex: ${startingCitationIndex} ending: ${endingCitationIndex}`)
+    for (i=startingCitationIndex; i<endingCitationIndex ;i++) {
+        let citationObj = origCitationList[i]
+        chunkedCitationList.push(citationObj)
+    }
+
+    return chunkedCitationList
+}
+const guessExamText = (entityList, currentEntityIndex, syntax, forceDummy = false, blurb) => {
     /*
     if force dummy is false, this entity is a claim and we want to find text from this claim to the next claim
     if forcedummy is true, that means this entity is a citation (not a claim), and we want to start text from the beginning.
     */
     const currentEntity = entityList[currentEntityIndex]
-    // if (currentEntity.textExtraction.textSegment.content.toUpperCase() === "CLAIM 21") {
-    //     console.log(currentEntity)
-    // }
+
     var startSentenceIndex = 0;
     var endSentenceIndex = 0;
     if (!forceDummy) {
@@ -478,20 +557,21 @@ const guessExamSnipText = (entityList, currentEntityIndex, syntax, forceDummy = 
         endSentenceIndex = syntax.sentences.length - 1
     }
 
-    var examText = ''
+    var startingSentenceOffset = 0;
+    var endingSentenceEndOffset = 0;
     for (i=startSentenceIndex; i<= endSentenceIndex; i++) {
         const sentence = syntax.sentences[i]
-        examText += sentence.text.content + ' '
+        if (i == startSentenceIndex) {
+            startingSentenceOffset = sentence.text.beginOffset
+        }
+        endingSentenceEndOffset = sentence.text.beginOffset + sentence.text.content.length
     }
-
-    //guess snippet text based off of one set of parentheses in the exam remarks)
-    var snipText = ''
-
-    return [examText.replace(/\n/g, ' '), snipText]
+    //use the blurb so it saves the newlines
+    return [blurb.substring(startingSentenceOffset, endingSentenceEndOffset), startingSentenceOffset]
 }
 
-const guessCitationList = (entityList, currentEntityIndex, syntax, forceDummy) => {
-    //current entity is a claim or citation, iterate through citations until you hit the next "claim" or the end of the entitylist
+const guessCitationList = (entityList, currentEntityIndex, syntax, forceDummy, startingSentenceOffset) => {
+    //current entity is a claim or citation (forceDummy = true), iterate through citations until you hit the next "claim" or the end of the entitylist
     const currentEntity = entityList[currentEntityIndex]
     var citationList = []
 
@@ -508,7 +588,8 @@ const guessCitationList = (entityList, currentEntityIndex, syntax, forceDummy) =
             citationList.push({
                 id: nanoid(),
                 citation: tempEntity.textExtraction.textSegment.content.replace(/\n/g, ''), //remove all \n from citation
-                abbreviation: guessAbbrev(entityList, i, syntax)
+                abbreviation: guessAbbrev(entityList, i, syntax),
+                startOffsetFromStartingSentence: tempEntity.textExtraction.textSegment.startOffset - startingSentenceOffset //offset used to split up later based on \n
             })
         }
 
@@ -559,7 +640,7 @@ const getPAList = async (response, syntaxResponse) => {
     }
 
     await getPaMetadata(priorArtList)
-    
+    console.log(priorArtList)
     return priorArtList
 }
 const getPaMetadata = async (priorArtList) => {
@@ -585,6 +666,7 @@ const getPaMetadata = async (priorArtList) => {
 
         */
         priorArt.title = $('meta[name="DC.title"]').attr("content") || ''
+        priorArt.title = priorArt.title.trim()
         priorArt.assignee = $('meta[scheme="assignee"]').attr("content") || ''
         let parsedCloudUrl = $('meta[name="citation_pdf_url"]').attr("content") || ''
         if (parsedCloudUrl.includes(".pdf")) {
@@ -681,10 +763,23 @@ const getPathToRoot = (entity, syntax) => {
         return null
     }
     var headTokensToRoot = []
-    for (token of syntax.tokens) {
+    for (var i= 0; i<syntax.tokens.length; i++ ) {
+        var token = syntax.tokens[i]
         if (token.text.beginOffset === parseInt(entity.textExtraction.textSegment.startOffset)) {
-            var didFindRoot = false
             var tempToken = token
+            //use offset after period in case pubnum is US PUB No. 999999 CASE
+            if (entity.displayName === 'publicationNumber') {
+                //find the token containing the number and get dependencies from that
+                for (var j = i; j < syntax.tokens.length; j++) {
+                    var nextToken = syntax.tokens[j]
+                    if (nextToken.text.content.match(/\d/)) {
+                        tempToken = nextToken
+                        break;
+                    }
+                }
+            } 
+
+            var didFindRoot = false
             while (!didFindRoot) {
                 const headToken = syntax.tokens[tempToken.dependencyEdge.headTokenIndex]
                 if (headToken.dependencyEdge.label === 'ROOT' || headTokensToRoot.length > 100) { //prevent infinite loops
@@ -772,9 +867,30 @@ const getBlurb = (annotationPayload, batchResponses, currentIndex, currentHeader
             blurb += strippedText
         }
     }
+    //trim this 
     blurb = blurb.trim()
 
-    return blurb.replace(/\n/g, ' ') //replace \n with spaces
+
+    //add newlines where it makes sense, replace all other newlines with spaces
+    var prevNewlineIndex = 0;
+    let token = "{NEWLINE-PB}"
+    for (j=0; j<blurb.length; j++) {
+        let char = blurb[j]
+        if (char == '\n') {
+            if (j - prevNewlineIndex < 65) { //taken from average length of line in OA
+                blurb = blurb.slice(0, j).trim() + token + blurb.slice(j).trim()
+                j = j + token.length
+            }
+
+            prevNewlineIndex = j
+
+        }
+
+    }    
+
+
+
+    return blurb
 }
 const stripText = (text) => {
     var rows = text.trim().split('\n')
@@ -816,11 +932,12 @@ const saveObjectToDatastore = processedOaObject => {
     return datastore.save({
       key: datastore.key(['processedOa', processedOaObject.filename]),
       data: processedOaObject,
+    //testing
+    // excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'temp'],
+
       excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
     });
 
-    //testing
-    // excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'temp.102[].blurb', 'temp.103[].blurb']
 
 };
   

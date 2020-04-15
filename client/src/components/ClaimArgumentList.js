@@ -22,7 +22,7 @@ class ClaimArgumentList extends Component {
   render() {
     var claimArgumentList = this.state.uiData.rejectionList;
     return <div>
-      {this.props.demo && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo - <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>}
+      {this.props.demo && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}><Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up now - your first Office Action is free.</Alert.Link></Alert>}
       {this.claimArgumentUi(claimArgumentList)}
 
     </div>;

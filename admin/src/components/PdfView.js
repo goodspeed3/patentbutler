@@ -205,7 +205,7 @@ function PdfView (props) {
           return (
             <span>
                 <button type="button" disabled={!showPriorArt} onClick={() => setShowPriorArt(false)}>Office Action</button>
-                <button type="button" disabled={showPriorArt} onClick={() => {setPageNumber(1); setShowPriorArt(true)}}>Prior Art</button>
+                <button type="button" disabled={showPriorArt || priorArtList.length === 0} onClick={() => {setPageNumber(1); setShowPriorArt(true)}}>Prior Art</button>
                 {
                     priorArtList && priorArtList.length > 0 &&
                     <>

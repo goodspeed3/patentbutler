@@ -319,7 +319,20 @@ class PriorArtSubview extends Component {
     ] : [...arr, element]), []);
   };
   */
-  
+ generatePASelect = () => {
+    if (this.props.uiData.priorArtList && this.props.uiData.priorArtList.length > 0) {
+      return <select onChange={(e) => {
+        return this.setState({
+          pageNumber: 1,
+          priorArt: this.props.uiData.priorArtList[parseInt(e.target.value)]
+        })}}>
+      {this.props.uiData.priorArtList.map((paFile, index) => <option key={paFile.id || paFile.filename} value={index}>{paFile.abbreviation}, {paFile.publicationNumber}</option>)}
+        </select>
+    } else {
+      return `${this.state.priorArt.abbreviation},  ${this.state.priorArt.publicationNumber}`
+    }    
+    
+ }
   /*
     UIs needed: previous, enxt 
   */
@@ -331,7 +344,7 @@ class PriorArtSubview extends Component {
         <div className='subviewHeader' id="subviewHeader">
         <div className="pageMetadata"><Link to={(this.props.demo ? '/demo/' + this.props.match.params.filename : '/view/' + this.props.match.params.filename)
 }>Prior Art Overview</Link>
-     &nbsp;| {this.state.priorArt.abbreviation},  {this.state.priorArt.publicationNumber} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
+     &nbsp;| &nbsp; {this.generatePASelect()} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
           <div>
             <button
               type="button"
@@ -397,9 +410,9 @@ class PriorArtSubview extends Component {
         {/* {this.showPriorArt(this.state.selectedParagraphs)} */}
         <Modal show={this.state.showTutorial} onHide={this.handleClose} dialogClassName="custom-dialog">
         <Modal.Header closeButton>
-          <Modal.Title>Quick Tip</Modal.Title>
+          <Modal.Title>Tips</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Adjust the pane to focus on either the Office Action or the cited art.<img className='landingImg' width='1200' alt='nuxA' src={process.env.PUBLIC_URL + '/nuxA.png'} /></Modal.Body>
+        <Modal.Body><img className='landingImg' width='1200' alt='nuxA' src={process.env.PUBLIC_URL + '/nuxA.png'} /></Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={this.handleClose}>
             Close
