@@ -2,7 +2,7 @@
 //RUN this to test: export GOOGLE_APPLICATION_CREDENTIALS="/Users/jonliu/Documents/code/patentbutler/brain/butler-server-c534c8d5f21f.json"
 //NOTE: A version of this is in Cloud Functions that is triggered upon any OA Upload.  Mirror this code there (but be careful)
 
-
+var testUsingTemp = false; //CHANGE THIS TO FALSE WHEN UPLOADING TO CLOUD FXN
 /*
 To train the model:
 Upload OAs to the patentbutler-brain bucket -> office actions folder
@@ -138,60 +138,27 @@ function getTextAnnotations(obj) {
     }
     return JSON.stringify(textAnnotations) //need to do this to exclude from index correctly
 }
-function getRejectionList(obj) {
-    var rejectionList = []
-    for (let page of obj) {
-        if (!page.fullTextAnnotation.text.toLowerCase().includes("claim rejection"))
-            continue
-        for (let block of page.fullTextAnnotation.pages[0].blocks) {
-            if (block.blockType === "TEXT") {
-                for (let paragraph of block.paragraphs) {
-                    var phrase = ''
-                    for (let word of paragraph.words) {
-                        for (let symbol of word.symbols) {
-                            phrase = phrase + symbol.text
-                        }
-                        phrase = phrase + ' '
-                    }
-                    if (phrase.toLowerCase().includes("application no")) {
-                        indexBB.applicationNumber = paragraph.boundingBox.normalizedVertices
-                    } else if (phrase.toLowerCase().includes("filing date")) {
-                        indexBB.filingDate = paragraph.boundingBox.normalizedVertices
-                    } else if (phrase.toLowerCase().includes("attorney docket")) {
-                        indexBB.attyDocket = paragraph.boundingBox.normalizedVertices
-                    } else if (phrase.toLowerCase().includes("notification date") || phrase.toLowerCase().includes("mail date")) {
-                        indexBB.mailingDate = paragraph.boundingBox.normalizedVertices
-                    }
-                    // console.log(phrase)
-                    // console.log(paragraph.boundingBox.normalizedVertices)
-                }
-            } else {
-                console.log('--- diff block type in rejectionlist->  ---')
-                console.log(block)
-            }
-        }
-    }
 
-    return rejectionList
-}
 const generateOaObjectFromText = async (gcsEvent) => {
     const filename = gcsEvent.name.split('ocr/office-actions/')[1].split('+')[0]
     const processedOaKey = datastore.key(['processedOa', filename]);
     const [processedOaEntity] = await datastore.get(processedOaKey);
 
     //TESTING
-    // const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(JSON.parse(processedOaEntity.temp))
-    // for (const rej of processedOaEntity.rejectionList) {
-    //     for (const rejType in combinedResponse) {
-    //         if (rej.type === rejType) {
-    //             rej.claimArgumentList = fillClaimArg(rejType, combinedResponse, syntaxResponse)
-    //         }
-    //     }
-    // }
-    // // console.log(processedOaEntity.rejectionList)
-    // // processedOaEntity.priorArtList = await getPAList(combinedResponse, syntaxResponse)
-    // // console.log(processedOaEntity.priorArtList)
-    // return processedOaEntity
+    if (testUsingTemp) {
+        const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(JSON.parse(processedOaEntity.temp))
+        for (const rej of processedOaEntity.rejectionList) {
+            for (const rejType in combinedResponse) {
+                if (rej.type === rejType) {
+                    rej.claimArgumentList = fillClaimArg(rejType, combinedResponse, syntaxResponse)
+                }
+            }
+        }
+        // console.log(processedOaEntity.rejectionList)
+        processedOaEntity.priorArtList = await getPAList(combinedResponse, syntaxResponse)
+        // console.log(processedOaEntity.priorArtList)
+        return processedOaEntity
+    }
     //TESTING
 
     //download json into memory
@@ -206,13 +173,10 @@ const generateOaObjectFromText = async (gcsEvent) => {
         } else {
             var parsedOaObject = JSON.parse(contents)
             console.log(`Parsed OCR object: ${parsedOaObject.responses.length} pages`);
-            //comment out the bottom 2 lines b/c the model might be more accurate
-            // var metadataObj = getOaMetadata(parsedOaObject.responses[0]) //send in the first page of the OA
-            // for (var key in metadataObj) processedOaEntity[key] = metadataObj[key]
             processedOaEntity.computerProcessingTime = Date.now()
             processedOaEntity.textAnnotations = getTextAnnotations(parsedOaObject)
 
-            getOaObjectFromModel(filename, JSON.parse(processedOaEntity.textAnnotations)).then(predictedObt => {
+            getOaObjectFromModel(parsedOaObject.responses[0], JSON.parse(processedOaEntity.textAnnotations)).then(predictedObt => {
                 for (var key in predictedObt) processedOaEntity[key] = predictedObt[key]
                 
                 resolve(processedOaEntity)    
@@ -222,7 +186,7 @@ const generateOaObjectFromText = async (gcsEvent) => {
     })
 }
 
-const getOaObjectFromModel = async (filename, textAnnotations) => {
+const getOaObjectFromModel = async (firstPage, textAnnotations) => {
   const projectId = `crafty-valve-269403`;
   const computeRegion = `us-central1`;
   const modelId = `TEN8646238383435153408`;
@@ -259,19 +223,21 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
   }
   var predictedObt = {}
   var rejectionList = []
+  let topLevelMetadata = ['attyDocket', 'applicationNumber', 'filingDate', 'mailingDate']
   for (var i=0; i<batchResponses.length; i++) {
       const response = batchResponses[i]
     for (var j=0; j<response.payload.length; j++) {
         const annotationPayload = response.payload[j]
         const textSegment = annotationPayload.textExtraction.textSegment;
 
-        if (annotationPayload.displayName === 'attyDocket' || annotationPayload.displayName === 'applicationNumber' || annotationPayload.displayName === 'filingDate' || annotationPayload.displayName === 'mailingDate') {
+        if (topLevelMetadata.includes(annotationPayload.displayName)) {
             predictedObt[annotationPayload.displayName] = textSegment.content
         } else if (annotationPayload.displayName === 'header') {
             var rejectionObj = {}
             const [type, typeText] = getTypeAndTypeText(textSegment.content)
             rejectionObj.blurb = getBlurb(annotationPayload, batchResponses, i, j, textAnnotations)
-            let token = "{NEWLINE-PB}"
+
+            let token = " {NEWLINE-PB} "
             rejectionObj.blurb = rejectionObj.blurb.replace(/\n/g, ' ')
             rejectionObj.blurb = rejectionObj.blurb.split(token).join('\n\n')
 
@@ -285,6 +251,18 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
         // console.log(`Text Score: ${annotationPayload.textExtraction.score}`);
     }
   }
+  if (topLevelMetadata.some((e) => !predictedObt[e])) {
+    //AI didn't guess it; do it the old fashioned way
+    const oaMetadata = getOaMetadata(firstPage) //send in the first page    
+    for (const metadata of topLevelMetadata) {
+        if (!predictedObt[metadata]) {
+            console.log(`ai failed for ${metadata}- old fashioned way found ${oaMetadata[metadata]}...`)
+            predictedObt[metadata] = oaMetadata[metadata]
+        }
+
+    }
+  }
+
   predictedObt.rejectionList = rejectionList
 
   //use second classifier to fill claimArgumentList and priorArtList
@@ -332,7 +310,7 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
       }
   }
 
-//   predictedObt.temp = JSON.stringify(batchResponses2) //FOR TESTING PURPOSES ONLY TO SAVE MODEL CALLS, ERASE IN PROD
+  predictedObt.temp = JSON.stringify(batchResponses2) //FOR TESTING PURPOSES ONLY TO SAVE MODEL CALLS, ERASE IN PROD
   const [combinedResponse, syntaxResponse] = await combineResponseAndGetSyntax(batchResponses2)
   for (const rej of predictedObt.rejectionList) {
     for (const rejType in combinedResponse) {
@@ -344,6 +322,7 @@ const getOaObjectFromModel = async (filename, textAnnotations) => {
 //   predictedObt.priorArtList = []
   // skip for now
   predictedObt.priorArtList = await getPAList(combinedResponse, syntaxResponse)
+
   return predictedObt
 
 }
@@ -498,7 +477,7 @@ const splitCitationList = (chunkedExamText, origCitationList, origExamText) => {
     if (startingCitationIndex == -1) {
         return [] // no citations
     }
-    console.log(`startingCitIndex: ${startingCitationIndex} ending: ${endingCitationIndex}`)
+    // console.log(`startingCitIndex: ${startingCitationIndex} ending: ${endingCitationIndex}`)
     for (i=startingCitationIndex; i<endingCitationIndex ;i++) {
         let citationObj = origCitationList[i]
         chunkedCitationList.push(citationObj)
@@ -640,7 +619,6 @@ const getPAList = async (response, syntaxResponse) => {
     }
 
     await getPaMetadata(priorArtList)
-    console.log(priorArtList)
     return priorArtList
 }
 const getPaMetadata = async (priorArtList) => {
@@ -873,7 +851,7 @@ const getBlurb = (annotationPayload, batchResponses, currentIndex, currentHeader
 
     //add newlines where it makes sense, replace all other newlines with spaces
     var prevNewlineIndex = 0;
-    let token = "{NEWLINE-PB}"
+    let token = " {NEWLINE-PB} "
     for (j=0; j<blurb.length; j++) {
         let char = blurb[j]
         if (char == '\n') {
@@ -933,9 +911,9 @@ const saveObjectToDatastore = processedOaObject => {
       key: datastore.key(['processedOa', processedOaObject.filename]),
       data: processedOaObject,
     //testing
-    // excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'temp'],
+    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'temp'],
 
-      excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
+    //   excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
     });
 
 
@@ -960,7 +938,8 @@ const main = async () => {
         from: 'ai@patentbutler.com',
         to: 'Jon Liu, jon@patentbutler.com',
         subject: oaObject.filename + ' has been AI\'ed',
-        text: 'success!'
+        html: 'success!',
+        "o:tag" : ['ai']
       };
       mg.messages().send(mailData);  
     

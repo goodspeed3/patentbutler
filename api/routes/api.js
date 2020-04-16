@@ -142,7 +142,8 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
       from: req.body.userEmail,
       to: 'Jon Liu, jon@patentbutler.com',
       subject: 'Uploaded new OA for processing',
-      html: txt
+      html: txt,
+      "o:tag" : ['new OA']
     };
 
     return Promise.all([
@@ -256,7 +257,8 @@ router.post('/email', upload.none(), (req, res) => {
     from: req.body.email,
     to: 'Jon Liu, jon@patentbutler.com',
     subject: 'Feedback',
-    html: 'Sent from: ' + req.body.path + '<br /><br />' + req.body.comment
+    html: 'Sent from: ' + req.body.path + '<br /><br />' + req.body.comment,
+    "o:tag" : ['feedback']
   };
   mg.messages().send(data, function (error, body) {
     res.json({success: 'done'})
@@ -274,7 +276,8 @@ const addUser = async (email) => {
     from: email,
     to: 'Jon Liu, jon@patentbutler.com',
     subject: email + ' has just signed up',
-    text: 'success!'
+    html: 'success!',
+    "o:tag" : ['new signup']
   };
   mg.messages().send(mailData, function (error, body) {
     if (error) {

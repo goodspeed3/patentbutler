@@ -35,8 +35,8 @@ class OaOverview extends Component {
 
   }
   componentDidMount() {
+    var formData = new FormData();
     if (this.props.demo) {
-      var formData = new FormData();
       formData.append('filename', this.props.match.params.filename);
       fetch('/api/demo', {
         method: 'POST',
@@ -51,7 +51,6 @@ class OaOverview extends Component {
 
     } else {
       const filename = this.props.match.params.filename;
-      var formData = new FormData();
       formData.append('filename', filename);
   
       AuthApi('/api/getProcessedOa', this.context.getTokenSilently, formData)

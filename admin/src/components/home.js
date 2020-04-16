@@ -6,11 +6,17 @@ import Table from 'react-bootstrap/Table'
 import { Link } from 'react-router-dom';
 import moment from 'moment-timezone'
 import Spinner from 'react-bootstrap/Spinner'
+import Button from 'react-bootstrap/Button'
+import Modal from 'react-bootstrap/Modal'
 
 function HomeView () {
     const { getTokenSilently, user } = useAuth0();
     const [homeData, setHomeData] = useState(null)
+    const [fileToDelete, setFileToDelete] = useState({});
+    const [showLoading, setShowLoading] = useState(false);
 
+    const handleClose = () => setFileToDelete({});
+  
     useEffect(() => {
         if (!user || !getTokenSilently) {
             return
@@ -38,11 +44,32 @@ function HomeView () {
                 // state: processedOaEntity
             }
 
-        return <div key={processedOaEntity.filename}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attyDocket}</Link> for {processedOaEntity.user} </div>
+        return <div key={processedOaEntity.filename}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attyDocket}</Link> for {processedOaEntity.user} <Button size='sm' variant="link" onClick={() => showModal('processed',processedOaEntity.filename )}>Delete {processedOaEntity.forDemo && '(Demo)'}</Button></div>
         })}
     </div>
 
     }
+    function showModal(type, filename) {
+        setFileToDelete({type: type, filename: filename})
+    }
+    function deleteFromGoogle (type, filename) {
+        var formData = new FormData();
+        formData.append('filename', filename);
+        formData.append('type', type);
+        setShowLoading(true)
+        AuthApi('/adminApi/delete', getTokenSilently, formData)
+        .then(res => {
+            AuthApi('/adminApi/home', getTokenSilently, formData)
+            .then(res => {
+                handleClose()
+                setShowLoading(false)
+                setHomeData(res)              
+            })  
+              
+        })  
+
+    }
+
     function showProcessingOa() {
     if (homeData.processingOa && homeData.processingOa[0].length === 0 ) {
         return <div><pre>None yet</pre></div>
@@ -56,6 +83,7 @@ function HomeView () {
             <th>Date</th>
             <th>User</th>
             <th>Original Name</th>
+            <th>Action</th>
         </tr>
         </thead>
         <tbody>
@@ -72,6 +100,7 @@ function HomeView () {
                 <td>{timeHelper(processingEntity.uploadTime)}</td>
                 <td>{processingEntity.user}</td>
                 <td><Link to={linkWithState}>{processingEntity.originalname}</Link></td>
+                <td><Button size='sm' onClick={() => showModal('uploadedOa',processingEntity.filename )}>Delete</Button></td>
                 </tr>
             )
         })}        
@@ -116,6 +145,22 @@ function HomeView () {
     return (
     <div className='homeLayout'>
         {elementsToShow}
+        <Modal show={Object.keys(fileToDelete).length > 1} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Are you sure?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Really delete {fileToDelete.type} - {fileToDelete.filename}?   { showLoading ? <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> : null}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => deleteFromGoogle(fileToDelete.type, fileToDelete.filename)}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
     )
 }

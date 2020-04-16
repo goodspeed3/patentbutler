@@ -136,7 +136,8 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
       from: 'Team team@patentbutler.com',
       to: oaObject.user,
       subject: 'Your Office Action \'' + oaObject.originalname + '\'' + maildateString + ' has finished processing',
-      html: txt
+      html: txt,
+      "o:tag" : ['finished processing']
     };
     mg.messages().send(data);    
   }
@@ -193,6 +194,85 @@ const uploadBuffer = (originalname, buffer, filename, directory) => {
   })
 }
 
+router.post('/delete', checkJwt, upload.none(), async function(req, res, next) {
+  console.log('----deleting----')
+  const artDirectory = 'uploaded-cited-art/'
+  const oaDirectory = 'uploaded-office-actions/'
+  const ocrDirectory = 'ocr/office-actions/'
+
+  try {
+    //get all filenames in processedOa Obj
+    const processedOaKey = datastore.key(['processedOa', req.body.filename]);
+    const [processedOaEntity] = await datastore.get(processedOaKey);
+
+    if (processedOaEntity) {
+      //delete all PA 
+      for (var i=0; i<processedOaEntity.priorArtList.length; i++) {
+        const priorArtObj = processedOaEntity.priorArtList[i]
+        const file = storage.bucket(bucketName).file(artDirectory + priorArtObj.filename);
+        console.log('deleting art: ' + priorArtObj.filename)
+        await file.delete().catch((e) => console.log(e));
+      }
+
+
+      //delete datastore obj
+      console.log('deleting processedOa Obj')
+      await datastore.delete(processedOaKey).catch((e) => console.log(e));
+
+
+    }
+
+    //delete OCR
+    const options = {
+      prefix: ocrDirectory,
+    };
+  
+    // Lists files in the bucket, filtered by a prefix
+    const [files] = await storage.bucket(bucketName).getFiles(options);
+    for (ocrFile of files) {
+      if (ocrFile.name.includes(req.body.filename)) {
+        console.log('deleting ocr: ' + ocrFile.name)
+        await ocrFile.delete().catch((e) => console.log(e));    
+      }
+    }
+    
+    //get all filenames in oaUpload Obj
+    const oaUploadKey = datastore.key(['oaUpload', req.body.filename]);
+    const [oaUploadEntity] = await datastore.get(oaUploadKey);
+
+    if (oaUploadEntity) {
+      //delete OA
+      const file = storage.bucket(bucketName).file(oaDirectory + oaUploadEntity.filename);
+      console.log('deleting oa: ' + oaUploadEntity.filename)
+      await file.delete().catch((e) => console.log(e));
+
+      //delete datastore obj
+      console.log('deleting oaUpload Obj')
+      await datastore.delete(oaUploadKey).catch((e) => console.log(e));
+
+    }
+  } catch (error) {
+    console.log(error)
+  }
+
+  res.json({success: "true"})
+  return
+  var fileObj = req.file
+  const filename = nanoid() + '.pdf'
+  const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + directory + filename;
+  var response = {
+    // pdfUrl: fileObj.path,
+    filename: filename,
+    originalname: fileObj.originalname,
+    cloudUrl: cloudUrl,
+  }
+  await uploadBuffer(fileObj.originalname, fileObj.buffer, filename, directory)
+
+  res.json({ 
+    // files: req.files,
+    paObjects: response
+  })    
+});
 
 // function uploadFileToGoogle(path, filename) {
 //   console.log(`${filename} uploading to ${bucketName}.`);

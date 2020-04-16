@@ -82,7 +82,7 @@ function FeedbackModal(props) {
             </Form.Row>
             <Form.Row style={{marginTop: '1rem'}}>
                 <Form.Label>Comment</Form.Label>
-                <Form.Control required value={comment} as="textarea" name='comment' rows="5" placeholder="Enter question or comment."  onChange={handleChange} />
+                <Form.Control required value={comment} as="textarea" name='comment' rows="5" placeholder="Enter question or comment. We respond within 24 hours."  onChange={handleChange} />
             </Form.Row>
         </Modal.Body>
         <Modal.Footer>

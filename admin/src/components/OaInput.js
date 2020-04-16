@@ -16,6 +16,7 @@ function OaInput (props) {
   const [attyDocket, setAttyDocket] = useState('')
   const [mailingDate, setMailingDate] = useState('')
   const [filingDate, setFilingDate] = useState('')
+  const [forDemo, setForDemo] = useState(false)
   const [show, setShow] = useState(false);
   const [validated, setValidated] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
@@ -47,6 +48,7 @@ function OaInput (props) {
       setFilingDate(fileData.filingDate)
       setRejectionList(fileData.rejectionList)
       setPriorArtList(fileData.priorArtList)
+      setForDemo(fileData.forDemo)
     }
   }, [fileData, setPriorArtList, setRejectionList])
 
@@ -404,7 +406,7 @@ function OaInput (props) {
         pa.citationList.forEach((citation) => {
           if (citation.boundingBoxes.length === 0) {
             allOverlaysAdded = false
-            citationOverlayNeeded = citation.citation
+            citationOverlayNeeded = `${citation.publicationNumber}: ${citation.citation}`
           }
         })
       })
@@ -428,7 +430,8 @@ function OaInput (props) {
       applicationNumber: applicationNumber,
       attyDocket: attyDocket,
       rejectionList: rejectionList,
-      priorArtList: priorArtList
+      priorArtList: priorArtList,
+      forDemo: forDemo
     }
     saveOaToCloud(finalizedOaObject, sendEmail)
     
@@ -529,22 +532,22 @@ function OaInput (props) {
   <Form.Row>
   <Form.Group as={Col} >
       <Form.Label>Application No</Form.Label>
-      <Form.Control required size='sm' name="applicationNumber" type="text" placeholder="xx/yyy,yyy" value={applicationNumber} onChange={handleChange} />
+      <Form.Control required size='sm' name="applicationNumber" type="text" placeholder="xx/yyy,yyy" value={applicationNumber || ''} onChange={handleChange} />
     </Form.Group>
     <Form.Group as={Col} >
       <Form.Label>Attorney Docket</Form.Label>
-      <Form.Control size='sm' name="attyDocket" value={attyDocket} type="text" placeholder="Enter docket"  onChange={handleChange} />
+      <Form.Control size='sm' name="attyDocket" value={attyDocket || ''} type="text" placeholder="Enter docket"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
 
   <Form.Row>
   <Form.Group as={Col} >
       <Form.Label>Mail Date</Form.Label>
-      <Form.Control required size='sm' name="mailingDate" type="text" value={mailingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
+      <Form.Control required size='sm' name="mailingDate" type="text" value={mailingDate || ''} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
     <Form.Group as={Col} >
       <Form.Label>Filing Date</Form.Label>
-      <Form.Control required size='sm' name="filingDate" type="text" value={filingDate} placeholder="MM/DD/YYYY"  onChange={handleChange} />
+      <Form.Control required size='sm' name="filingDate" type="text" value={filingDate || ''} placeholder="MM/DD/YYYY"  onChange={handleChange} />
     </Form.Group>
   </Form.Row>
   {rejectionList && rejectionListElements()}
@@ -556,7 +559,9 @@ function OaInput (props) {
   { showLoading ? <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> : null}
   <Button variant="info" onClick={addCitedArt}>
     Add Cited Art
-  </Button>
+  </Button><hr />
+  <Form.Group> 
+  <Form.Check type="checkbox" checked={forDemo || false} onChange={() => setForDemo(!forDemo)}label="For Demo" /></Form.Group>
   <Button className='submitButton' variant="primary" type="submit">
     Save
   </Button>

@@ -24,11 +24,14 @@ import ReactGA from 'react-ga';
 let key = (process.env.NODE_ENV === 'production') ? "pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl" : "pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR"
 const stripePromise = loadStripe(key);
 const history = createBrowserHistory()
-ReactGA.initialize('UA-161542654-1');
-history.listen((location, action) => {
-    ReactGA.pageview(location.pathname + location.search);
-    // console.log(location.pathname)
-});
+if (process.env.NODE_ENV === 'production') {
+  //only track if in production
+  ReactGA.initialize('UA-161542654-1');
+  history.listen((location, action) => {
+      ReactGA.pageview(location.pathname + location.search);
+      // console.log(location.pathname)
+  });  
+}
 
 
 class App extends Component {

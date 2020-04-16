@@ -44,7 +44,7 @@ function ProcessView (props) {
       }, [user, getTokenSilently, filename]);
 
     const handlePane = (val) => {
-        // localStorage.setItem('splitPos', size)
+        // localStorage.setItem('splitPos', val)
     
         setPanePosition(val)
       }
@@ -72,7 +72,7 @@ function ProcessView (props) {
         <div className='leftAndRightCol'>
             <SplitPane 
               split="vertical" 
-              defaultSize={'60%'} 
+              defaultSize={"50%"} 
               // onDragFinished = {size => this.handlePane(size)}
               onChange={size => handlePane(size)} 
               maxSize={-200} 

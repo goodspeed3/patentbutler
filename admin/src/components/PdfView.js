@@ -68,6 +68,7 @@ function PdfView (props) {
             }
           }
         }
+
         if (newCitationList.length === 0) return c
         var newCitationObj = {}
         //clear citationObj 
@@ -97,6 +98,7 @@ function PdfView (props) {
             return (second.citation < first.citation) ? 1 : -1
           })
         }
+
         return newCitationObj
 
       })
@@ -106,15 +108,19 @@ function PdfView (props) {
       setPriorArtList(pal => {
         let abbrevs = Object.keys(citationObj) 
         if (abbrevs.length === 0) return pal
-        for (var i=0; i<abbrevs.length; i++) {
-          let abbrev = abbrevs[i]
-          let citationList = citationObj[abbrev]
-          pal.forEach((pa) => {
+        for (const pa of pal) {
+          if (!abbrevs.includes(pa.abbreviation)) {
+            pa.citationList = [] //if the citation obj doesn't have any citaitons to this PA, then citationList should be an empty
+            continue
+          }
+          for (var i=0; i<abbrevs.length; i++) {
+            let abbrev = abbrevs[i]
+            let citationList = citationObj[abbrev]
             if (pa.abbreviation === abbrev) {
               pa.citationList = citationList
             }
-          })
-        }  
+          }  
+        }
         return pal
       })
     }, [citationObj, setPriorArtList])
@@ -211,7 +217,7 @@ function PdfView (props) {
                     <>
                         &nbsp; 
                         <select onChange={(e) => {setShowPriorArt(true); setPageNumber(1); setPaToLoad(parseInt(e.target.value))}}>
-                            {priorArtList.map((paFile, index) => <option key={paFile.id || paFile.filename} value={index}>{paFile.originalname}</option>)}
+                {priorArtList.map((paFile, index) => <option key={paFile.id || paFile.filename} value={index}>{paFile.abbreviation} - {paFile.publicationNumber}</option>)}
                         </select>
                     </>
                 }
