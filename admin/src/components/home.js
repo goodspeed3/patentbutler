@@ -44,7 +44,7 @@ function HomeView () {
                 // state: processedOaEntity
             }
 
-        return <div key={processedOaEntity.filename}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attyDocket}</Link> for {processedOaEntity.user} <Button size='sm' variant="link" onClick={() => showModal('processed',processedOaEntity.filename )}>Delete {processedOaEntity.forDemo && '(Demo)'}</Button></div>
+        return <div key={processedOaEntity.filename}><b>{timeHelper(processedOaEntity.finishedProcessingTime, true)}</b> - <Link to={linkWithState}>{processedOaEntity.attyDocket}</Link> for {processedOaEntity.user.includes("patentbutler") ? processedOaEntity.user : <b>{processedOaEntity.user}</b> } <Button size='sm' variant="link" onClick={() => showModal('processed',processedOaEntity.filename )}>Delete {processedOaEntity.forDemo && '(Demo)'}</Button></div>
         })}
     </div>
 
@@ -98,7 +98,7 @@ function HomeView () {
                 <tr key={processingEntity.uploadTime} >
                 <td>{timeHelper(processingEntity.uploadTime, true)}</td>
                 <td>{timeHelper(processingEntity.uploadTime)}</td>
-                <td>{processingEntity.user}</td>
+                <td>{processingEntity.user.includes("patentbutler") ? processingEntity.user : <b>{processingEntity.user}</b> }</td>
                 <td><Link to={linkWithState}>{processingEntity.originalname}</Link></td>
                 <td><Button size='sm' onClick={() => showModal('uploadedOa',processingEntity.filename )}>Delete</Button></td>
                 </tr>

@@ -8,11 +8,11 @@ var stripe_creds = {};
 if (process.env.NODE_ENV === 'production') {
   stripe_creds.API = 'pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl'
   stripe_creds.SECRET = 'sk_live_6LZ8nKG8v1bX8HFDH19tsgwc009mYJTJ2p'
-  stripe_creds.SUBPLAN = 'plan_GwW9xGjYtQKbWF'
+  stripe_creds.SUBPLAN = 'plan_H6uQ5vOCcAs0wn'
 } else {
-  stripe_creds.API = 'pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR'
-  stripe_creds.SECRET = 'sk_test_v7Cq5PY6cfaLE52uEAYsnCWj00BYaAS8A3'
-  stripe_creds.SUBPLAN = 'plan_GwW9xGjYtQKbWF'
+  stripe_creds.API = 'pk_test_MpfoAn9oikhl3tdNNjWebiuL00wv0FMfKP'
+  stripe_creds.SECRET = 'sk_test_BFhRgj2bHzK53Gw86OIEHyOb00ImoOsA2Q'
+  stripe_creds.SUBPLAN = 'plan_H6uQ5vOCcAs0wn'
 }
 
 const stripe = require('stripe')(stripe_creds.SECRET);

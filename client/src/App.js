@@ -21,7 +21,7 @@ import ReactGA from 'react-ga';
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
-let key = (process.env.NODE_ENV === 'production') ? "pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl" : "pk_test_JFoA0pNLSJAJgraWcVBtQOrg00JUT015lR"
+let key = (process.env.NODE_ENV === 'production') ? "pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl" : "pk_test_MpfoAn9oikhl3tdNNjWebiuL00wv0FMfKP"
 const stripePromise = loadStripe(key);
 const history = createBrowserHistory()
 if (process.env.NODE_ENV === 'production') {

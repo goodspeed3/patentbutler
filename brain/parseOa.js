@@ -131,16 +131,30 @@ function findRelevantParagraph(metadataFieldVertexArray, blocks) {
 
     return shortestParagraph
 }
-function getTextAnnotations(obj) {
+function getTextAnnotations(objResponses) {
     var textAnnotations = {}
-    for (let page of obj.responses) {
+    for (let page of objResponses) {
         textAnnotations[page.context.pageNumber] = page.fullTextAnnotation.text
     }
     return JSON.stringify(textAnnotations) //need to do this to exclude from index correctly
 }
 
-const generateOaObjectFromText = async (gcsEvent) => {
-    const filename = gcsEvent.name.split('ocr/office-actions/')[1].split('+')[0]
+const downloadJSONFile = (filename) => {
+    return new Promise(function (resolve, reject) {
+        storage
+        .bucket(bucketName)
+        .file(filename)
+        .download(function (err, contents) {
+        if (err) {
+            reject(err)
+        } else {
+            resolve(contents)
+        }
+    })        
+    })
+}
+const generateOaObjectFromText = async (files) => {
+    const filename = files[0].name.split('ocr/office-actions/')[1].split('+')[0]
     const processedOaKey = datastore.key(['processedOa', filename]);
     const [processedOaEntity] = await datastore.get(processedOaKey);
 
@@ -162,28 +176,30 @@ const generateOaObjectFromText = async (gcsEvent) => {
     //TESTING
 
     //download json into memory
-    console.log("creating oaObject from ocr'ed pdf...")
-    return new Promise(function (resolve, reject) {
-        storage
-        .bucket(gcsEvent.bucket)
-        .file(gcsEvent.name)
-        .download(function (err, contents) {
-        if (err) {
-            reject(err)
-        } else {
-            var parsedOaObject = JSON.parse(contents)
-            console.log(`Parsed OCR object: ${parsedOaObject.responses.length} pages`);
-            processedOaEntity.computerProcessingTime = Date.now()
-            processedOaEntity.textAnnotations = getTextAnnotations(parsedOaObject)
+    const downloadedJSONFiles = []
+    for (file of files) {
+        console.log(`downloading ${file.name} from storage...`)
+        let contents = await downloadJSONFile(file.name)
+        downloadedJSONFiles.push(contents)
+    }
 
-            getOaObjectFromModel(parsedOaObject.responses[0], JSON.parse(processedOaEntity.textAnnotations)).then(predictedObt => {
-                for (var key in predictedObt) processedOaEntity[key] = predictedObt[key]
-                
-                resolve(processedOaEntity)    
-            })
-        }
-    })        
+    //parse all the contents into one file
+    var parsedOaObjectResponses = []
+    for (const jsonContent of downloadedJSONFiles) {
+        let tempParsedOaObject = JSON.parse(jsonContent)
+        console.log(`Parsed OCR object: ${tempParsedOaObject.responses.length} pages`);
+        parsedOaObjectResponses = parsedOaObjectResponses.concat(tempParsedOaObject.responses)
+    }
+
+    processedOaEntity.computerProcessingTime = Date.now()
+    processedOaEntity.textAnnotations = getTextAnnotations(parsedOaObjectResponses)
+
+    return getOaObjectFromModel(parsedOaObjectResponses[0], JSON.parse(processedOaEntity.textAnnotations)).then(predictedObt => {
+        for (var key in predictedObt) processedOaEntity[key] = predictedObt[key]
+        
+        return processedOaEntity   
     })
+
 }
 
 const getOaObjectFromModel = async (firstPage, textAnnotations) => {
@@ -238,6 +254,7 @@ const getOaObjectFromModel = async (firstPage, textAnnotations) => {
             rejectionObj.blurb = getBlurb(annotationPayload, batchResponses, i, j, textAnnotations)
 
             let token = " {NEWLINE-PB} "
+            rejectionObj.blurb = rejectionObj.blurb.replace(/-\n/g, '-') //don't put space if there is a dash leading to next line
             rejectionObj.blurb = rejectionObj.blurb.replace(/\n/g, ' ')
             rejectionObj.blurb = rejectionObj.blurb.split(token).join('\n\n')
 
@@ -255,7 +272,7 @@ const getOaObjectFromModel = async (firstPage, textAnnotations) => {
     //AI didn't guess it; do it the old fashioned way
     const oaMetadata = getOaMetadata(firstPage) //send in the first page    
     for (const metadata of topLevelMetadata) {
-        if (!predictedObt[metadata]) {
+        if (!predictedObt[metadata] || ((metadata == 'filingDate' || metadata == 'mailingDate') && predictedObt[metadata].length < 10)) {
             console.log(`ai failed for ${metadata}- old fashioned way found ${oaMetadata[metadata]}...`)
             predictedObt[metadata] = oaMetadata[metadata]
         }
@@ -419,11 +436,11 @@ const fillClaimArg = (rejType, response, syntaxResponse) => {
             //make copies of this obj and replace examiner text with each element
             for (var j=0; j<splitExamText.length; j++) {
                 var chunkedExamText = splitExamText[j]
-                console.log(chunkedExamText)
+                // console.log(chunkedExamText)
                 if (j == 0) { //don't splice into array b/c already is there
                     snippetObj.examinerText = chunkedExamText
                     snippetObj.citationList = splitCitationList(chunkedExamText, origCitationList, origExaminerText)
-                    console.log(snippetObj.citationList)
+                    // console.log(snippetObj.citationList)
                 } else {
                     const snippetObjCopy = {}
                     snippetObjCopy.number = snippetObj.number
@@ -431,7 +448,7 @@ const fillClaimArg = (rejType, response, syntaxResponse) => {
                     snippetObjCopy.snippetText = ''
                     snippetObjCopy.examinerText = chunkedExamText
                     snippetObjCopy.citationList = splitCitationList(chunkedExamText, origCitationList, origExaminerText)
-                    console.log(snippetObjCopy.citationList)
+                    // console.log(snippetObjCopy.citationList)
                     //add the copies after the current 
                     claimArgumentList.splice(i+j, 0, snippetObjCopy)
                 }
@@ -457,9 +474,8 @@ const splitCitationList = (chunkedExamText, origCitationList, origExamText) => {
     var lengthBeforeChunkedExamText = origExamText.indexOf(chunkedExamText)
     var startingCitationIndex = -1
     var endingCitationIndex = -1 
-    if (chunkedExamText.includes("obvious to one of ordinary skill in the art the time of invention to modify the method in Bathiche as modified by Joseph to provide an eye tracking mechanism")) {
-        console.log('------')
-    }
+
+    
     for (var i = 0; i<origCitationList.length; i++) {
         let citationObj = origCitationList[i]
         if (citationObj.startOffsetFromStartingSentence > lengthBeforeChunkedExamText && startingCitationIndex == -1) {
@@ -787,6 +803,14 @@ const shortestOverlappingPath = (currentEntityPathToRoot, formerEntityPathToRoot
             var headTokenIndex = currentEntityPathToRoot.pathArray[i]
             var formerEntityTokenIndex = formerEntityPathToRoot.pathArray.indexOf(headTokenIndex)
             var latterEntityTokenIndex = latterEntityPathToRoot.pathArray.indexOf(headTokenIndex)
+            if (formerEntityTokenIndex >= 0 && latterEntityTokenIndex >= 0) {
+                //the earlier you are, the more likely you're associated
+                if (formerEntityTokenIndex <= latterEntityTokenIndex)
+                    return formerEntityPathToRoot.content
+                else 
+                    return latterEntityPathToRoot.content
+            }
+
             if (formerEntityTokenIndex >= 0) {
                 return formerEntityPathToRoot.content
             }
@@ -918,19 +942,29 @@ const saveObjectToDatastore = processedOaObject => {
 
 
 };
+
+const getListOfOCR = async (prefix) => {
+    const options = {
+        prefix: prefix,
+      };
+    
+      const [files] = await storage.bucket(bucketName).getFiles(options);
+      return files    
+}
   
 
 // STOP COPYING HERE; ------------------------------------------- //
 
 const main = async () => {
-    // OCRFile('WUDPrMHxN') //if you OCR, it creates a file in ocr/office-actions/<filename>+output....json
-    if (process.argv.length != 4) {
-        console.log('-- node parseOa.js FILENAME NUMPAGES --')
+    if (process.argv.length != 3) {
+        console.log('-- node parseOa.js FILENAME --')
         return
     }
-    const tempName = `ocr/office-actions/${process.argv[2]}+output-1-to-${process.argv[3]}.json`
-    console.log('parsing ' + tempName)
-    var oaObject = await generateOaObjectFromText({name: tempName, bucket: bucketName})
+    let files = await getListOfOCR('ocr/office-actions/' + process.argv[2])
+    /*
+        gcsEvent is an object of type {name: `ocr/office-actions/${process.argv[2]}+output-1-to-${process.argv[3]}.json`, bucket: bucketName}
+    */
+    var oaObject = await generateOaObjectFromText(files)
     // return //TESTING
     // console.log(oaObject)
     await saveObjectToDatastore(oaObject)
@@ -988,6 +1022,7 @@ async function OCRFile(filename) {
 }
 
 main()
+// OCRFile('vypiOtY15QcgWBFusQx8c.pdf') //if you OCR, it creates a file in ocr/office-actions/<filename>+output....json
 
 const temp = async () => {
     const filenames = ['EAT-BCgMgFlYf4v252Fpa', 'TIs4K0RoB', 'WUDPrMHxN', 'hZHzgZ_a1']
@@ -1009,3 +1044,9 @@ const temp = async () => {
     }
 }
 // temp()
+
+const temp2 = () => {
+    var json2 = require(`./results/ocr_office-actions_vypiOtY15QcgWBFusQx8c.pdf+output-1-to-20.json`); //with path
+    console.log(json2)
+}
+// temp2()

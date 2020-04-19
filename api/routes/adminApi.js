@@ -133,7 +133,7 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
     const txt = 'Hello,<br /><br />Our systems have processed \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
     
     const data = {
-      from: 'Team team@patentbutler.com',
+      from: 'PatentButler Team <team@mail.patentbutler.com>',
       to: oaObject.user,
       subject: 'Your Office Action \'' + oaObject.originalname + '\'' + maildateString + ' has finished processing',
       html: txt,
@@ -256,41 +256,40 @@ router.post('/delete', checkJwt, upload.none(), async function(req, res, next) {
   }
 
   res.json({success: "true"})
-  return
-  var fileObj = req.file
-  const filename = nanoid() + '.pdf'
-  const cloudUrl = 'https://storage.googleapis.com/' + bucketName + '/' + directory + filename;
-  var response = {
-    // pdfUrl: fileObj.path,
-    filename: filename,
-    originalname: fileObj.originalname,
-    cloudUrl: cloudUrl,
-  }
-  await uploadBuffer(fileObj.originalname, fileObj.buffer, filename, directory)
 
-  res.json({ 
-    // files: req.files,
-    paObjects: response
-  })    
 });
+const crypto = require('crypto')
 
-// function uploadFileToGoogle(path, filename) {
-//   console.log(`${filename} uploading to ${bucketName}.`);
-//   // Uploads a local file to the bucket
-//   return storage.bucket(bucketName).upload(path + filename, {
-//     destination: `uploaded-prior-art/${filename}`,
-//     // Support for HTTP requests made with `Accept-Encoding: gzip`
-//     gzip: true,
-//     // By setting the option `destination`, you can change the name of the
-//     // object you are uploading to a bucket.
-//     metadata: {
-//       // Enable long-lived HTTP caching headers
-//       // Use only if the contents of the file will never change
-//       // (If the contents will change, use cacheControl: 'no-cache')
-//       cacheControl: 'public, max-age=31536000',
-//     },
-//   });
+const verify = ({ signingKey, timestamp, token, signature }) => {
+    const encodedToken = crypto
+        .createHmac('sha256', signingKey)
+        .update(timestamp.concat(token))
+        .digest('hex')
 
-// }
+    return (encodedToken === signature)
+}
+
+router.post('/mailgunOpen', upload.none(), async function(req, res, next) {
+  let verification = {
+    signingKey: '395890d26aad6ccac5435c933c0933a3-9a235412-6950caab',
+    timestamp: req.body.signature.timestamp,
+    token: req.body.signature.token,
+    signature: req.body.signature.signature,
+  }
+  if (verify(verification)) {
+    if (req.body.event === 'opened') {
+      const targetedOaRecipientsKey = datastore.key(['targetedOaRecipients', req.body.recipient]);
+      const [targetedOaRecipientsEntity] = await datastore.get(targetedOaRecipientsKey);
+      targetedOaRecipientsEntity.userAgent = req.body["client-info"]["user-agent"]
+      targetedOaRecipientsEntity.numReminders++
+      await datastore.upsert(targetedOaRecipientsEntity)
+      
+    }
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(406);
+  }
+})
+
 
 module.exports = router;

@@ -227,7 +227,7 @@ function PdfView (props) {
                   <select readOnly value={getCitationToShow()}>
                     {
                       citationObj[priorArtList[paToLoad].abbreviation].map(c => 
-                      <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && ' -- p. ' + c.boundingBoxes[0].page + ' --'}</option>
+                      <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && ' (DONE: p. ' + c.boundingBoxes[0].page + ')'}</option>
                       )
                     }                    
                   </select>
@@ -238,7 +238,7 @@ function PdfView (props) {
       const mouseDown = (e) => {
         if (!showPriorArt ) return;
         setShowCitationDiv(false)
-        var rect = e.target.getBoundingClientRect();
+        var rect = e.currentTarget.getBoundingClientRect();
         var x = e.clientX - rect.left; //x position within the element.
         var y = e.clientY - rect.top;  //y position within the element.
         setDragRect({
@@ -249,7 +249,7 @@ function PdfView (props) {
       }
       const mouseUp = (e) => {
         if (!showPriorArt ) return;
-        var rect = e.target.getBoundingClientRect();
+        var rect = e.currentTarget.getBoundingClientRect();
         var x = e.clientX - rect.left; //x position within the element.
         var y = e.clientY - rect.top;  //y position within the element.
         // console.log({x: 100.0* x / rect.width, y: 100.0* y / rect.height})
