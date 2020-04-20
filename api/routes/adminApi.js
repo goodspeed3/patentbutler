@@ -130,7 +130,7 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
     if (!isNaN(maildate)) { //a mailing date exists
       maildateString = ' mailed on ' + (1+maildate.getMonth()) + "/" + maildate.getDate() + "/" + maildate.getFullYear()
     }
-    const txt = 'Hello,<br /><br />Our systems have processed \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
+    const txt = 'Hello,<br /><br />Our systems have prepared \'' + oaObject.originalname + "\' ("+ oaObject.applicationNumber +") for viewing.  Go <a href='"+link+"'>here</a> to access the PatentButler office action experience.<br /><br />Thanks,<br />The PatentButler team"
     
     const data = {
       from: 'PatentButler Team <team@mail.patentbutler.com>',
@@ -139,6 +139,10 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
       html: txt,
       "o:tag" : ['finished processing']
     };
+    if (oaObject.user.includes("patentbutler")) {
+      delete data["o:tag"]
+      //don't tag it if me, ruins analytics
+    }
     mg.messages().send(data);    
   }
   await datastore.upsert([processedOaEntity, oaUploadEntity])
@@ -269,24 +273,32 @@ const verify = ({ signingKey, timestamp, token, signature }) => {
     return (encodedToken === signature)
 }
 
-router.post('/mailgunOpen', upload.none(), async function(req, res, next) {
+router.post('/mailgun', upload.none(), async function(req, res, next) {
   let verification = {
     signingKey: '395890d26aad6ccac5435c933c0933a3-9a235412-6950caab',
     timestamp: req.body.signature.timestamp,
     token: req.body.signature.token,
     signature: req.body.signature.signature,
   }
+
   if (verify(verification)) {
-    if (req.body.event === 'opened') {
-      const targetedOaRecipientsKey = datastore.key(['targetedOaRecipients', req.body.recipient]);
-      const [targetedOaRecipientsEntity] = await datastore.get(targetedOaRecipientsKey);
-      targetedOaRecipientsEntity.userAgent = req.body["client-info"]["user-agent"]
-      targetedOaRecipientsEntity.numReminders++
-      await datastore.upsert(targetedOaRecipientsEntity)
-      
+    console.log("mailgun verified")
+    const targetedOaRecipientsKey = datastore.key(['targetedOaRecipients', req.body["event-data"].recipient]);
+    const [targetedOaRecipientsEntity] = await datastore.get(targetedOaRecipientsKey);
+    if (targetedOaRecipientsEntity) {
+      targetedOaRecipientsEntity.clientInfo = JSON.stringify(req.body["event-data"]["client-info"])
+      if (req.body["event-data"].event === 'opened') {
+        targetedOaRecipientsEntity.numOpens++
+        targetedOaRecipientsEntity.openTime = new Date(req.body["event-data"].timestamp * 1000).toString()
+      } else if (req.body["event-data"].event === 'clicked') {
+        targetedOaRecipientsEntity.numClicks++
+        targetedOaRecipientsEntity.clickTime = new Date(req.body["event-data"].timestamp * 1000).toString()
+      }
+      await datastore.upsert(targetedOaRecipientsEntity)  
     }
     res.sendStatus(200);
   } else {
+    console.log("mailgun not verified")
     res.sendStatus(406);
   }
 })

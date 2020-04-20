@@ -20,6 +20,7 @@ function OaInput (props) {
   const [show, setShow] = useState(false);
   const [validated, setValidated] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
+
   // useTraceUpdate(props);
 
   const handleClose = () => setShow(false);
@@ -301,7 +302,20 @@ function OaInput (props) {
       return <span role='img' aria-label='x'>&#10060;</span> //red x
     }
   }
-
+  const citationAbbrevInPA = (rejectionIndex, claimArgIndex, citationIndex) => {
+    let abbreviation = rejectionList[rejectionIndex].claimArgumentList[claimArgIndex].citationList[citationIndex]['abbreviation']
+    var isInPa = false;
+    for (let pa of priorArtList) {
+      if (pa.abbreviation === abbreviation) {
+        isInPa = true
+      }
+    }
+    if (isInPa) {
+      return <span role='img' aria-label='y'>&#9989;</span> //green check
+    } else {
+      return <span role='img' aria-label='x'>&#10060;</span> //red x
+    }
+  }
   const citationListElements = (rejectionIndex, claimArgIndex) => {
     let rejection = rejectionList[rejectionIndex]
     return rejection.claimArgumentList[claimArgIndex].citationList.map((citation, index) => {
@@ -315,12 +329,8 @@ function OaInput (props) {
           <Form.Control size='sm' type="text" placeholder="citation should match ex remarks" value={citation.citation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'citation')} />
         </Form.Group>
         <Form.Group md={5} as={Col} >
-          <Form.Label>Abbreviation</Form.Label>
-          <Form.Control size='sm' as="select" value={citation.abbreviation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'abbreviation')}>
-              <option key='none' value=''>--</option>
-            {priorArtList.map((pa) => 
-                   <option key={pa.id || pa.filename} value={pa.abbreviation}>{pa.abbreviation}</option>)}
-            </Form.Control>
+          <Form.Label>Abbreviation { citationAbbrevInPA(rejectionIndex, claimArgIndex, index)}</Form.Label>
+          <Form.Control size='sm' type="text" value={citation.abbreviation} onChange={(e) => changeCitation(rejectionIndex, claimArgIndex, index, e.target.value, 'abbreviation')} />
         </Form.Group>
         <Form.Group md={2} as={Col}>
           <Button style={{marginRight: "0.1rem"}} size='sm' variant="outline-danger" onClick={() => removeCitation(rejectionIndex, claimArgIndex, index)}>-Cit</Button>

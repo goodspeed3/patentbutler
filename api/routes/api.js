@@ -6,9 +6,10 @@ const nanoid = require('nanoid').nanoid;
 
 var stripe_creds = {};
 if (process.env.NODE_ENV === 'production') {
+  //replace me when LLC formed
   stripe_creds.API = 'pk_live_qGizdKkW4i1TlXo6algrnBFa00Poy9FSWl'
   stripe_creds.SECRET = 'sk_live_6LZ8nKG8v1bX8HFDH19tsgwc009mYJTJ2p'
-  stripe_creds.SUBPLAN = 'plan_H6uQ5vOCcAs0wn'
+  stripe_creds.SUBPLAN = 'plan_GwW9xGjYtQKbWF'
 } else {
   stripe_creds.API = 'pk_test_MpfoAn9oikhl3tdNNjWebiuL00wv0FMfKP'
   stripe_creds.SECRET = 'sk_test_BFhRgj2bHzK53Gw86OIEHyOb00ImoOsA2Q'
@@ -143,7 +144,6 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
       to: 'Jon Liu, jon@patentbutler.com',
       subject: 'Uploaded new OA for processing',
       html: txt,
-      "o:tag" : ['new OA']
     };
 
     return Promise.all([
@@ -277,7 +277,6 @@ const addUser = async (email) => {
     to: 'Jon Liu, jon@patentbutler.com',
     subject: email + ' has just signed up',
     html: 'success!',
-    "o:tag" : ['new signup']
   };
   mg.messages().send(mailData, function (error, body) {
     if (error) {
