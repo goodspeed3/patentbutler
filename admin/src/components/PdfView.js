@@ -95,7 +95,30 @@ function PdfView (props) {
           }
           //sort the citations
           newCitationObj[abbreviation].sort((first, second) => {
-            return (second.citation < first.citation) ? 1 : -1
+            let firstNum = first.citation.match(/^[^\d]*(\d+)/)
+            let secondNum = second.citation.match(/^[^\d]*(\d+)/)
+            if (!firstNum && !secondNum) {
+              return (second.citation < first.citation) ? 1 : -1 //neither contain numbers, so return alphabetically (abstract should be at the top)
+            }
+            if (!firstNum) return -1
+            if (!secondNum) return 1
+
+            let comparison = (parseInt(secondNum[1]) < parseInt(firstNum[1])) ? 1 : -1
+            if (first.citation.toLowerCase().includes("fig") || second.citation.toLowerCase().includes("fig")) {
+              if (first.citation.toLowerCase().includes("fig") && second.citation.toLowerCase().includes("fig")) {
+                return comparison
+              }
+              if (first.citation.toLowerCase().includes("fig")) {
+                //first citation has fig and second doesn't
+                return -1
+              }
+              if (second.citation.toLowerCase().includes("fig")) {
+                //second citation has fig and first doesn't
+                return 1
+              }
+            }
+            // console.log(`comparing ${firstNum[1]} and ${secondNum[1]}, returning ${comparison}`)
+            return comparison
           })
         }
 
@@ -260,22 +283,31 @@ function PdfView (props) {
           width:  width,
           height: height
         })
+        if (width < 0.5 && height < 0.5) {
+          // console.log('box too small, do not show')
+          return
+        }
         setShowCitationDiv(true)
 
       }      
       const selectCitation = (e) => {
         setSelectedCitation(e.target.value)
       }
-      const saveCitation = (e) => {
+      const saveCitation = (existingBbox = null) => {
         if (!selectedCitation) return
         var cList = citationObj[priorArtList[paToLoad].abbreviation]
         for (var i=0; i<cList.length; i++) {
           var cObj = cList[i]  
           if (cObj.citation === selectedCitation) {
-            var bbox = {}
-            bbox.page = pageNumber
-            bbox.boundingBox = dragRect
-            cObj.boundingBoxes.push(bbox)
+            if (existingBbox) {
+              cObj.boundingBoxes.push(existingBbox)
+            } else {
+              var bbox = {}
+              bbox.page = pageNumber
+              bbox.boundingBox = dragRect
+              cObj.boundingBoxes.push(bbox)  
+            }
+            break;
           }
         }
         setCitationObj({...citationObj})
@@ -293,10 +325,10 @@ function PdfView (props) {
         }
         var customWidth = dragRect.width
         var customHeight = dragRect.height
-        if (customWidth <1 || customHeight <1) {
-          customWidth = 25
-          customHeight = 15
-        } 
+        // if (customWidth <1 || customHeight <1) {
+        //   customWidth = 25
+        //   customHeight = 15
+        // } 
         var styleObj = {
           left: dragRect.x + '%',
           top: dragRect.y + '%',
@@ -328,7 +360,8 @@ function PdfView (props) {
             </Form.Control>
           </Form.Group>
           <Form.Group>
-            <Button disabled={dragRect.width <1 || dragRect.height <1 } variant="primary" size="sm" onClick={saveCitation}>Save</Button>
+            {/* disabled={dragRect.width <1 || dragRect.height <1 } */}
+            <Button  variant="primary" size="sm" onClick={() => saveCitation()}>Save</Button>
             <Button style={{marginLeft: '0.1rem'}} variant="secondary" size="sm" onClick={() => setShowCitationDiv(false)}>Close</Button>
           </Form.Group>
 
@@ -349,6 +382,23 @@ function PdfView (props) {
         }
         setCitationObj({...citationObj})
       }
+      const combineOverlay = (id, coordinateString) => {
+        var citationList = citationObj[priorArtList[paToLoad].abbreviation]
+        var thisBoundingBox;
+        for (var i=0; i<citationList.length; i++) {
+          var citObj = citationList[i]
+          for (var j=0 ;j<citObj.boundingBoxes.length ;j++) {
+            var cobb = citObj.boundingBoxes[j]
+            var objCoord = cobb.boundingBox.y + '%-' + cobb.boundingBox.x + '%-' + cobb.boundingBox.width + '%-' + cobb.boundingBox.height + '%'
+            if (citObj.id === id && objCoord === coordinateString) {
+              thisBoundingBox = cobb;
+              break;
+            }  
+          }
+        }
+        saveCitation(thisBoundingBox)
+      }
+
       const generateOverlay = () => {
         if (!showPriorArt || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].abbreviation] || !didFinishRenderingPage) return
         const pdfDiv = document.querySelector('#pdfDiv')
@@ -387,11 +437,21 @@ function PdfView (props) {
     
         }
     
-        return <div className='overlay' style={dimensions}>
+        return <div className='overlay' style={dimensions} >
           {
             styleArray.map((styleObj, i) =>  (
               <div id={styleObj.idName} style={styleObj} key={i + styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height}>
-                <button className="noselect" style={{margin: '1rem'}} onClick={(e) => removeOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Remove {styleObj.citation}</button>
+                <select value={selectedCitation} onChange={selectCitation} style={{marginLeft: '1rem', marginTop: '0.5rem', fontSize: '13px'}} >
+              <option value=''>--</option>
+              {
+                citationObj[priorArtList[paToLoad].abbreviation].map(c => 
+                <option value={c.citation} key={c.id}>{c.citation} {c.boundingBoxes.length > 0 && ' -- p. ' + c.boundingBoxes[0].page}</option>
+                )
+              }
+            </select>
+            <button className="noselect" style={{marginLeft: '1rem', fontSize: '13px'}} onClick={(e) => combineOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Combine</button>
+            <button className="noselect" style={{marginLeft: '1rem', marginTop: '0.3rem', fontSize: '13px'}} onClick={(e) => removeOverlay(styleObj.id, styleObj.top + '-' + styleObj.left + '-' + styleObj.width + '-' + styleObj.height)}>Remove {styleObj.citation}</button>
+
               </div>
             ))
           }

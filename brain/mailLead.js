@@ -26,10 +26,10 @@ const datastore = new Datastore();
 const main = async () => {
     //fill me out!
     var obj = {
-        firstname: "Daniel",
-        recipientEmail: 'jvl@fb.com',
-        // recipientEmail: 'jon+1@patentbutler.com',
-        filename: "g0yNTy9hIKvsPAe7fb68n.pdf"
+        firstname: "Hussein",
+        // recipientEmail: 'hakhavannik@bakerlaw.com',
+        recipientEmail: 'jon@patentbutler.com',
+        filename: "LU9JaKv9HajVos8yEBBFO.pdf"
     }
     
     
@@ -48,14 +48,20 @@ const main = async () => {
         secondDate = Date.now();
     }
     
-    const diffDays = Math.ceil(Math.abs((firstDate - secondDate) / oneDay));
-    let subject = `${obj.attyDocket} - OA response due in ${diffDays} day${(diffDays > 1) ? 's' : ''} - Respond faster with this tool`
+    const diffDays = Math.round(Math.abs((firstDate - secondDate) / oneDay));
+    let subject1 = `${obj.attyDocket} - OA response due in ${diffDays} day${(diffDays > 1) ? 's' : ''} - Respond faster with this tool`
     //edit text here: https://app.mailgun.com/app/sending/domains/mail.patentbutler.com/templates
-    let templateNames = ['plain_target_oa_v1', 'rich_target_oa_v1']
+    let subject2 = `Quick question`
+    let subjectArray = [subject1, subject2]
+    // let subject = subjectArray[Math.floor(Math.random() * subjectArray.length)]
+    // don't confound the test yet with different subjects
+    let subject = subject1
+
+    let templateNames = ['plain_target_oa_v1', 'rich_target_oa_v1', 'qvc-plain-text']
     var templateName = templateNames[Math.floor(Math.random() * templateNames.length)];
 
     //manually set template name
-    // templateName = templateNames[1]
+    // templateName = templateNames[2]
 
     let templateVar = {
         firstname: obj.firstname,
@@ -81,7 +87,8 @@ const main = async () => {
             template: templateName,
             "h:X-Mailgun-Variables": JSON.stringify(templateVar),
             "o:tag" : [templateName],
-            "o:deliverytime": timeToSend.toUTCString()
+            "o:deliverytime": timeToSend.toUTCString(),
+            "t:text" : "yes"
           };
         if (obj.recipientEmail.includes("patentbutler")) {
             delete data["o:tag"] //don't track it
@@ -121,7 +128,7 @@ const main = async () => {
 }
 const getNextWeekdayAM = () => {
     var rightNow = new Date()
-    let hourToSend = 10
+    let hourToSend = 9
     if (rightNow.getDay() >=5) {
         let numOfDaysUntilMonday = 7 - rightNow.getDay()
         rightNow.setDate(rightNow.getDate() + numOfDaysUntilMonday)

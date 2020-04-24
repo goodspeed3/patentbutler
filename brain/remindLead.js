@@ -18,13 +18,12 @@ const main = async () => {
 
     const query = datastore.createQuery('targetedOaRecipients')
     const [recipients] = await datastore.runQuery(query);
-    var numDaysForReminder = 2;
+    var numDaysForReminder = 4;
+    var maxReminders = 5;
+
     for (let recipient of recipients) {
-        if (recipient.numClicks > 0) {
-            console.log(`${recipient.email} has clicked, no reminder needed`)
-            continue //don't send reminders to people who clicked
-        } else if (recipient.numReminders > 2) {
-            console.log(`${recipient.email} has been sent ${recipient.numReminders} `)
+        if (recipient.numReminders > maxReminders) {
+            console.log(`${recipient.email} has been sent a max of ${recipient.numReminders} `)
             continue //don't send reminders to people too many times
         }
         //choose reminder time sent if it exists
@@ -45,15 +44,17 @@ const main = async () => {
             firstDate.setMonth(firstDate.getMonth() + 3)
             
             const diffDays = Math.ceil((firstDate - nextReminderSendTime) / oneDay);
+            /*
             var subject = `Reminder - ${processedOaEntity.attyDocket} - OA response due in ${diffDays} day${(diffDays > 1) ? 's' : ''} - Respond faster with this tool`
 
             if (diffDays <= 0) {
                 subject = `Reminder - ${processedOaEntity.attyDocket} - OA response mailed ${processedOaEntity.mailingDate} - Respond faster with this tool`
-            }
+            }*/
+            var subject = 'Quick reminder'
 
             var templateNames = ['plain_reminder_target_oa_v1', 'rich_reminder_target_oa_v1']
 
-            if (recipient.numReminders == 2) {
+            if (recipient.numReminders == maxReminders) {
                 subject = 'Final ' + subject
                 templateNames = ['plain_final_reminder_target_oa_v1', 'rich_final_reminder_target_oa_v1']
             }
@@ -76,26 +77,31 @@ const main = async () => {
             console.log('Template: '+ templateName )
             console.log(templateVar)
         
-            const data = {
-                from: 'PatentButler Team <team@mail.patentbutler.com>',
-                to: recipient.email,
-                // to: 'jon@patentbutler.com', 
-                subject: subject,
-                template: templateName,
-                "h:X-Mailgun-Variables": JSON.stringify(templateVar),
-                "o:tag" : [templateName],
-                "o:deliverytime": nextReminderSendTime.toUTCString()
-              };
-            if (data.to.includes("patentbutler")) {
-                delete data["o:tag"] //don't track it
-                delete data["o:deliverytime"] //deliver it now if to pb
+            if (process.argv.length >= 3 && process.argv[2] == 'SEND') {
+
+                const data = {
+                    from: 'PatentButler Team <team@mail.patentbutler.com>',
+                    to: recipient.email,
+                    // to: 'jon@patentbutler.com', 
+                    subject: subject,
+                    template: templateName,
+                    "h:X-Mailgun-Variables": JSON.stringify(templateVar),
+                    "o:tag" : [templateName],
+                    "o:deliverytime": nextReminderSendTime.toUTCString(),
+                    "t:text" : "yes"
+                };
+                if (data.to.includes("patentbutler")) {
+                    delete data["o:tag"] //don't track it
+                    delete data["o:deliverytime"] //deliver it now if to pb
+                }
+
+                await mg.messages().send(data)    
+                recipient.numReminders++
+                recipient.reminderTimeSent = nextReminderSendTime.toString()
+                await datastore.save(recipient)
+            } else {
+                console.log(`not yet sending to ${recipient.email}-- tell me to SEND if you want`)
             }
-
-            await mg.messages().send(data)    
-            recipient.numReminders++
-            recipient.reminderTimeSent = nextReminderSendTime.toString()
-            await datastore.save(recipient)
-
         } else {
             console.log(`not yet time to send reminder for ${recipient.email}; try again after ${minimumSendTime.toString()}`)
 

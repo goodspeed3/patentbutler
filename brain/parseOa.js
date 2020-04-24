@@ -973,7 +973,6 @@ const main = async () => {
         to: 'Jon Liu, jon@patentbutler.com',
         subject: oaObject.filename + ' has been AI\'ed',
         html: 'success!',
-        "o:tag" : ['ai']
       };
       mg.messages().send(mailData);  
     

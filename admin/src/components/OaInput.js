@@ -416,11 +416,11 @@ function OaInput (props) {
         pa.citationList.forEach((citation) => {
           if (citation.boundingBoxes.length === 0) {
             allOverlaysAdded = false
-            citationOverlayNeeded = `${citation.publicationNumber}: ${citation.citation}`
+            citationOverlayNeeded = `${citation.abbreviation}: ${citation.citation}`
           }
         })
       })
-      if (!allOverlaysAdded || (priorArtList.length > 0 && priorArtList.some((pa) => pa.citationList.length === 0))) {
+      if (!allOverlaysAdded ) {
         allOverlaysAdded = false
         alert(citationOverlayNeeded + ' overlay still needed before notifying!')
       }
