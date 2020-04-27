@@ -1,9 +1,3 @@
-/*
-For everyone that did not click email, remind every 2 days for 3 times, as long as it's before the 3-mo mail date
-
-*/
-
-const bucketName = 'crafty-valve-269403.appspot.com';
 const {Datastore} = require('@google-cloud/datastore');
 // Instantiate a datastore client
 const datastore = new Datastore();
@@ -55,7 +49,7 @@ const main = async () => {
             var templateNames = ['plain_reminder_target_oa_v1', 'rich_reminder_target_oa_v1']
 
             if (recipient.numReminders == maxReminders) {
-                subject = 'Final ' + subject
+                subject = 'Final reminder'
                 templateNames = ['plain_final_reminder_target_oa_v1', 'rich_final_reminder_target_oa_v1']
             }
 
@@ -111,7 +105,7 @@ const main = async () => {
 
 }
 const getNextReminderSendTime = (givenDate, numDaysToWait) => {
-    let hourToSend = 10
+    let hourToSend = 9
     var tempDate = new Date(givenDate)
     tempDate.setDate(tempDate.getDate() + numDaysToWait)
     if (tempDate.getDay() >=5 || tempDate.getDay() == 0) {

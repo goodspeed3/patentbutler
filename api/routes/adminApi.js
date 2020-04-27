@@ -283,18 +283,27 @@ router.post('/mailgun', upload.none(), async function(req, res, next) {
 
   if (verify(verification)) {
     console.log("mailgun verified")
-    const targetedOaRecipientsKey = datastore.key(['targetedOaRecipients', req.body["event-data"].recipient]);
-    const [targetedOaRecipientsEntity] = await datastore.get(targetedOaRecipientsKey);
-    if (targetedOaRecipientsEntity) {
-      targetedOaRecipientsEntity.clientInfo = JSON.stringify(req.body["event-data"]["client-info"])
+
+    //query the right table
+    var tags = req.body["event-data"].tags
+    var table = 'targetedOaRecipients'
+    if (tags.some( t => t.includes("cold"))) { //when sending with template, make sure the template is named "cold" somewhere
+      table = 'coldEmail'
+    } 
+
+    const entityKey = datastore.key([table, req.body["event-data"].recipient]);
+    const [entity] = await datastore.get(entityKey);
+    if (entity) {
+      entity.clientInfo = JSON.stringify(req.body["event-data"]["client-info"])
+
       if (req.body["event-data"].event === 'opened') {
-        targetedOaRecipientsEntity.numOpens++
-        targetedOaRecipientsEntity.openTime = new Date(req.body["event-data"].timestamp * 1000).toString()
+        entity.numOpens++
+        entity.openTime = new Date(req.body["event-data"].timestamp * 1000).toString()
       } else if (req.body["event-data"].event === 'clicked') {
-        targetedOaRecipientsEntity.numClicks++
-        targetedOaRecipientsEntity.clickTime = new Date(req.body["event-data"].timestamp * 1000).toString()
+        entity.numClicks++
+        entity.clickTime = new Date(req.body["event-data"].timestamp * 1000).toString()
       }
-      await datastore.upsert(targetedOaRecipientsEntity)  
+      await datastore.upsert(entity)  
     }
     res.sendStatus(200);
   } else {

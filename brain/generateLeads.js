@@ -13,6 +13,10 @@ Email that person for a demo
 
 */
 
+const {Datastore} = require('@google-cloud/datastore');
+// Instantiate a datastore client
+const datastore = new Datastore();
+
 
 const main = async () => {
     //fill me out!
@@ -53,4 +57,55 @@ const main = async () => {
 }
 
 
-main()
+// main()
+
+const saveContactlistToDatastore = async () => {
+    const csvFilePath='./results/emails.csv'
+    const csv=require('csvtojson')
+    var jsonObj = await csv()
+    .fromFile(csvFilePath)
+
+    var entities = []
+    for (var i=0; i<jsonObj.length; i++) {
+        var coldEntity = jsonObj[i]
+        const coldEmailKey = datastore.key(['coldEmail', coldEntity.email])
+        coldEntity.didSend = false
+        const entity = {
+            key: coldEmailKey,
+            data: coldEntity
+        }
+        entities.push(entity)
+        if (entities.length >= 500 || i == jsonObj.length - 1) {
+            await datastore.upsert(entities)
+            console.log(`at ${i}, saved ${entities.length} to cloud`)
+            entities = []
+        }
+    }
+    return
+
+
+}
+
+
+// saveContactlistToDatastore() //careful running this; may overwrite data in table
+
+
+const temp = async () => {
+    const query = datastore.createQuery('coldEmail')
+    const [recipients] = await datastore.runQuery(query);
+    console.log(recipients.length + ' recipients...');
+    var entities = []
+
+    for (var i=0; i<recipients.length; i++) {
+        var coldEntity = recipients[i]
+        coldEntity.shouldSkip = false
+        entities.push(coldEntity)
+        if (entities.length >= 500 || i == recipients.length - 1) {
+            await datastore.upsert(entities)
+            console.log(`at ${i}, saved ${entities.length} to cloud`)
+            entities = []
+        }
+    }
+
+}
+temp()

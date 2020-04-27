@@ -17,7 +17,6 @@ Email that person for a demo
 // console.log(json2)
 
 
-const bucketName = 'crafty-valve-269403.appspot.com';
 const {Datastore} = require('@google-cloud/datastore');
 // Instantiate a datastore client
 const datastore = new Datastore();
@@ -63,7 +62,7 @@ const main = async () => {
     //manually set template name
     // templateName = templateNames[2]
 
-    let templateVar = {
+    var templateVar = {
         firstname: obj.firstname,
         attyDocket: obj.attyDocket,
         filename: obj.filename,
