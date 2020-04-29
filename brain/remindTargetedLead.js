@@ -121,6 +121,7 @@ const getNextReminderSendTime = (givenDate, numDaysToWait) => {
         tempDate.setDate(tempDate.getDate()+1) 
         tempDate.setHours(hourToSend)
     }
+    tempDate.setMinutes(Math.floor(Math.random() * 60)) //send at random time in hour
     return tempDate
 }
 main()

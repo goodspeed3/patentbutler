@@ -6,6 +6,7 @@
     "@auth0/auth0-spa-js": "^1.6.4",
     "@stripe/react-stripe-js": "^1.1.0",
     "@stripe/stripe-js": "^1.2.0",
+    "@tryghost/content-api": "^1.4.1",
     "axios": "^0.18.1",
     "react": "^16.8.6",
     "react-bootstrap": "^1.0.0-beta.6",

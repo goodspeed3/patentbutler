@@ -18,7 +18,7 @@ const getRandom = (arr, n) => {
 }
 
 const main = async () => {
-    let numberOfDailyEmails = 50
+    let numberOfDailyEmails = 100
 
     const query = datastore.createQuery('coldEmail').filter('didSend', '=', false)
     const [recipients] = await datastore.runQuery(query);
@@ -26,8 +26,6 @@ const main = async () => {
     console.log(`picking ${numberOfDailyEmails} from ${recipients.length} random recipients`)
 
     const randomObjs = getRandom(recipients, numberOfDailyEmails)
-
-    var timeToSend = getNextWeekdayAM()
 
     //edit text here: https://app.mailgun.com/app/sending/domains/mail.patentbutler.com/templates
     let subjectArray = ['Increase patent prosecution efficiency', 
@@ -47,6 +45,7 @@ const main = async () => {
         //TESTING
         // recipientObj.email = 'jon@patentbutler.com'
 
+        var timeToSend = getNextWeekdayAM()
         var templateVar = {
             firstname: recipientObj.firstname,
             firm: recipientObj.firm
@@ -80,9 +79,9 @@ const main = async () => {
             }
             if (process.argv.length == 4 && process.argv[3] == 'NOW') {
                 delete data["o:deliverytime"]
-                console.log(`sending ${i} email to ${recipientObj.email} NOW!`)
+                console.log(`sending email ${i} to ${recipientObj.email} NOW!`)
             } else {
-                console.log(`sending ${i} email to ${recipientObj.email} at ${timeToSend.toString()}, fingers crossed!`)
+                console.log(`sending email ${i} to ${recipientObj.email} at ${timeToSend.toString()}, fingers crossed!`)
             }
             let body = await mg.messages().send(data)
     
@@ -129,6 +128,7 @@ const getNextWeekdayAM = () => {
         rightNow.setDate(rightNow.getDate()+1) 
         rightNow.setHours(hourToSend)
     }
+    rightNow.setMinutes(Math.floor(Math.random() * 60)) //send at random time in hour
     return rightNow
 }
 main()

@@ -19,9 +19,15 @@ function HeaderView () {
 
     var component = <div />;
     var publicLinks = ['/', '/pricing', '/about', '/terms', '/privacy']
-    var landingLinks = publicLinks.includes(location.pathname) &&
-        <><Link to='/#features'><Button size='sm' variant='link' >Features</Button></Link>      
-        <Link to='/pricing'><Button size='sm' variant='link' >Pricing</Button></Link></>
+    var shouldShowPublic = publicLinks.includes(location.pathname);
+    if (location.pathname.substring(0, 5) === '/blog') { //blog might have slugs at the end, hence the special treatment
+      shouldShowPublic = true
+    }
+    var landingLinks = shouldShowPublic &&
+        <>    
+        <Link to='/blog'><Button size='sm' variant='link' >Blog</Button></Link><Link to='/pricing'><Button size='sm' variant='link' >Pricing</Button></Link>
+        
+        </>
 
    if (!loading && isAuthenticated) {
       component = (<div className='accountDiv'>
@@ -35,7 +41,10 @@ function HeaderView () {
         </div>
       ) 
     } else if (!loading && !isAuthenticated) {
-      component = <div className='accountDiv'>{landingLinks}<Button size='sm' variant='info' onClick={() => loginWithRedirect({})}>Log in</Button></div>
+      component = <div className='accountDiv'>{landingLinks}
+          <Button size='sm' variant='link' onClick={() => { ReactGA.modalview('/give-feedback');
+        setModalShow(true)} }>Give Feedback</Button>
+          <Button size='sm' variant='info' onClick={() => loginWithRedirect({})}>Log in</Button></div>
     }
 
 

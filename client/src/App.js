@@ -6,6 +6,8 @@ import HomeView from './components/HomeView';
 import LandingView from './components/LandingView';
 import PricingView from './components/PricingView';
 import HeaderView from './components/HeaderView';
+import BlogView from './components/BlogView';
+import BlogPostView from './components/BlogPostView';
 // import AboutView from './components/AboutView';
 import DemoView from './components/DemoView';
 import AccountView from './components/AccountView';
@@ -58,6 +60,8 @@ class App extends Component {
         <Switch>
           <Route exact path="/" component={LandingView} />
           <Route exact path="/pricing" component={PricingView} />
+          <Route exact path="/blog" component={BlogView} />
+          <Route path="/blog/:slug" component={BlogPostView} />
           {/* <Route exact path="/about" component={AboutView} /> */}
           <Route path="/demo/:filename" component={DemoView} />
           {/* <Route exact path="/terms" component={TermsView} />

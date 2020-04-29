@@ -26,7 +26,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/admin', express.static(path.join(__dirname, './admin-build')));
+// app.use('/blog', express.static(path.join(__dirname, './blog-build')));
 app.use(express.static(path.join(__dirname, './client-build')));
+
 
 app.use(function(err, req, res, next) {
   if (err.name === "UnauthorizedError") {
@@ -41,6 +43,10 @@ app.use('/api', apiRouter)
 app.get('/admin/*', (req, res) => {
   res.sendFile(path.join(__dirname + './admin-build/index.html'))
 })
+// app.get('/blog/*', (req, res) => {
+//   res.sendFile(path.join(__dirname + './blog-build/index.html'))
+// })
+
 
 //server PA for admin
 // app.get('/files/:type/:filename', (req, res) => {

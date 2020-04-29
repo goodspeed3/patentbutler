@@ -301,6 +301,7 @@ router.post('/mailgun', upload.none(), async function(req, res, next) {
         entity.openTime = new Date(req.body["event-data"].timestamp * 1000).toString()
       } else if (req.body["event-data"].event === 'clicked') {
         entity.numClicks++
+        entity.urlClicked = req.body["event-data"].url
         entity.clickTime = new Date(req.body["event-data"].timestamp * 1000).toString()
       }
       await datastore.upsert(entity)  

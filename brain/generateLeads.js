@@ -60,7 +60,7 @@ const main = async () => {
 // main()
 
 const saveContactlistToDatastore = async () => {
-    const csvFilePath='./results/emails.csv'
+    // const csvFilePath='./results/emails.csv'
     const csv=require('csvtojson')
     var jsonObj = await csv()
     .fromFile(csvFilePath)
@@ -70,13 +70,14 @@ const saveContactlistToDatastore = async () => {
         var coldEntity = jsonObj[i]
         const coldEmailKey = datastore.key(['coldEmail', coldEntity.email])
         coldEntity.didSend = false
+        coldEntity.shouldSkip = false
         const entity = {
             key: coldEmailKey,
             data: coldEntity
         }
         entities.push(entity)
         if (entities.length >= 500 || i == jsonObj.length - 1) {
-            await datastore.upsert(entities)
+            await datastore.insert(entities)
             console.log(`at ${i}, saved ${entities.length} to cloud`)
             entities = []
         }
@@ -87,7 +88,7 @@ const saveContactlistToDatastore = async () => {
 }
 
 
-// saveContactlistToDatastore() //careful running this; may overwrite data in table
+// saveContactlistToDatastore() //careful running this; make sure emails don't exist already in table - will overwrite data in table
 
 
 const temp = async () => {
@@ -108,4 +109,30 @@ const temp = async () => {
     }
 
 }
-temp()
+// temp()
+
+
+const getNextWeekdayAM = () => {
+    var rightNow = new Date()
+    let hourToSend = 9
+    if (rightNow.getDay() >=5) {
+        let numOfDaysUntilMonday = 7 - rightNow.getDay()
+        rightNow.setDate(rightNow.getDate() + numOfDaysUntilMonday)
+        rightNow.setHours(hourToSend)
+    }
+
+
+    if (rightNow.getHours() < hourToSend && rightNow.getMinutes() < 20) { //b/w midnight and hourToSend:20
+        rightNow.setHours(hourToSend)
+    } else { // b/w 720 and midnight, send the next morning
+        rightNow.setDate(rightNow.getDate()+1) 
+        rightNow.setHours(hourToSend)
+    }
+    rightNow.setMinutes(Math.floor(Math.random() * 60)) //send at random time in hour
+    return rightNow
+}
+
+const temp2 = async () => {
+    console.log(getNextWeekdayAM().toString())
+}
+temp2()
