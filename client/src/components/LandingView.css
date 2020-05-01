@@ -22,7 +22,7 @@
 .subTagline {
     margin-top: 1rem;
     color: #303235;
-    font-family: 'Arvo', sans-serif;
+    font-family: sans-serif;
 }
 .cta {
     margin-top: 2rem;
@@ -94,7 +94,7 @@
 }
 
 .checkMarkDivs {
-    font-family: 'Arvo', sans-serif;
+    font-family: sans-serif;
     margin-top: 2.5rem;
     text-align: left;
 }

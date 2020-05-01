@@ -9,7 +9,7 @@ const mg = mailgun({apiKey: api_key, domain: DOMAIN});
 
 
 const main = async () => {
-    let numDaysForReminder = 4;
+    let numDaysForReminder = 3;
     let maxReminders = 5;
 
     var sendCutoffDate = new Date()
@@ -39,12 +39,13 @@ const main = async () => {
         let nextReminderSendTime = getNextReminderSendTime(recipient.lastTimeSent, numDaysForReminder)
         console.log(`sending reminder for ${recipient.email} on ${nextReminderSendTime.toString()}, last sent ${recipient.lastTimeSent.toString()}`)
 
-        let subjectArray = ['Reminder: Increase patent prosecution efficiency', 
+        let subjectArray = [
+        // 'Reminder: Increase patent prosecution efficiency', 
         'Quick reminder', 
-        'Reminder: Reduce hours spent prosecuting patents',
+        // 'Reminder: Reduce hours spent prosecuting patents',
         'Reminder: A new cutting edge tool for patent practitioners',
         'Reminder: New tool for patent prosecution',
-        'Reminder: A faster way to prosecute patents with PatentButler'
+        // 'Reminder: A faster way to prosecute patents with PatentButler'
         ]
         var subject = subjectArray[Math.floor(Math.random() * subjectArray.length)]
 
@@ -53,6 +54,8 @@ const main = async () => {
         if (recipient.template.includes("demo")) {
             //go demo route
             templateName = `cold-demo-reminder-${recipient.numReminders}`
+        } else if (recipient.template.includes("feedback")) {
+            templateName = `cold-feedback-reminder-${recipient.numReminders}`
         } else {
             //go qvc route
             templateName = `cold-qvc-reminder-${recipient.numReminders}`
@@ -90,7 +93,7 @@ const main = async () => {
                 subject: subject,
                 template: templateName,
                 "h:X-Mailgun-Variables": JSON.stringify(templateVar),
-                "o:tag" : [templateName, subject],
+                "o:tag" : [templateName, subject, `hour-${timeToSend.getHours()}`],
                 "o:deliverytime": nextReminderSendTime.toUTCString(),
                 "t:text" : "yes"
             };
@@ -101,8 +104,8 @@ const main = async () => {
 
             await mg.messages().send(data)    
             recipient.numReminders++
-            recipient.reminderTimeSent = nextReminderSendTime.toString()
-            recipient.lastTimeSent = nextReminderSendTime.toString()
+            recipient.reminderTimeSent = nextReminderSendTime
+            recipient.lastTimeSent = nextReminderSendTime
             await datastore.save(recipient)
         } else {
             console.log(`not yet sending to ${recipient.email}-- tell me to SEND if you want`)
@@ -112,7 +115,7 @@ const main = async () => {
 
 }
 const getNextReminderSendTime = (givenDate, numDaysToWait) => {
-    let hourToSend = 9
+    let hourToSend = 9 + Math.floor(Math.random() * 5) //randomly send from 9am - 1pm
     var tempDate = new Date(givenDate)
     tempDate.setDate(tempDate.getDate() + numDaysToWait)
     if (tempDate.getDay() >=5 || tempDate.getDay() == 0) {

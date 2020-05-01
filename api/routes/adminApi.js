@@ -298,11 +298,11 @@ router.post('/mailgun', upload.none(), async function(req, res, next) {
 
       if (req.body["event-data"].event === 'opened') {
         entity.numOpens++
-        entity.openTime = new Date(req.body["event-data"].timestamp * 1000).toString()
+        entity.openTime = new Date(req.body["event-data"].timestamp * 1000)
       } else if (req.body["event-data"].event === 'clicked') {
         entity.numClicks++
         entity.urlClicked = req.body["event-data"].url
-        entity.clickTime = new Date(req.body["event-data"].timestamp * 1000).toString()
+        entity.clickTime = new Date(req.body["event-data"].timestamp * 1000)
       }
       await datastore.upsert(entity)  
     }

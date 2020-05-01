@@ -92,24 +92,32 @@ const saveContactlistToDatastore = async () => {
 
 
 const temp = async () => {
-    const query = datastore.createQuery('coldEmail')
+    const query = datastore.createQuery('coldEmail').filter('didSend', '=', true)
     const [recipients] = await datastore.runQuery(query);
     console.log(recipients.length + ' recipients...');
     var entities = []
 
     for (var i=0; i<recipients.length; i++) {
         var coldEntity = recipients[i]
-        coldEntity.shouldSkip = false
+        coldEntity.initialTimeSent = new Date(coldEntity.initialTimeSent)
+        coldEntity.lastTimeSent = new Date(coldEntity.lastTimeSent)
+        if (coldEntity.openTime) {
+            coldEntity.openTime = new Date(coldEntity.openTime)
+        }
+        if (coldEntity.clickTime) {
+            coldEntity.clickTime = new Date(coldEntity.clickTime)
+        }
         entities.push(coldEntity)
         if (entities.length >= 500 || i == recipients.length - 1) {
             await datastore.upsert(entities)
             console.log(`at ${i}, saved ${entities.length} to cloud`)
             entities = []
         }
+    
     }
 
 }
-// temp()
+temp()
 
 
 const getNextWeekdayAM = () => {
@@ -135,4 +143,4 @@ const getNextWeekdayAM = () => {
 const temp2 = async () => {
     console.log(getNextWeekdayAM().toString())
 }
-temp2()
+// temp2()

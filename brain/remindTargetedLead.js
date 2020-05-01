@@ -91,7 +91,7 @@ const main = async () => {
 
                 await mg.messages().send(data)    
                 recipient.numReminders++
-                recipient.reminderTimeSent = nextReminderSendTime.toString()
+                recipient.reminderTimeSent = nextReminderSendTime
                 await datastore.save(recipient)
             } else {
                 console.log(`not yet sending to ${recipient.email}-- tell me to SEND if you want`)
@@ -105,7 +105,7 @@ const main = async () => {
 
 }
 const getNextReminderSendTime = (givenDate, numDaysToWait) => {
-    let hourToSend = 9
+    let hourToSend = 9 + Math.floor(Math.random() * 5) //randomly send from 9am - 1pm
     var tempDate = new Date(givenDate)
     tempDate.setDate(tempDate.getDate() + numDaysToWait)
     if (tempDate.getDay() >=5 || tempDate.getDay() == 0) {

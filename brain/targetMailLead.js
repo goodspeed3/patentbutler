@@ -25,9 +25,9 @@ const datastore = new Datastore();
 const main = async () => {
     //fill me out!
     var obj = {
-        firstname: "Hussein",
+        firstname: "Jon",
         // recipientEmail: 'hakhavannik@bakerlaw.com',
-        recipientEmail: 'jon@patentbutler.com',
+        recipientEmail: 'jwliu00@yahoo.com',
         filename: "LU9JaKv9HajVos8yEBBFO.pdf"
     }
     
@@ -91,7 +91,7 @@ const main = async () => {
           };
         if (obj.recipientEmail.includes("patentbutler")) {
             delete data["o:tag"] //don't track it
-            timeToSend = (new Date()).toUTCString()
+            timeToSend = (new Date())
         }
         if (process.argv.length == 4 && process.argv[3] == 'NOW') {
             delete data["o:deliverytime"]
@@ -105,7 +105,7 @@ const main = async () => {
         const targetedOaRecipientsKey = datastore.key(['targetedOaRecipients', obj.recipientEmail]);
         targetedOaRecipientsEntity = {
             email: obj.recipientEmail,
-            initialTimeSent: timeToSend.toString(),
+            initialTimeSent: timeToSend,
             numReminders: 0,
             numOpens: 0,
             numClicks: 0,
@@ -127,7 +127,7 @@ const main = async () => {
 }
 const getNextWeekdayAM = () => {
     var rightNow = new Date()
-    let hourToSend = 9
+    let hourToSend = 9 + Math.floor(Math.random() * 5) //randomly send from 9am - 1pm
     if (rightNow.getDay() >=5) {
         let numOfDaysUntilMonday = 7 - rightNow.getDay()
         rightNow.setDate(rightNow.getDate() + numOfDaysUntilMonday)

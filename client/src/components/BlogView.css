@@ -1,13 +1,13 @@
 .blogTitle {
-    font-weight: bold;
+    /* font-weight: bold; */
     font-size: x-large;
-    font-family: 'EB Garamond', serif;
+    font-family:  sans-serif;
 }
-.blogExcerpt, .blog h1, .blog p {
-    font-family: 'Arvo', sans-serif;
+.blogExcerpt, .blog p {
+    font-family:  sans-serif;
 }
 
-.singlePostTitle {
+.singlePostTitle, .blog h1 {
     font-family: 'EB Garamond', serif;
     font-weight: bold;
 }
@@ -15,6 +15,20 @@
 .blog img, .singlePost img {
     max-width: 100%;
     height: auto;  
+}
+.singlePost blockquote {
+    margin-left: 3rem;
+    padding-left: 1rem;
+    border-left: 3px solid #ccc;
+}
+.singlePost p, .singlePost ol, .singlePost li, .singlePost h3, .singlePost h4, .singlePost ul {
+    padding: 0.6rem;
+}
+.singlePostBody {
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans";
+}
+.singlePostBody h2, .singlePostBody h1 {    
+    padding: 1rem;
 }
 
 

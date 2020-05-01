@@ -18,7 +18,7 @@ const getRandom = (arr, n) => {
 }
 
 const main = async () => {
-    let numberOfDailyEmails = 100
+    let numberOfDailyEmails = 200
 
     const query = datastore.createQuery('coldEmail').filter('didSend', '=', false)
     const [recipients] = await datastore.runQuery(query);
@@ -28,17 +28,17 @@ const main = async () => {
     const randomObjs = getRandom(recipients, numberOfDailyEmails)
 
     //edit text here: https://app.mailgun.com/app/sending/domains/mail.patentbutler.com/templates
-    let subjectArray = ['Increase patent prosecution efficiency', 
+    let subjectArray = [
+        // 'Increase patent prosecution efficiency', 
         'Quick question', 
-        'Reduce hours spent prosecuting patents',
+        // 'Reduce hours spent prosecuting patents',
         'A new cutting edge tool for patent practitioners',
         'New tool for patent prosecution',
-        'A faster way to prosecute patents with PatentButler'
+        // 'Want to respond to your next office action more quickly?'
     ]
-    let templateNames = ['cold-qvc', 'cold-demo']
+    let templateNames = ['cold-qvc', 'cold-demo-oa', 'cold-feedback']
 
-    //manually set template name
-    // templateName = templateNames[2]
+
     for (var i=0; i<randomObjs.length; i++) {
         var recipientObj = randomObjs[i]
 
@@ -52,7 +52,9 @@ const main = async () => {
         }
         var subject = subjectArray[Math.floor(Math.random() * subjectArray.length)]
         var templateName = templateNames[Math.floor(Math.random() * templateNames.length)];
-        
+        //manually set template name
+        // templateName = templateNames[2]
+
         console.log('Recipient: ' + recipientObj.email)
         console.log('Subject: ' + subject)
         console.log('Template: '+ templateName )
@@ -69,7 +71,7 @@ const main = async () => {
                 subject: subject,
                 template: templateName,
                 "h:X-Mailgun-Variables": JSON.stringify(templateVar),
-                "o:tag" : [templateName, subject],
+                "o:tag" : [templateName, subject, `hour-${timeToSend.getHours()}`],
                 "o:deliverytime": timeToSend.toUTCString(),
                 "t:text" : "yes"
               };
@@ -89,8 +91,8 @@ const main = async () => {
             const coldEmailKey = datastore.key(['coldEmail', recipientObj.email]);
             coldEmailEntity = {
                 ...recipientObj,
-                initialTimeSent: timeToSend.toString(),
-                lastTimeSent: timeToSend.toString(),
+                initialTimeSent: timeToSend,
+                lastTimeSent: timeToSend,
                 numReminders: 0,
                 numOpens: 0,
                 numClicks: 0,
@@ -108,13 +110,13 @@ const main = async () => {
             // console.log(entity)
             
         } else {
-            console.log(`not yet sending to ${recipientObj.email} -- tell me to SEND if you want`)
+            console.log(`not yet sending to ${recipientObj.email} on ${timeToSend.toString()} -- tell me to SEND if you want`)
         }
     }
 }
 const getNextWeekdayAM = () => {
     var rightNow = new Date()
-    let hourToSend = 9
+    let hourToSend = 9 + Math.floor(Math.random() * 5) //randomly send from 9am - 1pm
     if (rightNow.getDay() >=5) {
         let numOfDaysUntilMonday = 7 - rightNow.getDay()
         rightNow.setDate(rightNow.getDate() + numOfDaysUntilMonday)
