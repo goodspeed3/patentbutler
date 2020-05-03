@@ -61,7 +61,9 @@ function ProcessView (props) {
       formData.append('sendEmail', sendEmail)
 
       AuthApi('/adminApi/saveOaObject', getTokenSilently, formData).then(res => {
-          setRedirectToHome(true)
+          if (sendEmail) {
+            setRedirectToHome(true)
+          }
       })
     }
 

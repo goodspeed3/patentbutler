@@ -4,6 +4,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import logo from './img/logo.svg'
 import HomeView from './components/home.js'
 import ProcessView from './components/process.js'
+import AnalyticsView from './components/analytics.js'
 import './App.css';
 import Button from 'react-bootstrap/Button'
 import PrivateRoute from "./components/PrivateRoute";
@@ -15,6 +16,7 @@ function App() {
   var component = <div />;
   if (isAuthenticated && !loading) {
     component = (<div className='accountDiv'>
+      <Link to='/admin/analytics' style={{marginRight: '1rem'}}>Analytics</Link>
       <Button size='sm' variant='danger' onClick={() => logout({
       returnTo: window.location.origin })}>Log out {user.email}</Button>        
       </div>
@@ -43,6 +45,7 @@ function App() {
         </Navbar>
         <Switch>
           <PrivateRoute exact path="/admin" component={HomeView} />
+          <PrivateRoute path="/admin/analytics" component={AnalyticsView} />
           <PrivateRoute path="/admin/process/:filename" component={ProcessView} />
 
         </Switch>

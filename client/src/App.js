@@ -63,7 +63,7 @@ class App extends Component {
           <Route exact path="/blog" component={BlogView} />
           <Route path="/blog/:slug" component={BlogPostView} />
           {/* <Route exact path="/about" component={AboutView} /> */}
-          <Route path="/demo/:filename" component={DemoView} />
+          <Route path="/demo/:filename?" component={DemoView} />
           {/* <Route exact path="/terms" component={TermsView} />
           <Route exact path="/privacy" component={PrivacyView} /> */}
           <PrivateRoute path="/home" component={HomeView} />

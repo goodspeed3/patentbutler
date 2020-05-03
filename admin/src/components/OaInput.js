@@ -198,8 +198,14 @@ function OaInput (props) {
   }
   const highlightText = (claimRejection) => {
     var regMappedCitations = [];
-    for (var i = 0; i < claimRejection.citationList.length; i++) {
-      var citationObj = claimRejection.citationList[i];
+    //need to sort by length descending so longest ones get linkified first which won't prevent shorter ones later prevent longer ones from getting linked
+    let copyCitationList = JSON.parse(JSON.stringify(claimRejection.citationList))
+    copyCitationList.sort((a, b) => {
+      return (a.citation.length < b.citation.length) ? 1 : -1
+    })
+
+    for (var i = 0; i < copyCitationList.length; i++) {
+      var citationObj = copyCitationList[i];
       var escapedRegExp = citationObj.citation.replace(
         /[-[\]{}()*+?.,\\^$|#\s]/g,
         '\\$&'

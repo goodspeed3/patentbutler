@@ -66,7 +66,7 @@ class PriorArtSubview extends Component {
   }
 
   componentDidMount() {
-    this.props.handler('50%');
+    this.props.handler('40%');
   }
   componentWillUnmount() {
     this.props.handler('70%');
@@ -321,7 +321,14 @@ class PriorArtSubview extends Component {
   */
  generatePASelect = () => {
     if (this.props.uiData.priorArtList && this.props.uiData.priorArtList.length > 0) {
-      return <select onChange={(e) => {
+      var currentPAIndex = 0
+      for (var i=0; i<this.props.uiData.priorArtList.length; i++) {
+        if (this.state.priorArt.abbreviation === this.props.uiData.priorArtList[i].abbreviation) {
+          currentPAIndex = i
+        }
+      }
+
+      return <select value={currentPAIndex} onChange={(e) => {
         return this.setState({
           pageNumber: 1,
           priorArt: this.props.uiData.priorArtList[parseInt(e.target.value)]

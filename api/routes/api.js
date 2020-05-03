@@ -257,11 +257,14 @@ router.post('/email', upload.none(), (req, res) => {
     from: req.body.email,
     to: 'Jon Liu, jon@patentbutler.com',
     subject: 'Feedback',
-    html: 'Sent from: ' + req.body.path + '<br /><br />' + req.body.comment,
-    "o:tag" : ['feedback']
+    html: 'Sent from: ' + req.body.path + '<br /><br />' + req.body.comment
   };
   mg.messages().send(data, function (error, body) {
-    res.json({success: 'done'})
+    var response = {success: 'done'}
+    if (error) {
+      response = {error: error}
+    }
+    res.json(response)
 
   });  
 })

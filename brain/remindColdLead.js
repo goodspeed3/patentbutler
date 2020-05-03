@@ -37,7 +37,7 @@ const main = async () => {
 
         //should send reminder
         let nextReminderSendTime = getNextReminderSendTime(recipient.lastTimeSent, numDaysForReminder)
-        console.log(`sending reminder for ${recipient.email} on ${nextReminderSendTime.toString()}, last sent ${recipient.lastTimeSent.toString()}`)
+        console.log(`${i+1}. Sending reminder ${recipient.numReminders+1} for ${recipient.email} on ${nextReminderSendTime.toString()}, last sent ${recipient.lastTimeSent.toString()}`)
 
         let subjectArray = [
         // 'Reminder: Increase patent prosecution efficiency', 
@@ -93,7 +93,7 @@ const main = async () => {
                 subject: subject,
                 template: templateName,
                 "h:X-Mailgun-Variables": JSON.stringify(templateVar),
-                "o:tag" : [templateName, subject, `hour-${timeToSend.getHours()}`],
+                "o:tag" : [templateName, subject, `hour-${nextReminderSendTime.getHours()}`],
                 "o:deliverytime": nextReminderSendTime.toUTCString(),
                 "t:text" : "yes"
             };
@@ -104,7 +104,6 @@ const main = async () => {
 
             await mg.messages().send(data)    
             recipient.numReminders++
-            recipient.reminderTimeSent = nextReminderSendTime
             recipient.lastTimeSent = nextReminderSendTime
             await datastore.save(recipient)
         } else {

@@ -105,6 +105,11 @@ class ClaimArgumentList extends Component {
   linkifySnippetBlock = (snippetObject) => {
     var regMappedCitations = [];
     var mappedCitations = {};
+    //need to sort by length descending so longest ones get linkified first which won't prevent shorter ones later prevent longer ones from getting linked
+    snippetObject.citationList.sort((a, b) => {
+      return (a.citation.length < b.citation.length) ? 1 : -1
+    })
+
     for (var i = 0; i < snippetObject.citationList.length; i++) {
       var citationObj = snippetObject.citationList[i];
       var escapedRegExp = citationObj.citation.replace(

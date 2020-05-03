@@ -1,15 +1,18 @@
 import React from 'react';
 import './LandingView.css'
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import Button from 'react-bootstrap/Button'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import { useAuth0 } from "../react-auth0-spa";
 import FooterView from './FooterView';
+import ReactGA from 'react-ga'
+import RequestDemoModal from './RequestDemoModal'
 
 function LandingView () {
     const { loginWithRedirect } = useAuth0();
+    const [modalShow, setModalShow] = React.useState(false);
 
     return (
     <div className='landing'>
@@ -17,9 +20,13 @@ function LandingView () {
             <div>
                 <h1 className='tagline'>The Fastest Way to Prosecute Patents</h1>
                 <h4 className='subTagline'>Upload an Office Action (.pdf), get a new experience.</h4>
-                <div className='cta'><Button onClick={loginWithRedirect}>Sign Up for Free</Button><Link style={{marginLeft: '1rem'}} to='/demo/TIs4K0RoB.pdf'><Button variant='outline-secondary'>Try a demo</Button></Link></div>
+                <div className='cta'><Button onClick={loginWithRedirect}>Sign Up for Free</Button><Button style={{marginLeft: '1rem'}} variant='outline-secondary' onClick={() => { ReactGA.modalview('/give-feedback');
+                setModalShow(true)} }>Request a demo</Button></div>
             </div>
-            <img className='landingImg' width='1200' alt='landingA' src={process.env.PUBLIC_URL + '/landingA.png'} />
+            <video className='landingImg' width='80%' autoPlay={true} loop={true} src='https://storage.googleapis.com/crafty-valve-269403.appspot.com/static/demo.mp4'>
+                <img className='landingImg' width='1200' alt='landingA' src={process.env.PUBLIC_URL + '/landingA.png'} />
+
+            </video>
         </div>    
         <div className='block2' id="features">
             <div >
@@ -75,7 +82,10 @@ function LandingView () {
             </div>
         </div>    
         <FooterView />
-
+        <RequestDemoModal
+                show={modalShow}
+                onHide={() => setModalShow(false)}
+            />
     </div>
     )
 }
