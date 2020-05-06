@@ -7,6 +7,7 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import Spinner from 'react-bootstrap/Spinner'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
+import ReactGA from 'react-ga'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
@@ -164,6 +165,11 @@ class PriorArtSubview extends Component {
   }
   
   rotatePage = () => {
+    ReactGA.event({
+      category: 'User',
+      action: 'Pressed Rotate'
+    });
+
     this.setState(prevState => {
       var changeObj = {}
       changeObj.rotation = (prevState.rotation + 90) % 360
@@ -175,15 +181,26 @@ class PriorArtSubview extends Component {
 
   previousPage = () => this.changePage(-1);
   nextPage = () => this.changePage(1);
-  changePage = offset => this.setState(prevState => ({
+  changePage = offset => {
+    ReactGA.event({
+      category: 'User',
+      action: 'Pressed changePage ' + offset
+    });
+
+    this.setState(prevState => ({
     pageNumber: prevState.pageNumber + offset,
     didFinishRenderingPage: false,
-  }));
+    }));
+  }
 
   zoomIn = () => this.changeZoom(0.25);
   zoomOut = () => this.changeZoom(-0.25);
   changeZoom = offset => {
-    var newState = {}
+    ReactGA.event({
+      category: 'User',
+      action: 'Pressed Zoom ' + offset
+    });
+  var newState = {}
     newState['scale'] = this.state.scale + offset
     if (newState['scale'] > this.state.fitScale) {
       newState['isScaleLocked'] = true
@@ -195,6 +212,11 @@ class PriorArtSubview extends Component {
     // console.log(newState)   
   }
   handlePageEntry = (event) => {
+    ReactGA.event({
+      category: 'User',
+      action: 'Typed in new page'
+    });
+
     let pageNo = parseInt(event.target.value)
     if ( isNaN(pageNo) || pageNo > this.state.numPages || pageNo <= 0) {
       

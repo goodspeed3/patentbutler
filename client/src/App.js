@@ -12,7 +12,7 @@ import BlogPostView from './components/BlogPostView';
 import DemoView from './components/DemoView';
 import AccountView from './components/AccountView';
 // import TermsView from './components/TermsView';
-// import PrivacyView from './components/PrivacyView';
+import PrivacyView from './components/PrivacyView';
 // import history from "./utils/history";
 import PrivateRoute from "./components/PrivateRoute";
 // import { Auth0Context } from "./react-auth0-spa";
@@ -64,8 +64,8 @@ class App extends Component {
           <Route path="/blog/:slug" component={BlogPostView} />
           {/* <Route exact path="/about" component={AboutView} /> */}
           <Route path="/demo/:filename?" component={DemoView} />
-          {/* <Route exact path="/terms" component={TermsView} />
-          <Route exact path="/privacy" component={PrivacyView} /> */}
+          {/* <Route exact path="/terms" component={TermsView} /> */}
+          <Route exact path="/privacy" component={PrivacyView} />
           <PrivateRoute path="/home" component={HomeView} />
           <PrivateRoute path="/view/:filename" component={OaOverview} />
           <Elements stripe={stripePromise}>

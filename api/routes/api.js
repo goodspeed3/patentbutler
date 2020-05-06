@@ -14,6 +14,7 @@ if (process.env.NODE_ENV === 'production') {
   stripe_creds.API = 'pk_test_MpfoAn9oikhl3tdNNjWebiuL00wv0FMfKP'
   stripe_creds.SECRET = 'sk_test_BFhRgj2bHzK53Gw86OIEHyOb00ImoOsA2Q'
   stripe_creds.SUBPLAN = 'plan_H6uQ5vOCcAs0wn'
+  stripe_creds.SUBENTERPRISEPLAN = 'plan_HDhPBo8UV07kJw'
 }
 
 const stripe = require('stripe')(stripe_creds.SECRET);

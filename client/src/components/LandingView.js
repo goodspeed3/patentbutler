@@ -20,10 +20,15 @@ function LandingView () {
             <div>
                 <h1 className='tagline'>The Fastest Way to Prosecute Patents</h1>
                 <h4 className='subTagline'>Upload an Office Action (.pdf), get a new experience.</h4>
-                <div className='cta'><Button onClick={loginWithRedirect}>Sign Up for Free</Button><Button style={{marginLeft: '1rem'}} variant='outline-secondary' onClick={() => { ReactGA.modalview('/give-feedback');
+                <div className='cta'><Button onClick={() => {         
+                    ReactGA.event({
+                        category: 'User',
+                        action: 'Pressed Top Signup for Free'
+                    });
+                    loginWithRedirect()}}>Sign Up for Free</Button><Button style={{marginLeft: '1rem'}} variant='outline-secondary' onClick={() => { ReactGA.modalview('/request-demo');
                 setModalShow(true)} }>Request a demo</Button></div>
             </div>
-            <video className='landingImg' width='80%' autoPlay={true} loop={true} src='https://storage.googleapis.com/crafty-valve-269403.appspot.com/static/demo.mp4'>
+            <video className='landingImg' width='80%' autoPlay={true} muted={true} loop={true} src='https://storage.googleapis.com/crafty-valve-269403.appspot.com/static/demo.mp4'>
                 <img className='landingImg' width='1200' alt='landingA' src={process.env.PUBLIC_URL + '/landingA.png'} />
 
             </video>
@@ -42,11 +47,17 @@ function LandingView () {
                     <Col md="1"><svg className="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg></Col>
                     <Col><b>Be a more efficient patent practitioner</b><br />PatentButler immediately identifies what the examiner is arguing so you can effectively respond.</Col>
                 </Row>
-                <Row>
+                <Row className='checkMarkRow'>
                     <Col md="1"><svg className="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg></Col>
                     <Col><b>Craft better arguments</b><br />PatentButler helps you understand applications more wholistically because all the case information is at your fingertips.</Col>
 
                 </Row>
+                <Row className='checkMarkRow'>
+                    <Col md="1"><svg className="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg></Col>
+                    <Col><b>Improve team-wide efficiency</b><br />Both handling and supervising team members can work off of the same processed office action, thereby doubling or tripling savings.</Col>
+
+                </Row>
+
             </Container>
             
             <img className='landingImg' width='1150' alt='landingB' src={process.env.PUBLIC_URL + '/landingB.png'} />
@@ -78,7 +89,12 @@ function LandingView () {
         <div className='block1'>
             <div>
                 <h1 className='secondTagline'>Ready to get started?</h1>
-                <div className='cta'><Button onClick={loginWithRedirect}>Sign Up for Free</Button></div>
+                <div className='cta'><Button onClick={() => {         
+                    ReactGA.event({
+                        category: 'User',
+                        action: 'Pressed Bottom Signup for Free'
+                    });
+            loginWithRedirect()}}>Sign Up for Free</Button></div>
             </div>
         </div>    
         <FooterView />

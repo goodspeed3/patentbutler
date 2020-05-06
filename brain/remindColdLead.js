@@ -9,7 +9,7 @@ const mg = mailgun({apiKey: api_key, domain: DOMAIN});
 
 
 const main = async () => {
-    let numDaysForReminder = 3;
+    let numDaysForReminder = 4;
     let maxReminders = 5;
 
     var sendCutoffDate = new Date()
@@ -117,6 +117,10 @@ const getNextReminderSendTime = (givenDate, numDaysToWait) => {
     let hourToSend = 9 + Math.floor(Math.random() * 5) //randomly send from 9am - 1pm
     var tempDate = new Date(givenDate)
     tempDate.setDate(tempDate.getDate() + numDaysToWait)
+    let currentTime = new Date().getTime()
+    if (tempDate.getTime() < currentTime) {
+        tempDate.setTime(currentTime)
+    }
     if (tempDate.getDay() >=5 || tempDate.getDay() == 0) {
         let numOfDaysUntilMonday = (tempDate.getDay() == 0) ? 0 : 7 - tempDate.getDay()
         tempDate.setDate(tempDate.getDate() + numOfDaysUntilMonday)

@@ -65,7 +65,7 @@ function RequestDemoModal (props) {
       >
         <Modal.Header closeButton>
           <Modal.Title id="contained-modal-title-vcenter">
-          Enter your email
+          Schedule a Demo
           </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit} validated={validated} style={{padding: '1rem'}}>
@@ -75,7 +75,7 @@ function RequestDemoModal (props) {
         </Alert>}
             <Form.Row>
             <Form.Label>Email</Form.Label>
-                <Form.Control style={{width: '100%'}} type="email" name='email' placeholder="name@email.com" value={email} onChange={handleChange} />
+                <Form.Control style={{width: '100%'}} type="email" name='email' placeholder="name@email.com" required value={email} onChange={handleChange} />
             </Form.Row>
         </Modal.Body>
         <Modal.Footer>

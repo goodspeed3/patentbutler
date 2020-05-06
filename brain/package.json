@@ -14,6 +14,7 @@
     "@google-cloud/language": "^3.8.0",
     "@google-cloud/storage": "^4.7.0",
     "@google-cloud/vision": "^1.11.0",
+    "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "csvtojson": "^2.0.10",
     "mailgun-js": "^0.22.0",

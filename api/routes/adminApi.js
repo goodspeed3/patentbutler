@@ -282,7 +282,7 @@ router.post('/mailgun', upload.none(), async function(req, res, next) {
   }
 
   if (verify(verification)) {
-    console.log("mailgun verified")
+    // console.log("mailgun verified")
 
     //query the right table
     var tags = req.body["event-data"].tags
@@ -294,15 +294,19 @@ router.post('/mailgun', upload.none(), async function(req, res, next) {
     const entityKey = datastore.key([table, req.body["event-data"].recipient]);
     const [entity] = await datastore.get(entityKey);
     if (entity) {
-      entity.clientInfo = JSON.stringify(req.body["event-data"]["client-info"])
+      if ((req.body["event-data"].event === 'failed' && req.body["event-data"].severity === 'permanent') || req.body["event-data"].event === 'unsubscribed') {
+        entity.shouldSkip = true;
+      } else {
+        entity.clientInfo = JSON.stringify(req.body["event-data"]["client-info"])
 
-      if (req.body["event-data"].event === 'opened') {
-        entity.numOpens++
-        entity.openTime = new Date(req.body["event-data"].timestamp * 1000)
-      } else if (req.body["event-data"].event === 'clicked') {
-        entity.numClicks++
-        entity.urlClicked = req.body["event-data"].url
-        entity.clickTime = new Date(req.body["event-data"].timestamp * 1000)
+        if (req.body["event-data"].event === 'opened') {
+          entity.numOpens++
+          entity.openTime = new Date(req.body["event-data"].timestamp * 1000)
+        } else if (req.body["event-data"].event === 'clicked') {
+          entity.numClicks++
+          entity.urlClicked = req.body["event-data"].url
+          entity.clickTime = new Date(req.body["event-data"].timestamp * 1000)
+        }  
       }
       await datastore.upsert(entity)  
     }
