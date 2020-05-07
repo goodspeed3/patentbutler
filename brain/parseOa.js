@@ -935,7 +935,7 @@ const saveObjectToDatastore = processedOaObject => {
       key: datastore.key(['processedOa', processedOaObject.filename]),
       data: processedOaObject,
     //testing
-    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'temp'],
+    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'temp', 'rejectionList[].claimArgumentList[].examinerBlob'],
 
     //   excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
     });
@@ -1030,7 +1030,7 @@ const temp = async () => {
         await datastore.save({
             key: datastore.key(['processedOa', keyname + '.pdf']),
             data: entity,
-            excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
+            excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'rejectionList[].claimArgumentList[].examinerBlob']
           });
           const [entity2] = await datastore.get(datastore.key(['oaUpload', keyname]));
           await datastore.save({

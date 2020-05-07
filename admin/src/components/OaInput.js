@@ -20,6 +20,8 @@ function OaInput (props) {
   const [show, setShow] = useState(false);
   const [validated, setValidated] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
+  const imgRef = React.useRef()
+
 
   // useTraceUpdate(props);
 
@@ -196,6 +198,30 @@ function OaInput (props) {
     setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
 
   }
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+  
+  const insertImg = async (rejectionIndex, claimArgIndex, e) => {
+    let rejection = rejectionList[rejectionIndex]
+    let claimArg = rejection.claimArgumentList[claimArgIndex]
+
+    let maxSize = 1040000
+    let img = imgRef.current.files[0]
+    if (img.size > maxSize) {
+      claimArg.examinerText = `Size: ${img.size} -- too big`
+    } else {
+      claimArg.examinerBlob = await getBase64(img)
+      claimArg.showEdit = false
+    }
+    setRejectionList(JSON.parse(JSON.stringify(rejectionList)))
+
+  }
   const highlightText = (claimRejection) => {
     var regMappedCitations = [];
     //need to sort by length descending so longest ones get linkified first which won't prevent shorter ones later prevent longer ones from getting linked
@@ -260,9 +286,12 @@ function OaInput (props) {
           </Form.Label>
           {
             (claimRejection.showEdit) ? 
-            <Form.Control required size='sm' as="textarea" rows="5"  value={claimRejection.examinerText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'examinerText')} />
+            <>
+              <input type="file" ref={imgRef} onChange={e => insertImg(rejectionIndex, index, e)} />
+                {(claimRejection.examinerBlob) ? <div className='examRemText'>Size: ~{claimRejection.examinerBlob.length * 3.0 / 4.0} bytes - {claimRejection.examinerBlob.substring(0,20)}... </div> : <Form.Control required size='sm' as="textarea" rows="5"  value={claimRejection.examinerText} onChange={(e) => changeClaimArg(rejectionIndex, index, e.target.value, 'examinerText')} />}
+            </>
             :
-            <div className='examRemText'>{highlightText(claimRejection)}</div>
+            (claimRejection.examinerBlob) ? <img src={claimRejection.examinerBlob} alt='oa' />: <div className='examRemText'>{highlightText(claimRejection)}</div>
           }
         </Form.Group>
         {/* <Form.Group md={2} as={Col}>

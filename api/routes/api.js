@@ -205,12 +205,14 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
   // use req.body.userEmail
   const processingOaQuery = datastore
     .createQuery('oaUpload')
+    .select(['filename', 'uploadTime', 'originalname'])
     .filter('user', '=', req.body.userEmail)
     .filter('processed', '=', false)
     .order('uploadTime');
 
     const finishedOaQuery = datastore
     .createQuery('processedOa')
+    .select(['filename', 'finishedProcessingTime', 'attyDocket', 'forDemo', 'mailingDate'])
     .filter('user', '=', req.body.userEmail)
     .order('finishedProcessingTime', {descending: true});
 
@@ -238,14 +240,14 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
     } else {
       responseObj.user = userEntity
     }
-    console.log(responseObj)
+    // console.log(responseObj)
   res.json(responseObj)
 });
 
 router.post('/getProcessedOa', checkJwt, upload.none(), async function(req, res, next) {
 
   const [entity] = await datastore.get(datastore.key(['processedOa', req.body.filename]));
-  console.log(entity)
+  // console.log(entity)
   res.json(
     {
       processedOa: entity

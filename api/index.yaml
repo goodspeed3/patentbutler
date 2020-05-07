@@ -1,5 +1,5 @@
 #to add index, gcloud datastore indexes create index.yaml
-
+#to clear unused indexes, datastore indexes cleanup
 indexes:
 
 - kind: oaUpload
@@ -20,6 +20,40 @@ indexes:
   - name: user
   - name: finishedProcessingTime
     direction: asc
+
+- kind: processedOa
+  properties:
+  - name: finishedProcessingTime
+  - name: attyDocket
+  - name: filename
+  - name: forDemo
+  - name: user
+
+- kind: oaUpload
+  properties:
+  - name: processed
+  - name: uploadTime
+  - name: filename
+  - name: originalname
+  - name: user
+ 
+- kind: oaUpload
+  properties:
+  - name: processed
+  - name: user
+  - name: uploadTime
+  - name: filename
+  - name: originalname
+
+- kind: processedOa
+  properties:
+  - name: user
+  - name: finishedProcessingTime
+    direction: desc
+  - name: attyDocket
+  - name: filename
+  - name: forDemo
+  - name: mailingDate
 
 - kind: processedOa
   properties:

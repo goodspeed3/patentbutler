@@ -31,3 +31,9 @@
 .breadcrumb {
     background-color: #ffffff;
 }
+
+.oaImage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }

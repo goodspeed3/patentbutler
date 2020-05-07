@@ -59,11 +59,13 @@ router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
   // use req.body.userEmail
   const processingOaQuery = datastore
     .createQuery('oaUpload')
+    .select(['filename', 'uploadTime', 'user', 'originalname'])
     .filter('processed', '=', false)
     .order('uploadTime');
 
     const finishedOaQuery = datastore
     .createQuery('processedOa')
+    .select(['filename', 'finishedProcessingTime', 'user', 'attyDocket', 'forDemo'])
     .order('finishedProcessingTime');
     
 
@@ -114,7 +116,7 @@ router.post('/saveOaObject', checkJwt, upload.none(), async function(req, res, n
   var processedOaEntity = {
     key: datastore.key(['processedOa', oaObject.filename]),
     data: oaObject,
-    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText']
+    excludeFromIndexes: ['textAnnotations', 'rejectionList[].blurb', 'rejectionList[].claimArgumentList[].examinerText', 'rejectionList[].claimArgumentList[].snippetText', 'rejectionList[].claimArgumentList[].examinerBlob']
   }
   const oaUploadKey = datastore.key(['oaUpload', oaObject.filename]);
   const [oaUploadEntity] = await datastore.get(oaUploadKey);
@@ -286,6 +288,7 @@ router.post('/mailgun', upload.none(), async function(req, res, next) {
 
     //query the right table
     var tags = req.body["event-data"].tags
+    // console.log(tags)
     var table = 'targetedOaRecipients'
     if (tags.some( t => t.includes("cold"))) { //when sending with template, make sure the template is named "cold" somewhere
       table = 'coldEmail'
@@ -295,19 +298,23 @@ router.post('/mailgun', upload.none(), async function(req, res, next) {
     const [entity] = await datastore.get(entityKey);
     if (entity) {
       if ((req.body["event-data"].event === 'failed' && req.body["event-data"].severity === 'permanent') || req.body["event-data"].event === 'unsubscribed') {
+        // console.log('permanently failed or unsubscribed')
         entity.shouldSkip = true;
       } else {
         entity.clientInfo = JSON.stringify(req.body["event-data"]["client-info"])
 
         if (req.body["event-data"].event === 'opened') {
+          // console.log('opened')
           entity.numOpens++
           entity.openTime = new Date(req.body["event-data"].timestamp * 1000)
         } else if (req.body["event-data"].event === 'clicked') {
+          // console.log('clicked')
           entity.numClicks++
           entity.urlClicked = req.body["event-data"].url
           entity.clickTime = new Date(req.body["event-data"].timestamp * 1000)
         }  
       }
+      // console.log(entity)
       await datastore.upsert(entity)  
     }
     res.sendStatus(200);

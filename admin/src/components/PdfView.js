@@ -255,6 +255,15 @@ function PdfView (props) {
                     }                    
                   </select>
                 }
+                {showPriorArt && <label className='rotateInput'>
+                <input
+                name="shouldRotate"
+                type="checkbox"
+                checked={(priorArtList[paToLoad].rotatedPages && priorArtList[paToLoad].rotatedPages.indexOf(pageNumber) >= 0) || false}
+                onChange={(e) => setRotate(e.target.checked)} />
+                Page Should Rotate
+              </label>}
+                
             </span>
           )
       }
@@ -310,6 +319,7 @@ function PdfView (props) {
             break;
           }
         }
+          
         setCitationObj({...citationObj})
         setShowCitationDiv(false)
       }
@@ -398,6 +408,22 @@ function PdfView (props) {
         }
         saveCitation(thisBoundingBox)
       }
+      const setRotate = (checkValue) => {
+        var pa = priorArtList[paToLoad]
+        if (!pa.rotatedPages) {
+          pa.rotatedPages = []
+        }
+        //if page doesn't exist and it's checked
+        if (pa.rotatedPages.indexOf(pageNumber) === -1 && checkValue) {
+          pa.rotatedPages.push(pageNumber)
+        } else if (pa.rotatedPages.indexOf(pageNumber) > -1 && !checkValue) {
+          //if page exists and it's not checked
+          pa.rotatedPages.splice(pa.rotatedPages.indexOf(pageNumber), 1)
+        }
+
+        setPriorArtList([...priorArtList])
+
+      }
 
       const generateOverlay = () => {
         if (!showPriorArt || priorArtList.length === 0 || !citationObj || !citationObj[priorArtList[paToLoad].abbreviation] || !didFinishRenderingPage) return
@@ -436,7 +462,7 @@ function PdfView (props) {
           dimensions.height = pdfDiv.scrollHeight
     
         }
-    
+        
         return <div className='overlay' style={dimensions} >
           {
             styleArray.map((styleObj, i) =>  (
@@ -469,6 +495,7 @@ function PdfView (props) {
         <div className='subviewHeader' id="subviewHeader">
         <div className="pageMetadata">{toggleElements()}</div>
           <div>
+            
             <button
               type="button"
               disabled={pageNumber <= 1}
@@ -502,6 +529,7 @@ function PdfView (props) {
                &nbsp; Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}   
           </div>      
         </div> 
+        {!didFinishRenderingPage && <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> }
         <div style={showPriorArt ? {cursor: 'crosshair'}: {cursor: 'default'}} className='pdfDiv' id="pdfDiv" onMouseDown={mouseDown} onMouseUp={mouseUp}>
           <Document
             file={pdfToLoad}
@@ -509,7 +537,6 @@ function PdfView (props) {
             cMapPacked={true}
             onLoadSuccess={onDocumentLoadSuccess}
           >
-            {!didFinishRenderingPage && <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> }
             <Page 
               pageNumber={pageNumber} 
               onLoadSuccess={onPageLoad}

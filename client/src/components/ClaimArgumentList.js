@@ -85,6 +85,11 @@ class ClaimArgumentList extends Component {
         <hr />        
         {claimArgumentObject.snippetList.map((snippetObject, index) => (
           <Container key={'snippetText' + index}>
+          {snippetObject.examinerBlob ?
+          <Row className='oaImage'>
+            <img src={snippetObject.examinerBlob} alt='oa'/>
+          </Row>   
+          :          
           <Row>
               {snippetObject.snippetText.length > 0 && 
               <Col >
@@ -95,6 +100,7 @@ class ClaimArgumentList extends Component {
                   {this.linkifySnippetBlock(snippetObject)}
               </Col>
           </Row>
+          }
           <hr />     
           </Container>   
         ))}

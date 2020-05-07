@@ -42,11 +42,13 @@ class PriorArtSubview extends Component {
     if(prevProps !== this.props){  
       let priorArt = this.getPriorArt(this.props.uiData);
       let pageToLoad = this.getPageToLoad(priorArt, decodeURIComponent(this.props.match.params.citation), prevProps.match.url !== this.props.match.url)
+      let rot = (priorArt.rotatedPages && priorArt.rotatedPages.indexOf(pageToLoad) > -1) ? 90 : 0
       var updateStateObj = {
         abbreviation: decodeURIComponent(this.props.match.params.abbreviation),
         citation: decodeURIComponent(this.props.match.params.citation),
         pageNumber: pageToLoad,
         priorArt: priorArt,
+        rotation: rot
       }
       if (!this.state.isScaleLocked) {
         //this is needed for when user drags pane
@@ -163,8 +165,9 @@ class PriorArtSubview extends Component {
         style.transform = "";
     });
   }
-  
-  rotatePage = () => {
+  rotateRight = () => this.rotatePage(90)
+  rotateLeft =  () => this.rotatePage(-90)
+  rotatePage = (offset) => {
     ReactGA.event({
       category: 'User',
       action: 'Pressed Rotate'
@@ -172,7 +175,7 @@ class PriorArtSubview extends Component {
 
     this.setState(prevState => {
       var changeObj = {}
-      changeObj.rotation = (prevState.rotation + 90) % 360
+      changeObj.rotation = (prevState.rotation + offset) % 360
       changeObj.scale = this.state.fitScale
       changeObj.isScaleLocked = false
       return changeObj 
@@ -377,9 +380,15 @@ class PriorArtSubview extends Component {
           <div>
             <button
               type="button"
-              onClick={this.rotatePage}
+              onClick={this.rotateLeft}
             >
-              Rotate
+              Rotate Left
+            </button>
+            <button
+              type="button"
+              onClick={this.rotateRight}
+            >
+              Rotate Right
             </button>
             <button
               type="button"
@@ -413,6 +422,7 @@ class PriorArtSubview extends Component {
 
           </div>      
         </div> 
+        {!this.state.didFinishRenderingPage && <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> }
         <div className='pdfDiv' id="pdfDiv" >
           <Document
             file={this.state.priorArt.cloudUrl}
@@ -421,7 +431,6 @@ class PriorArtSubview extends Component {
             onLoadSuccess={this.onDocumentLoadSuccess}
             loading=""
           >
-            {!this.state.didFinishRenderingPage && <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div> }
             <Page 
               loading=""
               pageNumber={pageNumber} 
