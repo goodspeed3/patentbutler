@@ -6,6 +6,7 @@ import PriorArtSubview from './PriorArtSubview.js';
 // import Container from 'react-bootstrap/Container';
 // import Row from 'react-bootstrap/Row';
 // import PrivateRoute from "./PrivateRoute";
+import FigureView from "./FigureView.js";
 import { Auth0Context } from "../react-auth0-spa";
 import AuthApi from './AuthApi'
 // import Alert from 'react-bootstrap/Alert'
@@ -31,6 +32,8 @@ class OaOverview extends Component {
       uiData: {},
       filename: this.props.match.params.filename,
       panePosition: '70%',
+      showFigs: false,
+      paForFigs: {}
     };
 
   }
@@ -75,6 +78,16 @@ class OaOverview extends Component {
     })
   }
 
+  handleFigs = (shouldShowFigs, pa = {}) => {
+    // localStorage.setItem('splitPos', size)
+    // console.log(pa)
+    this.setState({
+      showFigs: shouldShowFigs,
+      paForFigs: pa
+    })
+  }
+  
+
   render() {
     if (Object.keys(this.state.uiData).length === 0) {
       return <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div>
@@ -83,20 +96,25 @@ class OaOverview extends Component {
     return (
       <div className='row'>
           <div className='bookmark leftCol'>
-            <OaMetadata demo={this.props.demo} uiData={this.state.uiData} />
+          <OaMetadata demo={this.props.demo} uiData={this.state.uiData} /> 
+            
           </div>
           <div className='middleAndRightCol'>
           {/* {true && <Alert className='mb-0' variant='warning' style={{position: 'sticky', top: '0', zIndex: 10}}>Demo - <Alert.Link onClick={() => this.context.loginWithRedirect()}>Sign up for free.</Alert.Link></Alert>} */}
             <SplitPane 
               split="vertical" 
               defaultSize={this.state.panePosition} 
-              // onDragFinished = {size => this.handlePane(size)}
-              onChange={size => this.handlePane(size)} 
+              onDragFinished = {size => this.handlePane(size)}
+              // onChange={size => this.handlePane(size)} 
               maxSize={-200} 
               minSize={500}
             >
               <div className='middleCol'>
-                <ClaimArgumentList demo={this.props.demo} uiData={this.state.uiData} />
+              {this.state.showFigs ? 
+              <FigureView uiData={this.state.uiData} handleFigs={this.handleFigs} paForFigs={this.state.paForFigs} panePosition={this.state.panePosition}/>
+              : 
+              <ClaimArgumentList demo={this.props.demo} uiData={this.state.uiData} />
+              }                
               </div>
               <div className='rightCol'>
                 <Switch>
@@ -104,13 +122,13 @@ class OaOverview extends Component {
                       <PriorArtOverview demo={true} uiData={this.state.uiData} />
                   </Route>
                   <Route exact path={'/demo/:filename/:abbreviation/:citation'}>
-                    <PriorArtSubview demo={true} uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
+                    <PriorArtSubview demo={true} uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition} handleFigs={this.handleFigs}/>
                   </Route>
                   <Route exact path={'/view/:filename'}>
                       <PriorArtOverview uiData={this.state.uiData} />
                   </Route>
                   <Route path={'/view/:filename/:abbreviation/:citation'}>
-                      <PriorArtSubview uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}/>
+                      <PriorArtSubview uiData={this.state.uiData} handler={this.handlePane} panePosition={this.state.panePosition}  handleFigs={this.handleFigs}/>
                   </Route>
                 </Switch>
               </div> 

@@ -446,6 +446,7 @@ function OaInput (props) {
     //if not all citations have overlays...
     if (priorArtList) {
       var allOverlaysAdded = true
+      var allFigRangesAdded = true
       var citationOverlayNeeded = ''
       priorArtList.forEach((pa) => {
         pa.citationList.forEach((citation) => {
@@ -454,12 +455,19 @@ function OaInput (props) {
             citationOverlayNeeded = `${citation.abbreviation}: ${citation.citation}`
           }
         })
+        if (!pa.figureData || (pa.figureData && (!pa.figureData.startPage || !pa.figureData.endPage))) {
+          allFigRangesAdded = false
+        }
       })
       if (!allOverlaysAdded ) {
         allOverlaysAdded = false
         alert(citationOverlayNeeded + ' overlay still needed before notifying!')
       }
-      if (!allOverlaysAdded && document.activeElement.innerText !== 'Save')
+      if (!allFigRangesAdded ) {
+        allFigRangesAdded = false
+        alert('fig ranges still needed before notifying!')
+      }      
+      if ((!allOverlaysAdded || !allFigRangesAdded) && document.activeElement.innerText !== 'Save')
         return //don't save if you click notify and not all overlays are there
     }
 

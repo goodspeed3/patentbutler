@@ -160,7 +160,6 @@
 }
 
 .rotateInput {
-    display: block;
     text-indent: -15px;  
     font-size: 12px;
 }
@@ -175,4 +174,8 @@
     top: -1px;
     *overflow: hidden;
   
+}
+.figPage {
+    width: 40px;
+    height: 20px;
 }

@@ -3,7 +3,7 @@ import { withRouter } from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import './PriorArtOverview.css'
 import { Document, Page, pdfjs } from 'react-pdf';
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+pdfjs.GlobalWorkerOptions.workerSrc = process.env.PUBLIC_URL + '/pdf.worker.min.js'
 
 class PriorArtOverview extends Component {
   constructor(props) {

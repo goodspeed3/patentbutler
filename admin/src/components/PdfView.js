@@ -5,7 +5,7 @@ import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import Spinner from 'react-bootstrap/Spinner'
 
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+pdfjs.GlobalWorkerOptions.workerSrc = process.env.PUBLIC_URL + '/pdf.worker.min.js'
 
 function PdfView (props) {
     let { fileData, showPriorArt, setShowPriorArt, panePosition, downloadedData, priorArtList, setPriorArtList, rejectionList, citationObj, setCitationObj } = props
@@ -230,6 +230,22 @@ function PdfView (props) {
           return citObj.citation
         }
       }
+      const handleFigRange = (e) => {
+        let figPageNo = e.target.value
+        let figPageType = e.target.name
+
+        var selectedPa = priorArtList[paToLoad]
+        if (!selectedPa.figureData) {
+          selectedPa.figureData = { startPage: '2'}
+        }
+        if (figPageType === 'startPage') {
+          selectedPa.figureData.startPage = figPageNo
+        } else if (figPageType === 'endPage') {
+          selectedPa.figureData.endPage = figPageNo
+        }
+
+        setPriorArtList(JSON.parse(JSON.stringify(priorArtList)))
+      }
       const toggleElements = () => {
           return (
             <span>
@@ -255,14 +271,18 @@ function PdfView (props) {
                     }                    
                   </select>
                 }
-                {showPriorArt && <label className='rotateInput'>
+                {showPriorArt && <div><label className='rotateInput'>
                 <input
                 name="shouldRotate"
                 type="checkbox"
                 checked={(priorArtList[paToLoad].rotatedPages && priorArtList[paToLoad].rotatedPages.indexOf(pageNumber) >= 0) || false}
                 onChange={(e) => setRotate(e.target.checked)} />
-                Page Should Rotate
-              </label>}
+                Rotate Page
+              </label>
+                <input className='figPage' type='text' name='startPage' placeholder='start fig' value={(priorArtList[paToLoad].figureData && priorArtList[paToLoad].figureData.startPage)|| 2} onChange={handleFigRange} />
+                <input className='figPage' type='text' name='endPage' placeholder='end fig' value={(priorArtList[paToLoad].figureData && priorArtList[paToLoad].figureData.endPage) || ''} onChange={handleFigRange} />
+              </div>
+              }
                 
             </span>
           )

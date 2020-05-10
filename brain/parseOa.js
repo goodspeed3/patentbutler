@@ -285,7 +285,7 @@ const getOaObjectFromModel = async (firstPage, textAnnotations) => {
   //use second classifier to fill claimArgumentList and priorArtList
   //need to loop rejection....
   var batchResponses2 = {'102': [], '103': []}
-  const modelId2 = `TEN7427240628045479936`;
+  const modelId2 = `TEN5944958216315076608`;
 //   const scoreThreshold = 0.5
 
   // Get the full path of the model.

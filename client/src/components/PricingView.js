@@ -8,6 +8,10 @@ import Card from 'react-bootstrap/Card'
 import CardDeck from 'react-bootstrap/CardDeck'
 import FeedbackModal from './FeedbackModal'
 import ReactGA from 'react-ga'
+import Container from 'react-bootstrap/Container'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+
 
 function PricingView () {
     const [savingsPressed, setSavingsPressed] = useState(false)
@@ -21,75 +25,100 @@ function PricingView () {
             action: 'Pressed Include Potential Savings'
           });
     }
-    let numHoursSaved = 3
-    let moneySaved = numHoursSaved * 450
+    let hourlyRate = 400
+    let numHoursSaved = 2
+    let moneySavedIndividual = numHoursSaved * hourlyRate
+    let monthlyOa = 4
+    let moneySavedFirm = numHoursSaved * hourlyRate * monthlyOa
     return (
     <div className='pricing'>
         <div className='header'>Plans That Pay For Themselves</div>
         <div className="toggle"><ButtonGroup><Button onClick={toggleSavings} variant={savingsPressed ? 'outline-primary' : 'primary'}>Pricing</Button><Button onClick={toggleSavings} variant={savingsPressed ? 'primary' : 'outline-primary'}>Include Potential Savings<sup>*</sup></Button></ButtonGroup></div>
         <CardDeck className='cd'>
-            <Card style={{ width: '30rem' }}>
+            <Card style={{ width: '22rem' }}>
                 <Card.Body>
                 <Card.Title>Legal Professional</Card.Title>
                 <Card.Title className='pricingText'>
-                    <p>{!savingsPressed ? '$199' : <span style={{color: '#22BC66'}}>${moneySaved - 199}</span>}<span className='unit'>{savingsPressed && <span style={{color: '#22BC66'}}> saved </span>}/ Office Action</span></p>
+                    <p>{!savingsPressed ? '$199' : <span style={{color: '#22BC66'}}>${moneySavedIndividual - 199}</span>}<span className='unit'>{savingsPressed && <span style={{color: '#22BC66'}}> saved </span>}/ Office Action</span></p>
                 </Card.Title>
-                <Card.Text className='benefits'>
+                <Container className='benefits'>
+                <Row className='benefitsRow' >
+                <Col md='2'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                1st Office Action processed for free
-                </Card.Text>
-                <Card.Text className='benefits'>
+                </Col><Col >
+                1st Office Action processed for free</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                Convert Office Action into optimal reading form
-                </Card.Text>                
-                <Card.Text className='benefits'>
-                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                Unlimited § 102 and § 103 citation mappings
-                </Card.Text>                
-                <Card.Text className='benefits'>
-                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                Unlimited Prior Art processing
-                </Card.Text>      
-                <Card.Text className='benefits'>
-                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                Unlimited user access per office action
-                </Card.Text>                
-                <Card.Text className='benefits'>
-                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                2-day turnaround time
-                </Card.Text>                           
+                </Col><Col>
+                Convert Office Action into optimal reading form</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
+                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span></Col><Col>
+                Unlimited § 102 and § 103 citation mappings</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
+                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span></Col><Col>
+                Unlimited Prior Art processing</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
+                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span></Col><Col>
+                2-day turnaround time</Col>
+                </Row>
+                </Container>                           
                 </Card.Body>
                 <Card.Footer>
                 <Button onClick={loginWithRedirect}>Sign up</Button>
                 <br /><small>No credit card required</small>
                 </Card.Footer>
             </Card>
-{/*             
+            
             <Card style={{ width: '22rem' }}>
-                <Card.Body>
+            <Card.Body>
                 <Card.Title>Legal Enterprise</Card.Title>
                 <Card.Title className='pricingText'>
-                    <p>Contact Us</p>
+                    <p>{!savingsPressed ? '$399' : <span style={{color: '#22BC66'}}>${moneySavedFirm - 399}</span>}<span className='unit'> / user / month</span></p>
                 </Card.Title>
-                <Card.Text className='benefits'>
+                <Container className='benefits'>
+                <Row className='benefitsRow' >
+                <Col md='2'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                1st Office Action processed for free
-                </Card.Text>
-                <Card.Text className='benefits'>
+                </Col><Col >
+                Unlimited Office Action processing</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
                 <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                2-day turnaround time
-                </Card.Text>                
-                <Card.Text className='benefits'>
-                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span>
-                Unlimited Prior Art processing
-                </Card.Text>                           
+                </Col><Col>
+                Convert Office Action into optimal reading form</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
+                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span></Col><Col>
+                Unlimited § 102 and § 103 citation mappings</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
+                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span></Col><Col>
+                Unlimited Prior Art processing</Col>
+                </Row>
+                <Row className='benefitsRow'>
+                <Col md='2'>
+                <span className='marks'><svg fill="#22BC66" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/></svg></span></Col><Col>
+                2-day turnaround time</Col>
+                </Row>
+                </Container>                         
                 </Card.Body>
                 <Card.Footer>
                 <Button onClick={() => setModalShow(true)}>Contact Us</Button><br /><small>Reach out with any questions</small>
                 </Card.Footer>
-            </Card> */}
+            </Card>
         </CardDeck>
-        <small className='text-muted'><sup>*</sup>Savings assume {numHoursSaved} combined hours saved per Office Action by handling and supervising practitioners with an average $450 billable hour rate</small>
+        <small className='text-muted'><sup>*</sup>Savings assume {numHoursSaved} hours saved per OA with an average ${hourlyRate} billable hour rate and {monthlyOa} OAs / mo</small>
         <FeedbackModal
                 show={modalShow}
                 onHide={() => setModalShow(false)}

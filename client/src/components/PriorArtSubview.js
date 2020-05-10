@@ -9,7 +9,7 @@ import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import ReactGA from 'react-ga'
 
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
+pdfjs.GlobalWorkerOptions.workerSrc = process.env.PUBLIC_URL + '/pdf.worker.min.js'
 
 
 class PriorArtSubview extends Component {
@@ -39,9 +39,18 @@ class PriorArtSubview extends Component {
   };
 
   componentDidUpdate(prevProps){
-    if(prevProps !== this.props){  
+    if(prevProps.match.url !== this.props.match.url || prevProps.panePosition !== this.props.panePosition){  
+      // for (let prop in this.props) {
+      //   if (prevProps[prop] !== this.props[prop]) {
+      //     console.log (prop, "changed")
+      //     console.log(prevProps[prop])
+      //     console.log(this.props[prop])
+      //   }
+      // }
+
       let priorArt = this.getPriorArt(this.props.uiData);
       let pageToLoad = this.getPageToLoad(priorArt, decodeURIComponent(this.props.match.params.citation), prevProps.match.url !== this.props.match.url)
+
       let rot = (priorArt.rotatedPages && priorArt.rotatedPages.indexOf(pageToLoad) > -1) ? 90 : 0
       var updateStateObj = {
         abbreviation: decodeURIComponent(this.props.match.params.abbreviation),
@@ -189,10 +198,12 @@ class PriorArtSubview extends Component {
       category: 'User',
       action: 'Pressed changePage ' + offset
     });
+    let rot = (this.state.priorArt.rotatedPages && this.state.priorArt.rotatedPages.indexOf(this.state.pageNumber + offset) > -1) ? 90 : 0
 
     this.setState(prevState => ({
     pageNumber: prevState.pageNumber + offset,
     didFinishRenderingPage: false,
+    rotation: rot
     }));
   }
 
@@ -354,8 +365,10 @@ class PriorArtSubview extends Component {
       }
 
       return <select value={currentPAIndex} onChange={(e) => {
+        this.props.handleFigs(false) //close figs
         return this.setState({
           pageNumber: 1,
+          rotation: 0,
           priorArt: this.props.uiData.priorArtList[parseInt(e.target.value)]
         })}}>
       {this.props.uiData.priorArtList.map((paFile, index) => <option key={paFile.id || paFile.filename} value={index}>{paFile.abbreviation}, {paFile.publicationNumber}</option>)}
@@ -375,8 +388,8 @@ class PriorArtSubview extends Component {
       <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
         <div className="pageMetadata"><Link to={(this.props.demo ? '/demo/' + this.props.match.params.filename : '/view/' + this.props.match.params.filename)
-}>Prior Art Overview</Link>
-     &nbsp;| &nbsp; {this.generatePASelect()} | (Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'})</div>
+}><Button variant='link'>Prior Art Overview</Button></Link>
+     &nbsp;| <Button variant='link' onClick={(e) => this.props.handleFigs(true, this.state.priorArt)}>Show Figures</Button> | &nbsp; {this.generatePASelect()} | Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}</div>
           <div>
             <button
               type="button"
