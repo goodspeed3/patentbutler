@@ -26,7 +26,7 @@ function PricingView () {
           });
     }
     let hourlyRate = 400
-    let numHoursSaved = 2
+    let numHoursSaved = 1.5
     let moneySavedIndividual = numHoursSaved * hourlyRate
     let monthlyOa = 4
     let moneySavedFirm = numHoursSaved * hourlyRate * monthlyOa
@@ -81,7 +81,7 @@ function PricingView () {
             <Card.Body>
                 <Card.Title>Legal Enterprise</Card.Title>
                 <Card.Title className='pricingText'>
-                    <p>{!savingsPressed ? '$399' : <span style={{color: '#22BC66'}}>${moneySavedFirm - 399}</span>}<span className='unit'> / user / month</span></p>
+                    <p>{!savingsPressed ? '$399' : <span style={{color: '#22BC66'}}>${moneySavedFirm - 399}</span>}<span className='unit'>{savingsPressed && <span style={{color: '#22BC66'}}> saved </span>} / user / month</span></p>
                 </Card.Title>
                 <Container className='benefits'>
                 <Row className='benefitsRow' >

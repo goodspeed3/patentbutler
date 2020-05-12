@@ -10,8 +10,9 @@ import FooterView from './FooterView';
 
 import GhostContentAPI from '@tryghost/content-api'
 const blog = new GhostContentAPI({
-    url: 'https://blog.patentbutler.com',
-    key: 'dabb5e4bdd54d4c638b9bb10bc',
+    // url: 'https://blog.patentbutler.com',
+    url: 'http://138.197.219.179',
+    key: '3ff0d53296e208e2232f967187',
     version: "v3"
   });
   
@@ -51,7 +52,7 @@ function BlogView () {
                 <Card.Header as="h5" className='blogTitle'><Link to={`/blog/${p.slug}`}>{p.title}</Link></Card.Header>
                 <Card.Body>
                     {p.feature_image && <Link to={`/blog/${p.slug}`}><Card.Img style={{paddingBottom: "1rem"}} src={p.feature_image} /></Link>}
-                    <Card.Text className='blogExcerpt'>{p.excerpt}</Card.Text>
+                    <Card.Text className='blogExcerpt' dangerouslySetInnerHTML={{__html: p.excerpt}} ></Card.Text>
                 </Card.Body>
                 <Card.Footer className="text-muted"><small>{new Date(p.updated_at).toLocaleDateString('en-US', {
                     month: 'numeric',

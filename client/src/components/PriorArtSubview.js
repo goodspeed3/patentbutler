@@ -388,7 +388,7 @@ class PriorArtSubview extends Component {
       <div id="PAView" className="PAView">
         <div className='subviewHeader' id="subviewHeader">
         <div className="pageMetadata"><Link to={(this.props.demo ? '/demo/' + this.props.match.params.filename : '/view/' + this.props.match.params.filename)
-}><Button variant='link'>Prior Art Overview</Button></Link>
+}><Button variant='link' onClick={(e) => this.props.handleFigs(false)}>Prior Art Overview</Button></Link>
      &nbsp;| <Button variant='link' onClick={(e) => this.props.handleFigs(true, this.state.priorArt)}>Show Figures</Button> | &nbsp; {this.generatePASelect()} | Page {pageNumber || (numPages ? 1 : '--')} of {numPages || '--'}</div>
           <div>
             <button

@@ -11,8 +11,8 @@ import Image from 'react-bootstrap/Image'
 
 import GhostContentAPI from '@tryghost/content-api'
 const blog = new GhostContentAPI({
-    url: 'https://blog.patentbutler.com',
-    key: 'dabb5e4bdd54d4c638b9bb10bc',
+    url: 'http://138.197.219.179',
+    key: '3ff0d53296e208e2232f967187',
     version: "v3"
   });
   

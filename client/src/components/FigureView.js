@@ -4,6 +4,8 @@ import { Document, Page, pdfjs} from 'react-pdf'
 import Button from 'react-bootstrap/Button'
 import Spinner from 'react-bootstrap/Spinner'
 
+import LazyLoad from 'react-lazyload';
+
 pdfjs.GlobalWorkerOptions.workerSrc = process.env.PUBLIC_URL + '/pdf.worker.min.js'
 
 function FigureView (props) {
@@ -20,6 +22,7 @@ function FigureView (props) {
     const [didFinishRenderingPage, setDidFinishRenderingPage] = useState(false)
     const [figureTrayWidth, setFigureTrayWidth] = useState(0)
     const [miniFigHeight, setMiniFigHeight] = useState(0)
+
     const pdfDivRef = useRef(null)
     useEffect(() => {
 
@@ -37,7 +40,7 @@ function FigureView (props) {
     })
     
     useEffect(() => {
-        setRotation(props.paForFigs.rotatedPages.indexOf(pageNumber) > -1 ? 90 : 0)
+        setRotation((props.paForFigs.rotatedPages && props.paForFigs.rotatedPages.indexOf(pageNumber)) > -1 ? 90 : 0)
     }, [pageNumber])
 
     useEffect(() => {
@@ -164,6 +167,7 @@ function FigureView (props) {
           }
         </div>        
     }
+
     const pageContainesCites = (figPage) => {
         let citationList = priorArtFigures.citationList;
         for (let citation of citationList) {
@@ -175,6 +179,7 @@ function FigureView (props) {
         }
         return false
     }
+
     
     const generateTrayElements = () => {
         if (!priorArtFigures.figureData) return
@@ -189,22 +194,22 @@ function FigureView (props) {
             }
             elements.push(
                 <div className="smallFig" key={`tray_${figPage}`}  onClick={() => setPageNumber(figPage)}>
-                <Page                 
-                loading=""
-                
-                pageNumber={figPage} 
-                // onLoadSuccess={onPageLoad}
-                scale={0.2}
-                // onRenderSuccess={onRenderSuccessHandler}
-                rotate={(priorArtFigures.rotatedPages && priorArtFigures.rotatedPages.indexOf(figPage) > -1) ? 90 : 0}
-                
-                // customTextRenderer={this.makeTextRenderer("0030")}
-                >
-                    <div style={figStyle}>
-                    </div>
-                    {/* <Button variant='outline-info' className='pageNumFigureTray'>{figPage}</Button> */}
-                </Page>
-                </div>
+                    <LazyLoad overflow height="200" once scrollContainer="#figureTray">
+                        <Page                 
+                            loading=""                                    
+                            pageNumber={figPage} 
+                            // onLoadSuccess={onPageLoad}
+                            scale={0.2}
+                            // onRenderSuccess={onRenderSuccessHandler}
+                            rotate={(priorArtFigures.rotatedPages && priorArtFigures.rotatedPages.indexOf(figPage) > -1) ? 90 : 0}                                    
+                            // customTextRenderer={this.makeTextRenderer("0030")}
+                            >
+                                {/* {console.log(figPage)} */}
+                            <div style={figStyle} />
+                            {/* <Button variant='outline-info' className='pageNumFigureTray'>{figPage}</Button> */}
+                            </Page>                
+                    </LazyLoad>
+            </div>
             )
         }
 
@@ -240,7 +245,7 @@ function FigureView (props) {
             {generateOverlay()}
             </div>
 
-            <div className="figureTray" style={{width: figureTrayWidth}}>
+            <div id="figureTray" className="figureTray" style={{width: figureTrayWidth}}>
 
                 {
                     generateTrayElements()
