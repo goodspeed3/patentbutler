@@ -1,9 +1,7 @@
 .accountDiv {
     position: relative;
     top: 0.5rem;  
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    font-family: Inter, sans-serif;
   
   }
   .accountDiv > Button {
@@ -24,9 +22,7 @@
     position: absolute;
     right: 1rem;
     top: 0.5rem;  
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    font-family: Inter, sans-serif;
   
   }
 

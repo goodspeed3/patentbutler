@@ -24,7 +24,7 @@ function BlogView () {
         blog.posts
         .browse({limit: 10,})
         .then((posts_res) => {
-            console.log(posts_res)
+            // console.log(posts_res)
             setPosts(posts_res)
         })
         .catch((err) => {

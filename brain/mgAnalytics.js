@@ -51,13 +51,13 @@ const runMgAnalytics = async () => {
         reminderSubject: reminderSubjectTags,
         template: templateTags,
         hour: hourTags,
-        targeted: targetedTags
+        // targeted: targetedTags
     }
     for (let tagType in tagObj) {
         console.log(`------- Tag Type: ${tagType} ------`)
         for (let tagName of tagObj[tagType]) {
             var url = `/${DOMAIN}/tags/${encodeURIComponent(tagName)}/stats`
-            var res = await mg.get(url, {"event": ['delivered', 'opened', 'clicked'], "duration": '7d'}).catch(e => console.log(`skipping ${tagName}`))
+            var res = await mg.get(url, {"event": ['delivered', 'opened', 'clicked'], "duration": '14d'}).catch(e => console.log(`skipping ${tagName}`))
             if (res) {
                 console.log(res.tag + ' =>')
                 const totalObjs = {

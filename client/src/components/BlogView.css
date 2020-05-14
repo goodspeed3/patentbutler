@@ -1,10 +1,8 @@
 .blogTitle {
     /* font-weight: bold; */
     font-size: x-large;
-    font-family:  sans-serif;
 }
 .blogExcerpt, .blog p {
-    font-family:  sans-serif;
 }
 
 .singlePostTitle, .blog h1 {
@@ -25,7 +23,6 @@
     padding: 0.6rem;
 }
 .singlePostBody {
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans";
 }
 .singlePostBody h2, .singlePostBody h1 {    
     padding: 1rem;

@@ -118,6 +118,34 @@ function AccountView () {
     if (!user || Object.keys(pbUser).length === 0) {
         return <div style={{display: "flex", justifyContent: "center", marginTop: "1rem"}}><Spinner animation="border" /></div>
     }
+
+    var paymentElements;
+    if (pbUser.perUserPlan) {
+        paymentElements = <div>Legal Enterprise Plan</div>
+    } else if (!pbUser.customerId) {
+        paymentElements = <Container>
+        <Row>
+            <CardSection />
+        </Row>
+        <Row>
+            <Button style={{marginTop: '1rem'}} name='addCard' onClick={handleSubmit} disabled={!stripe || showLoading}>
+                Add Card
+            </Button> 
+        </Row>
+        </Container>
+    } else {
+        paymentElements = <Container>
+        <Row>* - {pbUser.last4}</Row>
+        {cardRowShow && <Row><CardSection style={{marginTop: '1.2em'}}/></Row>}
+        <Row><Button style={{marginTop: '1rem'}} size='sm' name='updateCard' onClick={(e) => {cardRowShow ? handleSubmit(e) : setCardRowShow(true)}} disabled={!stripe || showLoading}>
+            Update Card
+        </Button> 
+        <Button style={{marginTop: '1rem', marginLeft: '0.5rem'}} name='removeCard' size='sm' onClick={handleSubmit} disabled={!stripe || showLoading}>
+            Remove Payment Information
+        </Button></Row>
+    </Container>
+    }
+
     return (
     <div className='account'>
         <h1 className='header'>Account</h1>
@@ -139,29 +167,7 @@ function AccountView () {
             </tr>
             <tr>
             <td>Payment<br /><small className='text-muted'>Stored by Stripe and billed monthly</small></td>
-            <td>{!pbUser.customerId ? <Container>
-                <Row>
-                    <CardSection />
-                </Row>
-                <Row>
-                    <Button style={{marginTop: '1rem'}} name='addCard' onClick={handleSubmit} disabled={!stripe || showLoading}>
-                        Add Card
-                    </Button> 
-                </Row>
-                </Container>
-            :
-            <Container>
-                <Row>* - {pbUser.last4}</Row>
-                {cardRowShow && <Row><CardSection style={{marginTop: '1.2em'}}/></Row>}
-                <Row><Button style={{marginTop: '1rem'}} size='sm' name='updateCard' onClick={(e) => {cardRowShow ? handleSubmit(e) : setCardRowShow(true)}} disabled={!stripe || showLoading}>
-                    Update Card
-                </Button> 
-                <Button style={{marginTop: '1rem', marginLeft: '0.5rem'}} name='removeCard' size='sm' onClick={handleSubmit} disabled={!stripe || showLoading}>
-                    Remove Payment Information
-                </Button></Row>
-            </Container>
-            
-            } </td>
+            <td>{paymentElements} </td>
             <td>{ showLoading ? <Spinner animation="border" /> : null}</td>
             </tr>
         </tbody>

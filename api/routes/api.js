@@ -120,6 +120,8 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
       console.log('no credits to continue')
       res.json({ error: 'need to add payment'})
       return  
+    } else if (userEntity.perUserPlan) {
+      console.log('part of monthly plan')
     } else {
       await stripe.subscriptionItems.createUsageRecord(
         userEntity.subscriptionItemId,

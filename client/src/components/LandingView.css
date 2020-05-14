@@ -22,13 +22,11 @@
 .subTagline {
     margin-top: 1rem;
     color: #303235;
-    font-family: sans-serif;
+    font-family: Inter, sans-serif;
 }
 .cta {
     margin-top: 2rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    font-family: Inter, sans-serif;
 
 }
 .landingImg {
@@ -94,7 +92,7 @@
 }
 
 .checkMarkDivs {
-    font-family: sans-serif;
+    font-family: Inter, sans-serif;
     margin-top: 2.5rem;
     text-align: left;
 }
@@ -133,6 +131,7 @@
     font-size: 1.3rem;
     margin-top: 1.5rem;
     margin-bottom: 2.5rem;
+    font-family: Inter, sans-serif;
 }
 .testimonial {
     margin: 0 auto;
@@ -140,7 +139,7 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    font-family: 'Noto Serif', sans-serif;
+    font-family: Inter, sans-serif;
     margin-bottom: 4rem;
     font-size: 1.3rem;
 }

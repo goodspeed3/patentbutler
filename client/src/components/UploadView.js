@@ -44,14 +44,13 @@ function UploadView(props) {
     })
 
   }
-
   return (
     <Jumbotron>
         <h3>Upload an Office Action PDF</h3>
         <div style={{display: 'flex', justifyContent: 'center'}}>
         <Form>
             <Form.Group controlId="formGroupFile">
-            <Form.Control disabled={!Object.keys(props.pbUser).length>0 || (!props.pbUser.customerId && props.pbUser.oaCredits <= 0) || showLoading}
+            <Form.Control disabled={Object.keys(props.pbUser).length === 0 || (!props.pbUser.customerId && props.pbUser.oaCredits <= 0 && !props.pbUser.perUserPlan) || showLoading}
                 type="file"
                 onChange={handleUpload}
                 accept=".pdf"
