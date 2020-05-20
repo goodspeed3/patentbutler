@@ -26,7 +26,7 @@ function PricingView () {
           });
     }
     let hourlyRate = 400
-    let numHoursSaved = 1.5
+    let numHoursSaved = 0.5
     let moneySavedIndividual = numHoursSaved * hourlyRate
     let monthlyOa = 4
     let moneySavedFirm = numHoursSaved * hourlyRate * monthlyOa
@@ -118,7 +118,7 @@ function PricingView () {
                 </Card.Footer>
             </Card>
         </CardDeck>
-        <small className='text-muted'><sup>*</sup>Savings assume {numHoursSaved} hours saved per OA with an average ${hourlyRate} billable hour rate and {monthlyOa} OAs / mo</small>
+        <small className='text-muted'><sup>*</sup>Savings assume {numHoursSaved} minutes saved per OA with an average ${hourlyRate} billable hour rate and {monthlyOa} OAs / mo</small>
         <FeedbackModal
                 show={modalShow}
                 onHide={() => setModalShow(false)}

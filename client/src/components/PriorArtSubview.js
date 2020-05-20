@@ -295,14 +295,27 @@ class PriorArtSubview extends Component {
         styleObj.left = transformedCoord.x + "%"
         styleObj.width = transformedCoord.width + "%"
         styleObj.height = transformedCoord.height + "%"
-        if (citationBox.citation === this.state.citation) {
-          styleObj.backgroundColor = "#FF4241"
-          //store the farthest down highlighted element, b/c that's likely the start of the highlighted portion
-          styleObj.idName="focusHighlight"
+        if (true) {
+          styleObj.borderStyle = "solid"
+          if (citationBox.citation === this.state.citation) {
+            styleObj.borderColor = "#FF4241"
+            //store the farthest down highlighted element, b/c that's likely the start of the highlighted portion
+            styleObj.idName="focusHighlight"
+          } else {
+            styleObj.borderColor = "#FFE18F"
+          }
+  
         } else {
-          styleObj.backgroundColor = "#FFE18F"
+          if (citationBox.citation === this.state.citation) {
+            styleObj.backgroundColor = "#FF4241"
+            //store the farthest down highlighted element, b/c that's likely the start of the highlighted portion
+            styleObj.idName="focusHighlight"
+          } else {
+            styleObj.backgroundColor = "#FFE18F"
+          }
+          styleObj.opacity = "0.15"
+  
         }
-        styleObj.opacity = "0.15"
         styleObj.zIndex= "10"
         styleArray.push(styleObj)
 

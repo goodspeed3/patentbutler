@@ -14,6 +14,10 @@ function LandingView () {
     const { loginWithRedirect } = useAuth0();
     const [modalShow, setModalShow] = React.useState(false);
 
+    React.useEffect(() => {
+        window.scrollTo(0, 0)
+      }, [])
+      
     return (
     <div className='landing'>
         <div className='block1'>

@@ -108,7 +108,6 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
     return;
   }  
 
-  console.log('----uploading to cloud----')
 
 
   //decrease credits and increase processed
@@ -116,7 +115,7 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
   var [userEntity] = await datastore.get(userKey);
   userEntity.numOaProcessed = userEntity.numOaProcessed + 1
   if (userEntity.oaCredits <= 0) {
-    if (!userEntity.customerId) {
+    if (!userEntity.customerId && !userEntity.perUserPlan) {
       console.log('no credits to continue')
       res.json({ error: 'need to add payment'})
       return  
@@ -137,6 +136,7 @@ router.post('/upload', checkJwt, upload.single('file'), async function(req, res,
   if (userEntity.oaCredits > 0)
     userEntity.oaCredits = userEntity.oaCredits - 1
 
+  console.log('----uploading to cloud----')
 
   // Create a new blob in the bucket and upload the file data to Google CLoud.
   uploadBuffer(req.file.originalname, req.file.buffer).then(({cloudUrl, originalname, filename}) => {

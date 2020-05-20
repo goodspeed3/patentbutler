@@ -173,6 +173,7 @@ function OaInput (props) {
       snippetText: '', //onsubmit, will convert all snippets into snippetList, kept in this form for now due to ease of removal / addition
       examinerText: '',
       citationList: [],
+      showEdit: true,
       id: nanoid()
     })
     // addCitation(rejectionIndex, (addCitToNext ? claimArgIndex + 1 : claimArgIndex)) //has to be no citations      
@@ -459,11 +460,11 @@ function OaInput (props) {
           allFigRangesAdded = false
         }
       })
-      if (!allOverlaysAdded ) {
+      if (!allOverlaysAdded && sendEmail) {
         allOverlaysAdded = false
         alert(citationOverlayNeeded + ' overlay still needed before notifying!')
       }
-      if (!allFigRangesAdded ) {
+      if (!allFigRangesAdded && sendEmail) {
         allFigRangesAdded = false
         alert('fig ranges still needed before notifying!')
       }      

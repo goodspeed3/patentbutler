@@ -27,7 +27,7 @@ function FigureView (props) {
     useEffect(() => {
 
         setPriorArtFigures(props.paForFigs)
-        setPageNumber(2)
+        setPageNumber(parseInt(props.paForFigs.figureData.startPage))
         if (!props.paForFigs.rotatedPages) {
             setRotation(0)
         } else {

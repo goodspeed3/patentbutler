@@ -359,13 +359,25 @@ function PdfView (props) {
         //   customWidth = 25
         //   customHeight = 15
         // } 
-        var styleObj = {
-          left: dragRect.x + '%',
-          top: dragRect.y + '%',
-          width: customWidth + '%',
-          height: customHeight + '%',
-          backgroundColor: 'rgb(255,66,65,0.15)',
-        }
+        if (true) {
+          var styleObj = {
+            left: dragRect.x + '%',
+            top: dragRect.y + '%',
+            width: customWidth + '%',
+            height: customHeight + '%',
+            borderColor: 'rgb(255,66,65,1)',
+            borderStyle: 'solid'
+          }
+          } else {
+          var styleObj = {
+            left: dragRect.x + '%',
+            top: dragRect.y + '%',
+            width: customWidth + '%',
+            height: customHeight + '%',
+            backgroundColor: 'rgb(255,66,65,0.15)',
+          }
+          }
+
         var dimensions = {}
         dimensions.zIndex = "99" //this should be on top
         if (!isScaleLocked) {
@@ -466,7 +478,12 @@ function PdfView (props) {
             styleObj.left = citationBoxIndividual.boundingBox.x + "%"
             styleObj.width = citationBoxIndividual.boundingBox.width + "%"
             styleObj.height = citationBoxIndividual.boundingBox.height + "%"
-            styleObj.backgroundColor = "rgb(80,220,100, 0.15)"
+            if (true) {
+               styleObj.borderStyle = "solid"
+               styleObj.borderColor = "rgb(80,220,100, 1)"
+            } else {
+              styleObj.backgroundColor = "rgb(80,220,100, 0.15)"
+            }
             // styleObj.zIndex= "10"
             styleArray.push(styleObj)
   

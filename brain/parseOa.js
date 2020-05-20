@@ -317,7 +317,7 @@ const getOaObjectFromModel = async (firstPage, textAnnotations) => {
                   name: modelFullId2,
                   payload: payload2,
                   params: params2,
-              })
+              }).catch(e => console.log(e))
               batchResponses2[rejectionObj.type].push({'response': response,
                 'blurb': tempBlurb})    
                     

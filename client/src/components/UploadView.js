@@ -40,7 +40,11 @@ function UploadView(props) {
     AuthApi('/api/upload', getTokenSilently, formData)
     .then(res => {
         setShowLoading(false)
-        setUploadStatus({uploadedFilename: res.originalname})
+        if (res.error) {
+          setUploadStatus({error: true})
+        } else {
+          setUploadStatus({uploadedFilename: res.originalname})
+        }
     })
 
   }
@@ -63,7 +67,7 @@ function UploadView(props) {
         <Modal.Header closeButton>
           <Modal.Title>Uploaded Office Action</Modal.Title>
         </Modal.Header>
-        <Modal.Body>We will email you when we complete processing '{uploadStatus.uploadedFilename}'.</Modal.Body>
+        <Modal.Body>{uploadStatus.error ? "We are sincerely sorry, an error occurred.  Please email team@patentbutler.com for assistance." : `We will email you when we complete processing '${uploadStatus.uploadedFilename}'.`}</Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={handleClose}>
             Done

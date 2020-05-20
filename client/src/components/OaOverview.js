@@ -30,7 +30,6 @@ class OaOverview extends Component {
     this.state = {
       // uiData: this.props.uiData,
       uiData: {},
-      filename: this.props.match.params.filename,
       panePosition: '70%',
       showFigs: false,
       paForFigs: {}
@@ -39,8 +38,12 @@ class OaOverview extends Component {
   }
   componentDidMount() {
     var formData = new FormData();
+    var filename = this.props.match.params.filename
+    if (!filename.endsWith('.pdf')) {
+      filename = filename + '.pdf'
+    }
     if (this.props.demo) {
-      formData.append('filename', this.props.match.params.filename);
+      formData.append('filename', filename);
       fetch('/api/demo', {
         method: 'POST',
         body: formData
@@ -53,7 +56,6 @@ class OaOverview extends Component {
       })
 
     } else {
-      const filename = this.props.match.params.filename;
       formData.append('filename', filename);
   
       AuthApi('/api/getProcessedOa', this.context.getTokenSilently, formData)

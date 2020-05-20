@@ -61,8 +61,11 @@ const main = async () => {
             templateName = `cold-qvc-reminder-${recipient.numReminders}`
         }
 
-        if (recipient.numReminders >= 2) {
+        if (recipient.numReminders >= 2 && !recipient.template.includes("feedback")) {
             templateName = 'cold-tail-reminder'
+        } else if (recipient.template.includes("feedback") && recipient.numReminders >=2) {
+            console.log(`${recipient.email} is for feedback and has been sent a max of ${recipient.numReminders} `)
+            continue;
         }
 
         if (recipient.numReminders == maxReminders) {
