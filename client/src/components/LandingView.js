@@ -32,7 +32,7 @@ function LandingView () {
                     loginWithRedirect()}}>Sign Up for Free</Button><Button style={{marginLeft: '1rem'}} variant='outline-secondary' onClick={() => { ReactGA.modalview('/request-demo');
                 setModalShow(true)} }>Request a demo</Button></div>
             </div>
-            <video className='landingImg' width='80%' controls={true} autoPlay={true} muted={true} loop={true} src='https://storage.googleapis.com/crafty-valve-269403.appspot.com/static/demo.mp4' poster={process.env.PUBLIC_URL + '/landingA.png'}>
+            <video className='landingImg' width='80%' controls={true} autoPlay={false} muted={true} loop={true} src='https://storage.googleapis.com/crafty-valve-269403.appspot.com/static/demo.mp4' poster={process.env.PUBLIC_URL + '/landingA.png'}>
                 <img className='landingImg' width='1200' alt='landingA' src={process.env.PUBLIC_URL + '/landingA.png'} />
 
             </video>
