@@ -12,6 +12,7 @@ import { useAuth0 } from "../react-auth0-spa";
 import Button from 'react-bootstrap/Button'
 import FeedbackModal from './FeedbackModal'
 
+
 function HeaderView () {
     const location = useLocation();  
     const { isAuthenticated, loginWithRedirect, logout, loading, user } = useAuth0();
@@ -32,13 +33,21 @@ function HeaderView () {
 
    if (!loading && isAuthenticated) {
       component = (<div className='accountDiv'>
-        {landingLinks}
+        {landingLinks}       
+        <span className="dropdown">
         <Link to='/home'><Button size='sm' variant='link' >Home</Button></Link>
-        <Link to='/account'><Button size='sm' variant='link' >Account</Button></Link>
+        <div className="dropdown-content">
+          <Link to="/ids"><Button size='sm' variant='link' >Butler IDS</Button></Link>
+          <Link to="/oa"><Button size='sm' variant='link' >Butler OA</Button></Link>
+          <hr style={{height:"2px", margin: "0rem"}} />
+          <Link to='/account'><Button size='sm' variant='link' >Account</Button></Link>
+          <Button size='sm' variant='link' onClick={() => logout({
+      returnTo: window.location.origin })}>Log out</Button>                  
+        </div></span>
         <Button size='sm' variant='link' onClick={() => { ReactGA.modalview('/give-feedback');
         setModalShow(true)} }><u>Give Feedback</u></Button>
-        <Button size='sm' variant='info' onClick={() => logout({
-      returnTo: window.location.origin })}>Log out</Button>        
+
+        
         </div>
       ) 
     } else if (!loading && !isAuthenticated) {

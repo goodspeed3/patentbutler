@@ -275,10 +275,13 @@ router.post('/email', upload.none(), (req, res) => {
 })
 
 const addUser = async (email) => {
+  var listOfFreeDomains = ["gmail.com", "yahoo.com", "hotmail.com", "aol.com", "outlook.com"]
+  var firmData = listOfFreeDomains.includes(email.split("@")[1]) ? email : email.split("@")[1]
   var data = {
     createdDate: Date.now(),
     oaCredits: 1, //give every new user a free OA
-    numOaProcessed: 0
+    numOaProcessed: 0,
+    firm: firmData
   }
   const mailData = {
     from: email,
@@ -406,6 +409,131 @@ router.get('/get/:type/:filename', async function(req, res, next) {
       res.send(contents)
     });
 
+});
+
+
+router.post('/home/ids', checkJwt, upload.none(), async function(req, res, next) {
+  var promiseArray = []
+  //get list of datastore objects; get link rdy to show processed OA
+  // use req.body.userEmail
+  const idsQuery = datastore
+    .createQuery('clientMatter')
+    // .select(['filename', 'uploadTime', 'originalname'])
+    // .filter('user', '=', req.body.userEmail)
+    // .order('createTime');
+
+
+    promiseArray.push(datastore.runQuery(idsQuery))
+
+
+    //if no user yet, create one
+    const userKey = datastore.key(['user', req.body.userEmail]);
+    var [userEntity] = await datastore.get(userKey);
+    // console.log(userEntity)
+    if (!userEntity) { //save if new user
+      promiseArray.push(addUser(req.body.userEmail))
+    }
+
+
+    
+  let results = await Promise.all(promiseArray)
+  var responseObj = {
+    list: results[0] //order is preserved
+  }
+    if (promiseArray.length === 2) {
+      responseObj.user = results[1]
+    } else {
+      responseObj.user = userEntity
+    }
+    console.log(responseObj)
+  res.json(responseObj)
+});
+
+router.post('/home/ids/create', checkJwt, upload.none(), async function(req, res, next) {
+  var data = {
+    createdDate: Date.now(),
+    attyDocket: req.body.attyDocket,
+    email: req.body.userEmail,
+    firm: req.body.userFirm
+  }
+
+  try {
+    const idsQuery = datastore
+    .createQuery('clientMatter')
+    .filter('attyDocket', '=', req.body.attyDocket)
+    .filter('firm', '=', req.body.userFirm)
+    let result = await datastore.runQuery(idsQuery)
+
+    if (result[0].length === 0) {
+      //attorney docket yet exist, insert into the db
+      await datastore.insert({
+        key: datastore.key('clientMatter'),
+        data: data
+      })
+
+      const idsListQuery = datastore
+      .createQuery('clientMatter')  
+      let listResult = await datastore.runQuery(idsListQuery)
+      res.json({list: listResult})  
+
+    } else {
+      errorMsg = `'${req.body.attyDocket}' exists for your firm.  Please enter a unique attorney docket ID.`
+      res.json({error: errorMsg})  
+    }
+
+  } catch (e) {
+    var errorMsg=''
+    console.log(e)
+    errorMsg = 'Unknown error.  Please email team@patentbutler.com for assistance.'
+    res.json({error: errorMsg})
+  }
+
+});
+
+router.post('/idsMatter', checkJwt, upload.none(), async function(req, res, next) {
+  const userKey = datastore.key(['user', req.body.userEmail]);
+  var [userEntity] = await datastore.get(userKey);
+
+  const idsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', req.body.attyDocket)
+  .filter('firm', '=', userEntity.firm)
+  let result = await datastore.runQuery(idsQuery)
+  if (result[0].length === 0) {
+    res.json({error: 'Error: Attorney Docket not found.'})
+  } else {
+    res.json({
+      attyDocket: result[0][0],
+      user: userEntity
+    })
+
+  }
+});
+
+router.post('/updateIdsMatter', checkJwt, upload.none(), async function(req, res, next) {
+  const userKey = datastore.key(['user', req.body.userEmail]);
+  var [userEntity] = await datastore.get(userKey);
+
+  var updatedMatterData = JSON.parse(req.body.idsMatterData)
+  const idsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', updatedMatterData.attyDocket)
+  .filter('firm', '=', userEntity.firm)
+  let result = await datastore.runQuery(idsQuery)
+  if (result[0].length === 0) {
+    res.json({error: 'Error: Attorney Docket not found.'})
+  } else {
+    const updatedMatterEntity = {
+      key: result[0][0][datastore.KEY],
+      data: updatedMatterData,
+    };
+    
+    await datastore.upsert(updatedMatterEntity)
+    res.json({
+      success: true
+    })
+
+  }
 });
 
 module.exports = router;

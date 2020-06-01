@@ -114,6 +114,30 @@ const temp = async () => {
 }
 // temp()
 
+const temp2 = async () => {
+    const query = datastore.createQuery('user')
+    const [users] = await datastore.runQuery(query);
+    console.log(users.length + ' users...');
+    var entities = []
+    var listOfFreeDomains = ["gmail.com", "yahoo.com", "hotmail.com", "aol.com", "outlook.com"]
+  
+    for (var i=0; i<users.length; i++) {
+        var user = users[i]
+        var firmData = listOfFreeDomains.includes(user[datastore.KEY].name.split("@")[1]) ? user[datastore.KEY].name : user[datastore.KEY].name.split("@")[1]        
+        user.firm = firmData
+        entities.push(user)
+
+        if (entities.length >= 500 || i == users.length - 1) {
+            await datastore.upsert(entities)
+            console.log(`at ${i}, saved ${entities.length} to cloud`)
+            console.log(entities)
+
+            entities = []
+        }
+    
+    }
+}
+temp2()
 
 const getNextWeekdayAM = () => {
     var rightNow = new Date()
@@ -168,4 +192,4 @@ const getOAFromPTO = async () => {
 
 }
 
-getOAFromPTO()
+// getOAFromPTO()

@@ -31,7 +31,13 @@ class OaMetadata extends Component {
           metadata.rejectionList.map( (element) => {
             // let prefix = (this.props.demo ? '/demo' : '/view/' + metadata.filename)
             let prefix = this.props.location.pathname
-            return (<div className="rejectionType" key={element.id}><Link to={prefix+'#' +element.typeText}>{element.typeText}</Link></div>)
+            return (<div className="rejectionType" key={element.id}><Link to={prefix+'#' +element.typeText}>{element.typeText}</Link>
+            {/* {
+              element.type === '102' || element.type === '103'
+              &&
+              element
+            } */}
+            </div>)
           })
         }
         {/* //link should work, not in dev b/c request is proxied to server.  localhost:3001/.... should work */}

@@ -3,6 +3,8 @@ import { Router, Route, Switch } from 'react-router-dom';
 import './App.css';
 import OaOverview from './components/OaOverview';
 import HomeView from './components/HomeView';
+import IdsView from './components/IdsView';
+import IdsMatterView from './components/IdsMatterView';
 import LandingView from './components/LandingView';
 import PricingView from './components/PricingView';
 import HeaderView from './components/HeaderView';
@@ -67,6 +69,8 @@ class App extends Component {
           {/* <Route exact path="/terms" component={TermsView} /> */}
           <Route exact path="/privacy" component={PrivacyView} />
           <PrivateRoute path="/home" component={HomeView} />
+          <PrivateRoute exact path="/ids" component={IdsView} />
+          <PrivateRoute exact path="/ids/view/:attyDocket" component={IdsMatterView} />
           <PrivateRoute path="/view/:filename" component={OaOverview} />
           <Elements stripe={stripePromise}>
             <PrivateRoute path="/account" component={AccountView} />

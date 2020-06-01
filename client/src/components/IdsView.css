@@ -1,0 +1,18 @@
+.idsList {
+    padding: 1rem;
+    text-align: left;
+}
+.columnHeader {
+    font-size: larger;
+    font-weight: bold;
+    text-decoration: underline;
+}
+.idsTable {
+    margin-top: 1rem;
+}
+.idsColumn {
+    float: left;
+    width: 65%;
+    padding-left: 1rem;
+}
+
