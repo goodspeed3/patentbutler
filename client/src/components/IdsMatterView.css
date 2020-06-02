@@ -5,3 +5,11 @@
 .buttonElements {
     text-align: right;
 }
+.idsTable {
+    width: 100%;
+    padding: 1rem;
+}
+
+.idsTable h4 {
+    margin-top: 1rem;
+}

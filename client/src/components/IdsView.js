@@ -59,7 +59,7 @@ function IdsView() {
       return ;
     }
     //first element is the list, second element is cursor data
-    return <Table className='idsTable' bordered hover>
+    return <Table className='idsTable' striped bordered hover>
       <thead>
         <tr>
           <th>Attorney Docket</th>
@@ -90,7 +90,7 @@ function IdsView() {
   } else {
     elementsToShow = <div className='idsList'>
     <div className='idsColumn'>
-    <Button variant="success" onClick={() => setShowCreateMatter(true)}>Create Attorney Docket</Button>
+    <Button variant="success" onClick={() => setShowCreateMatter(true)}>Create Attorney Docket ID</Button>
 
       {/* <div className='columnHeader'>Attorney Docket</div> */}
       {showIds()}
@@ -104,7 +104,7 @@ function IdsView() {
         {elementsToShow}
         <Modal show={showCreateMatter} onHide={() => setShowCreateMatter(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Create New Attorney Docket</Modal.Title>
+          <Modal.Title>Create New Attorney Docket ID</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {errorMsg!=='' && 

@@ -201,7 +201,7 @@ const insertProcessedOaObject = processedOaObject => {
 
 /* GET home page. */
 //need upload.non() to handle POST multipart form
-router.post('/home', checkJwt, upload.none(), async function(req, res, next) {
+router.post('/home/oa', checkJwt, upload.none(), async function(req, res, next) {
   var promiseArray = []
   //get list of datastore objects; get link rdy to show processed OA
   // use req.body.userEmail

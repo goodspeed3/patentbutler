@@ -35,7 +35,7 @@ function HeaderView () {
       component = (<div className='accountDiv'>
         {landingLinks}       
         <span className="dropdown">
-        <Link to='/home'><Button size='sm' variant='link' >Home</Button></Link>
+        <Link to='/home'><Button size='sm' variant='link' ><span role="img" aria-label="settings">⚙️</span></Button></Link>
         <div className="dropdown-content">
           <Link to="/ids"><Button size='sm' variant='link' >Butler IDS</Button></Link>
           <Link to="/oa"><Button size='sm' variant='link' >Butler OA</Button></Link>
