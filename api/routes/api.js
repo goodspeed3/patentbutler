@@ -494,20 +494,34 @@ router.post('/idsMatter', checkJwt, upload.none(), async function(req, res, next
   const userKey = datastore.key(['user', req.body.userEmail]);
   var [userEntity] = await datastore.get(userKey);
 
+  var promiseArray = []
+
   const idsQuery = datastore
   .createQuery('clientMatter')
   .filter('attyDocket', '=', req.body.attyDocket)
   .filter('firm', '=', userEntity.firm)
-  let result = await datastore.runQuery(idsQuery)
-  if (result[0].length === 0) {
+  promiseArray.push(datastore.runQuery(idsQuery))
+
+  const firmDataQuery = datastore
+  .createQuery('clientMatter')
+  .select(['attyDocket'])
+  .filter('firm', '=', userEntity.firm)  
+  promiseArray.push(datastore.runQuery(firmDataQuery))
+
+  let results = await Promise.all(promiseArray)
+  if (results[0][0].length === 0) {
     res.json({error: 'Error: Attorney Docket not found.'})
   } else {
-    res.json({
-      attyDocket: result[0][0],
-      user: userEntity
-    })
+    var responseObj = {
+      attyDocket: results[0][0][0],
+      user: userEntity,
+      firmData: results[1][0]
+    }
+    console.log(responseObj)
+    res.json(responseObj)
 
   }
+
 });
 
 router.post('/updateIdsMatter', checkJwt, upload.none(), async function(req, res, next) {

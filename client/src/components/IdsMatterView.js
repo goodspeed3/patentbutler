@@ -14,16 +14,19 @@ import Button from 'react-bootstrap/Button'
 // import Form from 'react-bootstrap/Form'
 import AuthApi from './AuthApi'
 import { useAuth0 } from "../react-auth0-spa";
-import Card from 'react-bootstrap/Card'
 import Form from 'react-bootstrap/Form'
 import { nanoid } from 'nanoid'
+import Autosuggest from 'react-autosuggest';
 
 
 function IdsMatterView() {
   const { getTokenSilently, user } = useAuth0();
   const [idsMatterData, setIdsMatterData] = useState(null)
+  const [firmData, setFirmData] = useState(null)
   // const [pbUser, setPbUser] = useState({})
   const [matterSaved, setMatterSaved] = useState(true)
+  const [suggestions, setSuggestions] = useState([])
+  const [suggestedValue, setSuggestedValue] = useState('')
   let { attyDocket } = useParams();
   const [errorMsg, setErrorMsg] = useState('')
   const [validated, setValidated] = useState(false);
@@ -60,7 +63,9 @@ function IdsMatterView() {
           }
         }
         // console.log(res.attyDocket)
-        setIdsMatterData(removeEmptyRowsExceptOne(res.attyDocket))
+        let tempObj = removeEmptyRowsExceptOne(res.attyDocket)
+        setIdsMatterData(tempObj)
+        setFirmData(filterFirmData(tempObj, res.firmData)) //used for autocomplete
       }
 
     })  
@@ -81,7 +86,13 @@ function IdsMatterView() {
     }, 1000); //every 1 sec 
     return () => clearTimeout(timer);
   }, [idsMatterData]);
-
+  function filterFirmData(tempObj, firmDataObj) {
+    var listOfSuggestionsToExclude = [decodeURIComponent(attyDocket)]
+    if (tempObj.idsSync) {
+      listOfSuggestionsToExclude = listOfSuggestionsToExclude.concat(tempObj.idsSync)
+    }
+    return firmDataObj.filter(e => !listOfSuggestionsToExclude.includes(e.attyDocket))
+  }
   function removeEmptyRowsExceptOne(attyDocketObj) {
     //iterate over all entries of obj
     var keys = Object.keys(attyDocketObj.idsData)
@@ -339,19 +350,71 @@ number(s), publisher, city and/or country where published.</th>
     event.stopPropagation();
 
   };
+  function getSuggestions(userInput) {
+    const inputValue = userInput.trim().toLowerCase();
+    const inputLength = inputValue.length;
 
+    return inputLength === 0 ? [] : firmData.filter(attyDocketEntity =>
+      attyDocketEntity.attyDocket.toLowerCase().slice(0, inputLength) === inputValue
+    );
+  
+  }
+  function onSuggestionsFetchRequested({value}) {
+    setSuggestions(getSuggestions(value))
+  }
+  function onSuggestionsClearRequested() {
+    setSuggestions([])
+  }
+  function getSuggestionValue(suggestion) {
+    return suggestion.attyDocket
+  }
+  function renderSuggestion(suggestion) {
+    return <span>{suggestion.attyDocket}</span>
+  }
+  function onSuggestionSelected(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) {
+    if (!idsMatterData.idsSync) {
+      idsMatterData.idsSync = []
+    }
+    idsMatterData.idsSync.push(suggestionValue)
+    setFirmData(filterFirmData(idsMatterData, firmData))
+    setIdsMatterData(JSON.parse(JSON.stringify(idsMatterData)))
+  }
 
+  function onSuggestionChange(event, { newValue }) {
+    setSuggestedValue(newValue)
+  }
+
+  function removeIdsSync (docketId) {
+    idsMatterData.idsSync = idsMatterData.idsSync.filter(e => e !== docketId)
+    setIdsMatterData(JSON.parse(JSON.stringify(idsMatterData)))
+    firmData.push({attyDocket: docketId}) //re-add it to suggestion list
+    setFirmData(firmData) 
+  }
   function idsSyncElements() {
-    return   <Card>
-    <Card.Header as="h5">IDS Sync</Card.Header>
-    <Card.Body>
-      {/* <Card.Title>Info Card Title</Card.Title> */}
-      <Card.Text>
-        Cross-cite all references for the following matters:
-      </Card.Text>
-    </Card.Body>
-  </Card>
-
+    return   <div className="idsDiv">
+    <h5>IDS Sync</h5>
+    <div className='idsBody'>
+      <p>Cross-cite all references for the following matters:<br/><small className='text-muted'>Note: added cases will also sync with {decodeURIComponent(attyDocket)}</small></p>
+      <ul>
+        {idsMatterData.idsSync && 
+          idsMatterData.idsSync.map(e => <li key={e}>{e} <Button variant="link" size="sm" onClick={() => removeIdsSync(e)}>Remove</Button></li>)
+        }
+      </ul>
+      <Autosuggest
+        suggestions={suggestions}
+        onSuggestionsFetchRequested={onSuggestionsFetchRequested}
+        onSuggestionsClearRequested={onSuggestionsClearRequested}
+        getSuggestionValue={getSuggestionValue}
+        renderSuggestion={renderSuggestion}
+        onSuggestionSelected={onSuggestionSelected}
+        inputProps={{
+          placeholder: 'Enter a related attorney docket ID',
+          value: suggestedValue,
+          onChange: onSuggestionChange
+        }}
+      />
+    </div>
+    </div>
   }
   var elements = <></>;
   if (errorMsg !== '') {
