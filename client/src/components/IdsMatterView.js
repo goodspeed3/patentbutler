@@ -17,6 +17,8 @@ import { useAuth0 } from "../react-auth0-spa";
 import Form from 'react-bootstrap/Form'
 import { nanoid } from 'nanoid'
 import Autosuggest from 'react-autosuggest';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
+import Tooltip from 'react-bootstrap/Tooltip'
 
 
 function IdsMatterView() {
@@ -26,6 +28,7 @@ function IdsMatterView() {
   // const [pbUser, setPbUser] = useState({})
   const [matterSaved, setMatterSaved] = useState(true)
   const [suggestions, setSuggestions] = useState([])
+  const [showIdsSyncSpinner, setShowIdsSyncSpinner] = useState(false)
   const [suggestedValue, setSuggestedValue] = useState('')
   let { attyDocket } = useParams();
   const [errorMsg, setErrorMsg] = useState('')
@@ -49,27 +52,15 @@ function IdsMatterView() {
       } else {
         setErrorMsg('')
         // setPbUser(res.user)
+
         // console.log(res)
-        //check if it's a new attyDocket id
-        if (!res.attyDocket.metadata) {
-          res.attyDocket.metadata = {            
-          }
-        }
-        if (!res.attyDocket.idsData) {
-          res.attyDocket.idsData = {           
-            usPatents: [] ,
-            foreignPatents: [],
-            nonPatentLiterature: []
-          }
-        }
-        // console.log(res.attyDocket)
         let tempObj = removeEmptyRowsExceptOne(res.attyDocket)
         setIdsMatterData(tempObj)
         setFirmData(filterFirmData(tempObj, res.firmData)) //used for autocomplete
       }
 
     })  
-  }, [user]);
+  }, [user, attyDocket]);
   useEffect(() => {
     if (!idsMatterData) return
     setMatterSaved(false)
@@ -78,7 +69,7 @@ function IdsMatterView() {
       var formData = new FormData();
       formData.append('userEmail', user.email);
       formData.append('idsMatterData', JSON.stringify(idsMatterData));
-    
+      // console.log(idsMatterData)
       AuthApi('/api/updateIdsMatter', getTokenSilently, formData)
       .then(res => {
         setMatterSaved(true)
@@ -183,7 +174,7 @@ function IdsMatterView() {
   function citeContainsText(obj) {
     var keys = Object.keys(obj)
     for (var key of keys) {
-      if (key !== "id" && typeof obj[key] === 'string' && obj[key].length > 0) {
+      if (key !== "id" && key !== "src" && typeof obj[key] === 'string' && obj[key].length > 0) {
         return true
       }
     }
@@ -201,11 +192,22 @@ function IdsMatterView() {
         patent.usDocName = ""
         patent.usDocNotes = ""
         patent.cited = false
+        patent.src = attyDocket
       }
 
       return <tr key={patent.id}>
         <td><Form.Check aria-label="cited" name="cited" checked={patent.cited} onChange={(e) => updateIds(e, i, 'usPatents', true)}/></td>
-        <td>{citeContainsText(patent) ? i+1 : ""}</td>
+        <td>
+        <OverlayTrigger
+            placement={'top'}
+            overlay={
+            <Tooltip id={`tooltip-top`}>
+              {patent.src!==attyDocket ? <span>Imported from <strong>{patent.src}</strong></span> : <span>Added here</span>} <small>{patent.id}</small>
+            </Tooltip>
+            }
+          >
+          <div className="importTooltip" style={patent.src!==attyDocket ? {color: "#dfa700"} : {}}>{citeContainsText(patent) ? i+1 : ""}</div></OverlayTrigger>
+        </td>
         <td><Form.Control type="text" name="usDocNumber" value={patent.usDocNumber} onChange={(e) => updateIds(e, i, 'usPatents')} /></td>
         <td><Form.Control type="text" name="usDocPubDate" value={patent.usDocPubDate} onChange={(e) => updateIds(e, i, 'usPatents')} /></td>
         <td><Form.Control type="text" name="usDocName" value={patent.usDocName} onChange={(e) => updateIds(e, i, 'usPatents')} /></td>
@@ -227,12 +229,23 @@ function IdsMatterView() {
         patent.foreignDocNotes = ""
         patent.translation = false
         patent.cited = false
+        patent.src = attyDocket
       }
 
       return <tr key={patent.id}>
         <td><Form.Check type="checkbox" aria-label="cited" name="cited" checked={patent.cited} onChange={(e) => updateIds(e, i, 'foreignPatents', true)} /></td>
-        <td>{citeContainsText(patent) ? i+1 : ""}</td>
-        <td><Form.Control type="text" name="foreignDocNumber" value={patent.usDocNumber} onChange={(e) => updateIds(e, i, 'foreignPatents')} /></td>
+        <td>
+        <OverlayTrigger
+            placement={'top'}
+            overlay={
+            <Tooltip id={`tooltip-top`}>
+              {patent.src!==attyDocket ? <span>Imported from <strong>{patent.src}</strong></span> : <span>Added here</span>}
+            </Tooltip>
+            }
+          >
+          <div className="importTooltip" style={patent.src!==attyDocket ? {color: "#dfa700"} : {}}>{citeContainsText(patent) ? i+1 : ""}</div></OverlayTrigger>          
+        </td>
+        <td><Form.Control type="text" name="foreignDocNumber" value={patent.foreignDocNumber} onChange={(e) => updateIds(e, i, 'foreignPatents')} /></td>
         <td><Form.Control type="text" name="foreignDocPubDate" value={patent.foreignDocPubDate} onChange={(e) => updateIds(e, i, 'foreignPatents')} /></td>
         <td><Form.Control type="text" name="foreignDocName" value={patent.foreignDocName} onChange={(e) => updateIds(e, i, 'foreignPatents')} /></td>
         <td><Form.Control type="text" name="foreignDocNotes" value={patent.foreignDocNotes} onChange={(e) => updateIds(e, i, 'foreignPatents')} /></td>
@@ -253,11 +266,22 @@ function IdsMatterView() {
         npl.citation = ""
         npl.translation = false
         npl.cited = false
+        npl.src = attyDocket
       }
 
       return <tr key={npl.id}>
         <td><Form.Check type="checkbox" aria-label="cited" name="cited" checked={npl.cited} onChange={(e) => updateIds(e, i, 'nonPatentLiterature', true)} /></td>
-        <td>{citeContainsText(npl) ? i+1 : ""}</td>
+        <td>
+        <OverlayTrigger
+            placement={'top'}
+            overlay={
+            <Tooltip id={`tooltip-top`}>
+              {npl.src && npl.src!==attyDocket ? <span>Imported from <strong>{npl.src}</strong></span> : <span>Added here</span>}
+            </Tooltip>
+            }
+          >
+          <div className="importTooltip" style={npl.src!==attyDocket ? {"color": "#dfa700"} : {}}>{citeContainsText(npl) ? i+1 : ""}</div></OverlayTrigger>          
+        </td>
         <td><Form.Control type="text" name="citation" value={npl.citation} onChange={(e) => updateIds(e, i, 'nonPatentLiterature')} /></td>
         <td><Form.Check type="checkbox" aria-label="foreign translation" name="translation" checked={npl.translation} onChange={(e) => updateIds(e, i, 'nonPatentLiterature', true)} /></td>
       </tr>
@@ -273,7 +297,7 @@ function IdsMatterView() {
   }
   function citeListElements() {
     return <div className="idsTable">
-      <Button variant="secondary" style={{marginBottom: "1rem"}}>Import 892, ISR, or IDS</Button>
+      <Button variant="outline-secondary" style={{marginBottom: "1rem"}}>Import 892, ISR, or IDS</Button>
       <h4>US Patents</h4>
       <Table bordered hover >
         <thead>
@@ -331,7 +355,7 @@ number(s), publisher, city and/or country where published.</th>
 
   function buttonElements() {
     return <div className='buttonElements'>
-      <Button variant="success" type="submit">Generate SB08</Button>
+      <Button variant="success" type="submit" disabled={!matterSaved}>Generate SB08</Button>
     </div>
   }
 
@@ -372,12 +396,21 @@ number(s), publisher, city and/or country where published.</th>
     return <span>{suggestion.attyDocket}</span>
   }
   function onSuggestionSelected(event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) {
-    if (!idsMatterData.idsSync) {
-      idsMatterData.idsSync = []
-    }
-    idsMatterData.idsSync.push(suggestionValue)
+    setShowIdsSyncSpinner(true)
     setFirmData(filterFirmData(idsMatterData, firmData))
-    setIdsMatterData(JSON.parse(JSON.stringify(idsMatterData)))
+
+    var formData = new FormData();
+    formData.append('relatedAttyDocket', suggestionValue);
+    formData.append('idsMatterData', JSON.stringify(idsMatterData));
+
+    AuthApi('/api/addToDocketSync', getTokenSilently, formData)
+    .then(res => {
+      if (!res.error) {
+        setShowIdsSyncSpinner(false)
+        setIdsMatterData(res.attyDocket)
+      }
+    })
+
   }
 
   function onSuggestionChange(event, { newValue }) {
@@ -385,19 +418,32 @@ number(s), publisher, city and/or country where published.</th>
   }
 
   function removeIdsSync (docketId) {
-    idsMatterData.idsSync = idsMatterData.idsSync.filter(e => e !== docketId)
-    setIdsMatterData(JSON.parse(JSON.stringify(idsMatterData)))
+    setShowIdsSyncSpinner(true)
+
+    var formData = new FormData();
+    formData.append('relatedAttyDocket', docketId);
+    formData.append('idsMatterData', JSON.stringify(idsMatterData));
+
+    AuthApi('/api/removeFromDocketSync', getTokenSilently, formData)
+    .then(res => {
+      if (!res.error) {
+        setShowIdsSyncSpinner(false)
+        setIdsMatterData(res.attyDocket)
+      }
+    })
+
+
     firmData.push({attyDocket: docketId}) //re-add it to suggestion list
     setFirmData(firmData) 
   }
   function idsSyncElements() {
     return   <div className="idsDiv">
-    <h5>IDS Sync</h5>
+    <h5>IDS Sync {showIdsSyncSpinner && <Spinner animation="border" variant="info" size="sm" />}</h5>
     <div className='idsBody'>
-      <p>Cross-cite all references for the following matters:<br/><small className='text-muted'>Note: added cases will also sync with {decodeURIComponent(attyDocket)}</small></p>
+      <p>Cross-cite all references for the following matters:<br/><small className='text-muted'>References of synced cases will be imported to <b>{decodeURIComponent(attyDocket)}</b>, and changes to <b>{decodeURIComponent(attyDocket)}</b> references will be propagated to the synced cases.</small></p>
       <ul>
         {idsMatterData.idsSync && 
-          idsMatterData.idsSync.map(e => <li key={e}>{e} <Button variant="link" size="sm" onClick={() => removeIdsSync(e)}>Remove</Button></li>)
+          idsMatterData.idsSync.map(e => <li key={e}><Link to={`/ids/view/${encodeURIComponent(e)}`}>{e}</Link> <Button className="text-muted" variant="link" size="sm" onClick={() => removeIdsSync(e)}>Remove</Button></li>)
         }
       </ul>
       <Autosuggest

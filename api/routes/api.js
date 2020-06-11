@@ -3,6 +3,7 @@ var router = express.Router();
 var multer = require('multer');
 // const mime = require('mime');
 const nanoid = require('nanoid').nanoid;
+const diff = require("deep-object-diff").diff;
 
 var stripe_creds = {};
 if (process.env.NODE_ENV === 'production') {
@@ -420,7 +421,7 @@ router.post('/home/ids', checkJwt, upload.none(), async function(req, res, next)
     .createQuery('clientMatter')
     // .select(['filename', 'uploadTime', 'originalname'])
     // .filter('user', '=', req.body.userEmail)
-    // .order('createTime');
+    .order('createdDate', { descending: true });
 
 
     promiseArray.push(datastore.runQuery(idsQuery))
@@ -445,7 +446,6 @@ router.post('/home/ids', checkJwt, upload.none(), async function(req, res, next)
     } else {
       responseObj.user = userEntity
     }
-    console.log(responseObj)
   res.json(responseObj)
 });
 
@@ -454,7 +454,15 @@ router.post('/home/ids/create', checkJwt, upload.none(), async function(req, res
     createdDate: Date.now(),
     attyDocket: req.body.attyDocket,
     email: req.body.userEmail,
-    firm: req.body.userFirm
+    firm: req.body.userFirm,
+    idsData: {           
+      usPatents: [] ,
+      foreignPatents: [],
+      nonPatentLiterature: [] 
+    },
+    idsSync: [],
+    metadata: {            
+    }
   }
 
   try {
@@ -473,6 +481,7 @@ router.post('/home/ids/create', checkJwt, upload.none(), async function(req, res
 
       const idsListQuery = datastore
       .createQuery('clientMatter')  
+      .order('createdDate', {descending: true})
       let listResult = await datastore.runQuery(idsListQuery)
       res.json({list: listResult})  
 
@@ -517,7 +526,6 @@ router.post('/idsMatter', checkJwt, upload.none(), async function(req, res, next
       user: userEntity,
       firmData: results[1][0]
     }
-    console.log(responseObj)
     res.json(responseObj)
 
   }
@@ -525,14 +533,12 @@ router.post('/idsMatter', checkJwt, upload.none(), async function(req, res, next
 });
 
 router.post('/updateIdsMatter', checkJwt, upload.none(), async function(req, res, next) {
-  const userKey = datastore.key(['user', req.body.userEmail]);
-  var [userEntity] = await datastore.get(userKey);
 
   var updatedMatterData = JSON.parse(req.body.idsMatterData)
   const idsQuery = datastore
   .createQuery('clientMatter')
   .filter('attyDocket', '=', updatedMatterData.attyDocket)
-  .filter('firm', '=', userEntity.firm)
+  .filter('firm', '=', updatedMatterData.firm)
   let result = await datastore.runQuery(idsQuery)
   if (result[0].length === 0) {
     res.json({error: 'Error: Attorney Docket not found.'})
@@ -540,14 +546,291 @@ router.post('/updateIdsMatter', checkJwt, upload.none(), async function(req, res
     const updatedMatterEntity = {
       key: result[0][0][datastore.KEY],
       data: updatedMatterData,
+      excludeFromIndexes: ['idsData']
     };
-    
+    // console.log(updatedMatterEntity.data.idsData)
     await datastore.upsert(updatedMatterEntity)
+
+    await syncIds(result[0][0].idsSync, result[0][0].idsData, updatedMatterData)
+    // await Promise.all(promisesToExecute)
     res.json({
       success: true
     })
 
   }
+});
+async function syncIds(startingIdsSync = [], oldIdsData, updatedMatterData) {
+  //get diff of oldIdsData and updatedMatterData; apply diff to the relatedIDS
+  var diffMatter = diff(oldIdsData, updatedMatterData.idsData)
+  var changeObj = {} //keys are row ids that have changed, values are the changes
+  var trackAddedRow = {}
+  console.log(diffMatter)
+
+  for (let artType in diffMatter) {
+    for (let rowChangeIndex in diffMatter[artType]) {
+      const updatedRowObj = updatedMatterData.idsData[artType][rowChangeIndex]
+      changeObj[updatedRowObj.id] = diffMatter[artType][rowChangeIndex]
+      for (let relatedIds of startingIdsSync) {
+        trackAddedRow[relatedIds] = {}
+        trackAddedRow[relatedIds][updatedRowObj.id] = false
+      }
+    }
+  }
+  console.log(changeObj)
+  var promiseArray = []
+
+  //for each matter in idssync, sync idsdata
+  for (let relatedIds of startingIdsSync) {
+    var relatedIdsQuery = datastore
+    .createQuery('clientMatter')
+    .filter('firm', '=', updatedMatterData.firm)  
+    .filter('attyDocket', '=', relatedIds)
+    promiseArray.push(datastore.runQuery(relatedIdsQuery))
+  }
+  try {
+    
+
+    let results = await Promise.all(promiseArray)
+    let rowIdList = Object.keys(changeObj)
+    for (let result of results) {
+
+      var relatedIdsEntity = result[0][0]
+      for (let artType in relatedIdsEntity.idsData) {
+        for (let rowObj of relatedIdsEntity.idsData[artType]) {
+          if (rowIdList.includes(rowObj.id)) {
+            //should update all changed fields in this obj
+            for (let changedProperty in changeObj[rowObj.id]) {
+              rowObj[changedProperty] = changeObj[rowObj.id][changedProperty]
+            }
+            //update tracker
+            trackAddedRow[relatedIdsEntity.attyDocket][rowObj.id] = true
+          }
+        }
+        // if there are any false variables, then we should add a row
+        for (let rowObjId in trackAddedRow[relatedIdsEntity.attyDocket]) {
+          let rowInUpdatedMatter = updatedMatterData.idsData[artType].find(e => e.id === rowObjId)
+          if (!trackAddedRow[relatedIdsEntity.attyDocket][rowObjId] && rowInUpdatedMatter) {
+            console.log(`${rowObjId} not found, adding row to ${relatedIdsEntity.attyDocket} ${artType}`)
+            //get row of updatedMatterData and insert it here
+            relatedIdsEntity.idsData[artType].push(rowInUpdatedMatter)
+          }
+        }
+
+      }
+      // relatedIdsEntity.idsData = addIdsFromSrcToDest(updatedMatterData, relatedIdsEntity)
+      var updatedRelatedMatterEntity = {
+        key: relatedIdsEntity[datastore.KEY],
+        data: relatedIdsEntity,
+        excludeFromIndexes: ['idsData']
+      };
+      
+      await datastore.upsert(updatedRelatedMatterEntity)
+  
+    }
+  
+  } catch (e) {
+    console.log(e)
+  }
+  // startingIdsSync = startingIdsSync.filter(e => mattersQueried.indexOf(e) == -1 ? true : false)
+
+}
+function citeContainsText(obj) {
+  var keys = Object.keys(obj)
+  for (var key of keys) {
+    if (key !== "id" && typeof obj[key] === 'string' && obj[key].length > 0) {
+      return true
+    }
+  }
+  return false
+}
+
+//returns updated idsData for destination
+const addIdsFromSrcToDest = (srcDocketEntity, destDocketEntity) => {
+  //check whether any src docket idsMatter stuff already exists in the dest before adding
+  //go through usPatents
+  if (srcDocketEntity.idsData.usPatents) {
+    srcDocketEntity.idsData.usPatents = srcDocketEntity.idsData.usPatents.filter((e) => citeContainsText(e))
+    destDocketEntity.idsData.usPatents = destDocketEntity.idsData.usPatents.filter((e) => citeContainsText(e))
+
+    for (var srcRow of srcDocketEntity.idsData.usPatents) {
+      if (destDocketEntity.idsData.usPatents.every((e) => {
+        // console.log(`us src: ${srcRow.usDocNumber}, dst: ${e.usDocNumber}, usdocnum does not match: ${e.usDocNumber !== srcRow.usDocNumber} & usdocpubdate does not match: ${e.usDocPubDate !== srcRow.usDocPubDate} & usdocname doesn't match: ${e.usDocName !== srcRow.usDocName} & usdocnotes doesn't match: ${e.usDocNotes !== srcRow.usDocNotes}`)
+        return (e.usDocNumber !== srcRow.usDocNumber || e.usDocPubDate !== srcRow.usDocPubDate || e.usDocName !== srcRow.usDocName || e.usDocNotes !== srcRow.usDocNotes)
+      })) { //make sure src is not added already
+        // console.log(`adding uspatent ${srcRow.usDocNumber} to ${destDocketEntity.attyDocket}`)
+        destDocketEntity.idsData.usPatents.push({...srcRow, src: srcDocketEntity.attyDocket, cited: false})
+      } else {
+        // console.log(`skipping uspatent ${srcRow.usDocNumber}, already exists in ${destDocketEntity.attyDocket}`)
+      }
+    }
+  }
+
+  //go through foreignPatents
+  if (srcDocketEntity.idsData.foreignPatents) {
+    srcDocketEntity.idsData.foreignPatents = srcDocketEntity.idsData.foreignPatents.filter((e) => citeContainsText(e))
+    destDocketEntity.idsData.foreignPatents = destDocketEntity.idsData.foreignPatents.filter((e) => citeContainsText(e))
+
+    for (var srcRow of srcDocketEntity.idsData.foreignPatents) {
+      if (destDocketEntity.idsData.foreignPatents.every((e) => {
+        // console.log(`foreign src: ${srcRow.foreignDocNumber}, dst: ${e.foreignDocNumber}, foreigndocnum doesn't match: ${e.foreignDocNumber !== srcRow.foreignDocNumber} & foreignpubdate deosn't match: ${e.foreignDocPubDate !== srcRow.foreignDocPubDate} & foreigndocname doesn't match: ${e.foreignDocName !== srcRow.foreignDocName} & foreigndocnotes doesn't match: ${e.foreignDocNotes !== srcRow.foreignDocNotes}`)
+
+        return e.foreignDocNumber !== srcRow.foreignDocNumber || e.foreignDocPubDate !== srcRow.foreignDocPubDate || e.foreignDocName !== srcRow.foreignDocName || e.foreignDocNotes !== srcRow.foreignDocNotes
+      })) { //make sure src is not added already
+        // console.log(`adding foreignnum ${srcRow.foreignDocNumber} to ${destDocketEntity.attyDocket}`)
+        destDocketEntity.idsData.foreignPatents.push({...srcRow, src: srcDocketEntity.attyDocket, cited: false})
+      } else {
+        // console.log(`skipping foreignnum ${srcRow.foreignDocNumber}, already exists in ${destDocketEntity.attyDocket}`)
+
+      }
+    }
+
+  }
+
+
+
+  //go through nonPatentLiterature
+  if (srcDocketEntity.idsData.nonPatentLiterature) {
+    srcDocketEntity.idsData.nonPatentLiterature = srcDocketEntity.idsData.nonPatentLiterature.filter((e) => citeContainsText(e))
+    destDocketEntity.idsData.nonPatentLiterature = destDocketEntity.idsData.nonPatentLiterature.filter((e) => citeContainsText(e))
+
+    for (var srcRow of srcDocketEntity.idsData.nonPatentLiterature) {
+      if (destDocketEntity.idsData.nonPatentLiterature.every((e) => {
+        return e.citation !== srcRow.citation
+      })) { //make sure src is not added already
+        // console.log(`adding npl ${srcRow.citation} to ${destDocketEntity.attyDocket}`)
+        destDocketEntity.idsData.nonPatentLiterature.push({...srcRow, src: srcDocketEntity.attyDocket, cited: false})
+      } else {
+        // console.log(`skipping npl ${srcRow.citation}, already exists in ${destDocketEntity.attyDocket}`)
+
+      }
+    }
+  }
+  // console.log(destDocketEntity.idsData)
+  return destDocketEntity.idsData
+}
+
+router.post('/addToDocketSync', checkJwt, upload.none(), async function(req, res, next) {
+  //add relatedAttyDocket to list of idssync, add attyDocket to idssync in the relatedAttyDocket case
+  var idsMatterData = JSON.parse(req.body.idsMatterData)
+
+  var promiseArray = []
+
+  const idsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', idsMatterData.attyDocket)
+  .filter('firm', '=', idsMatterData.firm)
+  promiseArray.push(datastore.runQuery(idsQuery))
+
+  const relatedIdsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', req.body.relatedAttyDocket)
+  .filter('firm', '=', idsMatterData.firm)  
+  promiseArray.push(datastore.runQuery(relatedIdsQuery))
+
+  let results = await Promise.all(promiseArray)
+  //update current attydocket to add related matter to idssync and related idsData to currentAttydocket
+  var currentIdsData = results[0][0][0]
+  var relatedIdsData = results[1][0][0]
+
+  if (!currentIdsData.idsSync) {
+    currentIdsData.idsSync = []
+  }
+  if (!currentIdsData.idsSync.includes(req.body.relatedAttyDocket)) {
+    currentIdsData.idsSync.push(req.body.relatedAttyDocket)
+  }
+  try {
+    currentIdsData.idsData = addIdsFromSrcToDest(relatedIdsData, currentIdsData)
+    // copy all of relatedIdsQuery matters into currentIdsData
+    var updatedMatterEntity = {
+      key: results[0][0][0][datastore.KEY],
+      data: currentIdsData,
+      excludeFromIndexes: ['idsData']
+    };
+    
+    await datastore.upsert(updatedMatterEntity)
+  
+    } catch (e) {
+    console.log(e)
+  }
+
+
+  // update related docket to add current matter to idssync and add current matter idsData to related docket
+  if (!relatedIdsData.idsSync) {
+    relatedIdsData.idsSync = []
+  }
+  if (!relatedIdsData.idsSync.includes(idsMatterData.attyDocket)) {
+    relatedIdsData.idsSync.push(idsMatterData.attyDocket)
+  }
+  // copy all of relatedIdsQuery matters into currentIdsData
+  try {
+    relatedIdsData.idsData = addIdsFromSrcToDest(currentIdsData, relatedIdsData)
+
+    updatedMatterEntity = {
+      key: results[1][0][0][datastore.KEY],
+      data: relatedIdsData,
+      excludeFromIndexes: ['idsData']
+    };
+    
+    await datastore.upsert(updatedMatterEntity)
+  
+  } catch (e) {
+    console.log(e)
+  }
+
+  var responseObj = {
+    attyDocket: results[0][0][0]
+  }
+  res.json(responseObj)
+
+});
+router.post('/removeFromDocketSync', checkJwt, upload.none(), async function(req, res, next) {
+  //remove relatedAttyDocket from list of idssync, remove attyDocket from idssync in the relatedAttyDocket case
+  var idsMatterData = JSON.parse(req.body.idsMatterData)
+
+  var promiseArray = []
+
+  const idsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', idsMatterData.attyDocket)
+  .filter('firm', '=', idsMatterData.firm)
+  promiseArray.push(datastore.runQuery(idsQuery))
+
+  const relatedIdsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', req.body.relatedAttyDocket)
+  .filter('firm', '=', idsMatterData.firm)  
+  promiseArray.push(datastore.runQuery(relatedIdsQuery))
+
+  let results = await Promise.all(promiseArray)
+  //update current attydocket to add related matter to idssync and related idsData to currentAttydocket
+  var currentIdsData = results[0][0][0]
+  currentIdsData.idsSync = currentIdsData.idsSync.filter(e => e !== req.body.relatedAttyDocket)
+
+  var updatedMatterEntity = {
+    key: results[0][0][0][datastore.KEY],
+    data: currentIdsData,
+    excludeFromIndexes: ['idsData']
+  };
+  await datastore.upsert(updatedMatterEntity)
+
+  // update related docket to add current matter to idssync and add current matter idsData to related docket
+  var relatedIdsData = results[1][0][0]
+  // console.log(relatedIdsData)
+  relatedIdsData.idsSync = relatedIdsData.idsSync.filter(e => e !== idsMatterData.attyDocket)
+
+  updatedMatterEntity = {
+    key: results[1][0][0][datastore.KEY],
+    data: relatedIdsData,
+    excludeFromIndexes: ['idsData']
+  };
+  
+  await datastore.upsert(updatedMatterEntity)
+
+  var responseObj = {
+    attyDocket: results[0][0][0]
+  }
+  res.json(responseObj)
+
 });
 
 module.exports = router;

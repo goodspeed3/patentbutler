@@ -26,7 +26,7 @@ function HeaderView () {
     }
     var landingLinks = shouldShowPublic &&
         <>    
-        <Link to='/blog'><Button size='sm' variant='link' >Blog</Button></Link>
+        {/* <Link to='/blog'><Button size='sm' variant='link' >Blog</Button></Link> */}
         {/* <Link to='/pricing'><Button size='sm' variant='link' >Pricing</Button></Link> */}
         
         </>

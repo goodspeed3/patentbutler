@@ -68,3 +68,6 @@
     position: relative;
 
 }
+.importTooltip {
+    cursor: pointer;
+}
