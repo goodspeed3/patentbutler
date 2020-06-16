@@ -551,7 +551,7 @@ router.post('/updateIdsMatter', checkJwt, upload.none(), async function(req, res
     // console.log(updatedMatterEntity.data.idsData)
     await datastore.upsert(updatedMatterEntity)
 
-    await syncIds(result[0][0].idsSync, result[0][0].idsData, updatedMatterData)
+    await syncIds(result[0][0].idsSync, result[0][0].idsData, updatedMatterData, [updatedMatterData.attyDocket])
     // await Promise.all(promisesToExecute)
     res.json({
       success: true
@@ -559,19 +559,50 @@ router.post('/updateIdsMatter', checkJwt, upload.none(), async function(req, res
 
   }
 });
-async function syncIds(startingIdsSync = [], oldIdsData, updatedMatterData) {
+async function syncIds(idsSyncList = [], oldIdsData, updatedMatterData, syncedSoFar) {
+  //if startingIdsSync has all been syncedSoFar, then stop, otherwise sync the ones that haven't been synced so far
+  var startingIdsSync = []
+  for (const idsCase of idsSyncList) {
+    if (!syncedSoFar.includes(idsCase)) {
+      if (startingIdsSync.indexOf(idsCase) == -1) { //not already added
+        startingIdsSync.push(idsCase)
+      }
+    }
+  }
+  if (startingIdsSync.length == 0) {
+    console.log(`everything synced: ${JSON.stringify(syncedSoFar)}`)
+    return
+  }
+  console.log(`syncing to: ${JSON.stringify(startingIdsSync)}`)
+
   //get diff of oldIdsData and updatedMatterData; apply diff to the relatedIDS
   var diffMatter = diff(oldIdsData, updatedMatterData.idsData)
   var changeObj = {} //keys are row ids that have changed, values are the changes
   var trackAddedRow = {}
-  console.log(diffMatter)
+  for (let relatedIds of startingIdsSync) {
+    trackAddedRow[relatedIds] = {}
+  }
+
+
+  // console.log(diffMatter)
 
   for (let artType in diffMatter) {
     for (let rowChangeIndex in diffMatter[artType]) {
       const updatedRowObj = updatedMatterData.idsData[artType][rowChangeIndex]
+      if (!updatedRowObj) { //if undefined, erase in the related matters
+        //null object 
+        console.log("undefined object")
+        changeObj[oldIdsData[artType][rowChangeIndex].id] = undefined
+        continue
+      }
+      if (diffMatter[artType][rowChangeIndex].cited) {
+        //delete the cited changes since these should not be synced to other matters
+        delete diffMatter[artType][rowChangeIndex].cited
+      }
+
+      if (!citeContainsText(updatedRowObj)) continue //don't add to tracker or change obj if it's an empty row
       changeObj[updatedRowObj.id] = diffMatter[artType][rowChangeIndex]
       for (let relatedIds of startingIdsSync) {
-        trackAddedRow[relatedIds] = {}
         trackAddedRow[relatedIds][updatedRowObj.id] = false
       }
     }
@@ -592,6 +623,7 @@ async function syncIds(startingIdsSync = [], oldIdsData, updatedMatterData) {
 
     let results = await Promise.all(promiseArray)
     let rowIdList = Object.keys(changeObj)
+    var childrenIdsSync = [] //add dockets of other
     for (let result of results) {
 
       var relatedIdsEntity = result[0][0]
@@ -599,6 +631,10 @@ async function syncIds(startingIdsSync = [], oldIdsData, updatedMatterData) {
         for (let rowObj of relatedIdsEntity.idsData[artType]) {
           if (rowIdList.includes(rowObj.id)) {
             //should update all changed fields in this obj
+            if (!changeObj[rowObj.id]) { //if it's undefined, delete the row
+              rowObj = {id: rowObj.id }
+              continue
+            }
             for (let changedProperty in changeObj[rowObj.id]) {
               rowObj[changedProperty] = changeObj[rowObj.id][changedProperty]
             }
@@ -625,8 +661,11 @@ async function syncIds(startingIdsSync = [], oldIdsData, updatedMatterData) {
       };
       
       await datastore.upsert(updatedRelatedMatterEntity)
-  
+      childrenIdsSync = childrenIdsSync.concat(relatedIdsEntity.idsSync)
+      syncedSoFar.push(relatedIdsEntity.attyDocket)
     }
+    //recursively sync to children
+    await syncIds(childrenIdsSync, oldIdsData, updatedMatterData, syncedSoFar)
   
   } catch (e) {
     console.log(e)
@@ -637,7 +676,7 @@ async function syncIds(startingIdsSync = [], oldIdsData, updatedMatterData) {
 function citeContainsText(obj) {
   var keys = Object.keys(obj)
   for (var key of keys) {
-    if (key !== "id" && typeof obj[key] === 'string' && obj[key].length > 0) {
+    if (key !== "id" && key !== "src" && typeof obj[key] === 'string' && obj[key].length > 0) {
       return true
     }
   }
@@ -655,7 +694,7 @@ const addIdsFromSrcToDest = (srcDocketEntity, destDocketEntity) => {
     for (var srcRow of srcDocketEntity.idsData.usPatents) {
       if (destDocketEntity.idsData.usPatents.every((e) => {
         // console.log(`us src: ${srcRow.usDocNumber}, dst: ${e.usDocNumber}, usdocnum does not match: ${e.usDocNumber !== srcRow.usDocNumber} & usdocpubdate does not match: ${e.usDocPubDate !== srcRow.usDocPubDate} & usdocname doesn't match: ${e.usDocName !== srcRow.usDocName} & usdocnotes doesn't match: ${e.usDocNotes !== srcRow.usDocNotes}`)
-        return (e.usDocNumber !== srcRow.usDocNumber || e.usDocPubDate !== srcRow.usDocPubDate || e.usDocName !== srcRow.usDocName || e.usDocNotes !== srcRow.usDocNotes)
+        return (e.usDocNumber !== srcRow.usDocNumber || e.usDocPubDate !== srcRow.usDocPubDate || e.usDocName !== srcRow.usDocName || e.usDocNotes !== srcRow.usDocNotes || e.id !== srcRow.id)
       })) { //make sure src is not added already
         // console.log(`adding uspatent ${srcRow.usDocNumber} to ${destDocketEntity.attyDocket}`)
         destDocketEntity.idsData.usPatents.push({...srcRow, src: srcDocketEntity.attyDocket, cited: false})
@@ -674,7 +713,7 @@ const addIdsFromSrcToDest = (srcDocketEntity, destDocketEntity) => {
       if (destDocketEntity.idsData.foreignPatents.every((e) => {
         // console.log(`foreign src: ${srcRow.foreignDocNumber}, dst: ${e.foreignDocNumber}, foreigndocnum doesn't match: ${e.foreignDocNumber !== srcRow.foreignDocNumber} & foreignpubdate deosn't match: ${e.foreignDocPubDate !== srcRow.foreignDocPubDate} & foreigndocname doesn't match: ${e.foreignDocName !== srcRow.foreignDocName} & foreigndocnotes doesn't match: ${e.foreignDocNotes !== srcRow.foreignDocNotes}`)
 
-        return e.foreignDocNumber !== srcRow.foreignDocNumber || e.foreignDocPubDate !== srcRow.foreignDocPubDate || e.foreignDocName !== srcRow.foreignDocName || e.foreignDocNotes !== srcRow.foreignDocNotes
+        return e.foreignDocNumber !== srcRow.foreignDocNumber || e.foreignDocPubDate !== srcRow.foreignDocPubDate || e.foreignDocName !== srcRow.foreignDocName || e.foreignDocNotes !== srcRow.foreignDocNotes || e.id !== srcRow.id
       })) { //make sure src is not added already
         // console.log(`adding foreignnum ${srcRow.foreignDocNumber} to ${destDocketEntity.attyDocket}`)
         destDocketEntity.idsData.foreignPatents.push({...srcRow, src: srcDocketEntity.attyDocket, cited: false})
@@ -695,7 +734,7 @@ const addIdsFromSrcToDest = (srcDocketEntity, destDocketEntity) => {
 
     for (var srcRow of srcDocketEntity.idsData.nonPatentLiterature) {
       if (destDocketEntity.idsData.nonPatentLiterature.every((e) => {
-        return e.citation !== srcRow.citation
+        return e.citation !== srcRow.citation || e.id !== srcRow.id
       })) { //make sure src is not added already
         // console.log(`adding npl ${srcRow.citation} to ${destDocketEntity.attyDocket}`)
         destDocketEntity.idsData.nonPatentLiterature.push({...srcRow, src: srcDocketEntity.attyDocket, cited: false})

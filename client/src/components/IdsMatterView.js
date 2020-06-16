@@ -370,6 +370,7 @@ number(s), publisher, city and/or country where published.</th>
 
     setValidated(true);
 
+    //stop page from reloading
     event.preventDefault()
     event.stopPropagation();
 
