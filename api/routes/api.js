@@ -20,8 +20,11 @@ if (process.env.NODE_ENV === 'production') {
 
 const stripe = require('stripe')(stripe_creds.SECRET);
 
+const pdfform = require('pdfform.js')
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
+var AWS = require('aws-sdk');
+AWS.config.loadFromPath('./aws-config.json');
 
 //need to write to Firestore (noSQL) and also store file in cloud storage (Firestore in Datastore mode)
 const {Storage} = require('@google-cloud/storage');
@@ -872,4 +875,143 @@ router.post('/removeFromDocketSync', checkJwt, upload.none(), async function(req
 
 });
 
+router.post('/importFileForIds', checkJwt, upload.single('file'), async function(req, res, next) {
+  if (!req.file) {
+    res.status(400).send('No file uploaded.');
+    return;
+  }  
+
+  //START EDITING
+
+  //decrease credits and increase processed
+  const userKey = datastore.key(['user', req.body.userEmail]);
+  var [userEntity] = await datastore.get(userKey);
+  userEntity.numOaProcessed = userEntity.numOaProcessed + 1
+  if (userEntity.oaCredits <= 0) {
+    if (!userEntity.customerId && !userEntity.perUserPlan) {
+      console.log('no credits to continue')
+      res.json({ error: 'need to add payment'})
+      return  
+    } else if (userEntity.perUserPlan) {
+      console.log('part of monthly plan')
+    } else {
+      await stripe.subscriptionItems.createUsageRecord(
+        userEntity.subscriptionItemId,
+        {
+          quantity: 1,
+          timestamp: Math.ceil(Date.now() / 1000),
+          action: "increment"
+        }
+      );
+      
+    }
+  }
+  if (userEntity.oaCredits > 0)
+    userEntity.oaCredits = userEntity.oaCredits - 1
+
+  console.log('----uploading to cloud----')
+
+  // Create a new blob in the bucket and upload the file data to Google CLoud.
+  uploadBuffer(req.file.originalname, req.file.buffer).then(({cloudUrl, originalname, filename}) => {
+
+    const txt = req.body.userEmail + ' uploaded ' + req.file.originalname + " for processing.  Go <a href='https://patentbutler.com/admin'>here</a> to process."
+    const data = {
+      from: req.body.userEmail,
+      to: 'Jon Liu, jon@patentbutler.com',
+      subject: 'Uploaded new OA for processing',
+      html: txt,
+    };
+
+    return Promise.all([
+      datastore.upsert(userEntity),
+      insertOaObject({
+        user: req.body.userEmail,
+        cloudUrl: cloudUrl,
+        filename: filename,
+        originalname: originalname,
+        uploadTime: Date.now(),
+        processed: false
+      }),
+      insertProcessedOaObject({
+        user: req.body.userEmail,
+        filename: filename,
+        originalname: originalname,
+        rejectionList: [],
+        priorArtList: []
+      }),
+      mg.messages().send(data)
+    ])
+  }).then(r => {
+    res.json({ originalname: req.file.originalname })    
+
+  });
+
+});
+
+router.post('/createSb08', checkJwt, upload.none(), async function(req, res, next) {
+  //START EDIT
+  res.json({ success: true })    
+  return
+  var out_buf = pdfform().transform(pdf_buf, fields);
+  var file = e.target.files[0];
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    // on_file(file.name, ev.target.result);
+    var pdf_buf; // load PDF into an ArrayBuffer, for example via XHR (see demo)
+    var fields = {
+      'fieldname': ['value for fieldname[0]', 'value for fieldname[1]']
+    };
+  
+  };
+  reader.readAsArrayBuffer(file);
+
+
+  //remove relatedAttyDocket from list of idssync, remove attyDocket from idssync in the relatedAttyDocket case
+  var idsMatterData = JSON.parse(req.body.idsMatterData)
+
+  var promiseArray = []
+
+  const idsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', idsMatterData.attyDocket)
+  .filter('firm', '=', idsMatterData.firm)
+  promiseArray.push(datastore.runQuery(idsQuery))
+
+  const relatedIdsQuery = datastore
+  .createQuery('clientMatter')
+  .filter('attyDocket', '=', req.body.relatedAttyDocket)
+  .filter('firm', '=', idsMatterData.firm)  
+  promiseArray.push(datastore.runQuery(relatedIdsQuery))
+
+  let results = await Promise.all(promiseArray)
+  //update current attydocket to add related matter to idssync and related idsData to currentAttydocket
+  var currentIdsData = results[0][0][0]
+  currentIdsData.idsSync = currentIdsData.idsSync.filter(e => e !== req.body.relatedAttyDocket)
+
+  var updatedMatterEntity = {
+    key: results[0][0][0][datastore.KEY],
+    data: currentIdsData,
+    excludeFromIndexes: ['idsData']
+  };
+  await datastore.upsert(updatedMatterEntity)
+
+  // update related docket to add current matter to idssync and add current matter idsData to related docket
+  var relatedIdsData = results[1][0][0]
+  // console.log(relatedIdsData)
+  relatedIdsData.idsSync = relatedIdsData.idsSync.filter(e => e !== idsMatterData.attyDocket)
+
+  updatedMatterEntity = {
+    key: results[1][0][0][datastore.KEY],
+    data: relatedIdsData,
+    excludeFromIndexes: ['idsData']
+  };
+  
+  await datastore.upsert(updatedMatterEntity)
+
+  var responseObj = {
+    attyDocket: results[0][0][0]
+  }
+  res.json(responseObj)
+
+});
 module.exports = router;

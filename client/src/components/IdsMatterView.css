@@ -71,3 +71,10 @@
 .importTooltip {
     cursor: pointer;
 }
+.topIds {
+    /* position: sticky;
+    position: -webkit-sticky;
+    top: 3.5rem;
+    z-index: 100;
+    background-color: white; */
+}

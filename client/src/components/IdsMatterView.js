@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './IdsMatterView.css'
 import { useParams } from 'react-router-dom';
 import moment from 'moment'
@@ -33,6 +33,9 @@ function IdsMatterView() {
   let { attyDocket } = useParams();
   const [errorMsg, setErrorMsg] = useState('')
   const [validated, setValidated] = useState(false);
+  const autofillRef = useRef(null) 
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [gettingSb08, setGettingSb08] = useState(false);
 
 
   useEffect(() => {
@@ -121,7 +124,20 @@ function IdsMatterView() {
 
   }
 
+  function handleImport(event, importMetadataFlag = false) {
+    var formData = new FormData();
+    var idsFile = event.target.files[0];
+    formData.append('file', idsFile);
+    formData.append('importMetadataFlag', importMetadataFlag);
+    formData.append('attyDocket', decodeURIComponent(attyDocket));
+    formData.append('userEmail', user.email);
+    setShowUploadModal(true)
 
+    AuthApi('/api/importFileForIds', getTokenSilently, formData)
+    .then(res => {
+
+    })
+  }
   function metadataElements() {
     return <div>
       <Form.Row>
@@ -130,7 +146,8 @@ function IdsMatterView() {
         <div><b style={{fontSize: "2rem"}}>{idsMatterData.attyDocket}</b> </div>
         </Form.Group>
         <Form.Group as={Col}>
-        <Button variant="outline-info">Autofill using filed IDS</Button>
+        {/* <input type='file' id='autofillFile' accept="application/pdf" ref={autofillRef} onChange={(e) => handleImport(e, true)} style={{display: 'none'}}/>
+        <Button variant="outline-info" onClick={() => autofillRef.current.click()}>Autofill using filed IDS</Button> */}
         </Form.Group>
       </Form.Row>
       <Form.Row>
@@ -165,6 +182,9 @@ function IdsMatterView() {
     const t = e.target
     if (isCheckbox) {
       idsMatterData.idsData[idsType][index][t.name] = t.checked
+      if (t.name === 'cited') {
+        idsMatterData.idsData[idsType][index].lastCitedDate = new moment().format('MM-DD-YYYY')
+      }
     } else {
       idsMatterData.idsData[idsType][index][t.name] = t.value
     }
@@ -196,7 +216,18 @@ function IdsMatterView() {
       }
 
       return <tr key={patent.id}>
-        <td><Form.Check aria-label="cited" name="cited" checked={patent.cited} onChange={(e) => updateIds(e, i, 'usPatents', true)}/></td>
+        <td>
+        <OverlayTrigger
+            placement={'top'}
+            overlay={
+            <Tooltip id={`cited-tooltip-top`}>
+              Last Cited: {patent.lastCitedDate ? <strong>{patent.lastCitedDate}</strong> : <strong>N/A</strong>}
+            </Tooltip>
+            }
+          >
+          <Form.Check aria-label="cited" name="cited" checked={patent.cited} onChange={(e) => updateIds(e, i, 'usPatents', true)}/>
+          </OverlayTrigger>          
+        </td>
         <td>
         <OverlayTrigger
             placement={'top'}
@@ -297,7 +328,7 @@ function IdsMatterView() {
   }
   function citeListElements() {
     return <div className="idsTable">
-      <Button variant="outline-secondary" style={{marginBottom: "1rem"}}>Import 892, ISR, or IDS</Button>
+      {/* <Button variant="outline-secondary" style={{marginBottom: "1rem"}}>Import 892, ISR, or IDS</Button> */}
       <h4>US Patents</h4>
       <Table bordered hover >
         <thead>
@@ -355,7 +386,13 @@ number(s), publisher, city and/or country where published.</th>
 
   function buttonElements() {
     return <div className='buttonElements'>
-      <Button variant="success" type="submit" disabled={!matterSaved}>Generate SB08</Button>
+      <Button variant="success" type="submit" disabled={!matterSaved}>Generate SB08 { gettingSb08 && <Spinner
+      as="span"
+      animation="border"
+      size="sm"
+      role="status"
+      aria-hidden="true"
+      />} </Button>
     </div>
   }
 
@@ -373,6 +410,16 @@ number(s), publisher, city and/or country where published.</th>
     //stop page from reloading
     event.preventDefault()
     event.stopPropagation();
+
+    setGettingSb08(true)
+    var formData = new FormData();
+    formData.append('userEmail', user.email);
+    formData.append('idsMatterData', JSON.stringify(idsMatterData));
+    // console.log(idsMatterData)
+    AuthApi('/api/createSb08', getTokenSilently, formData)
+    .then(res => {
+      setGettingSb08(false)
+    })  
 
   };
   function getSuggestions(userInput) {
@@ -474,7 +521,7 @@ number(s), publisher, city and/or country where published.</th>
     elements = 
       <Container className="idsMatterBlock">
         <Form onSubmit={generateSb} validated={validated} >
-        <Row>
+        <Row className="topIds">
         <Col md="6">
             {metadataElements()}
         </Col>
