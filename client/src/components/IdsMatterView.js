@@ -13,6 +13,7 @@ import Button from 'react-bootstrap/Button'
 // import Modal from 'react-bootstrap/Modal'
 // import Form from 'react-bootstrap/Form'
 import AuthApi from './AuthApi'
+import AuthApiBlob from './AuthApiBlob'
 import { useAuth0 } from "../react-auth0-spa";
 import Form from 'react-bootstrap/Form'
 import { nanoid } from 'nanoid'
@@ -416,7 +417,7 @@ number(s), publisher, city and/or country where published.</th>
     formData.append('userEmail', user.email);
     formData.append('idsMatterData', JSON.stringify(idsMatterData));
     // console.log(idsMatterData)
-    AuthApi('/api/createSb08', getTokenSilently, formData)
+    AuthApiBlob('/api/createSb08', getTokenSilently, formData)
     .then(res => {
       setGettingSb08(false)
     })  

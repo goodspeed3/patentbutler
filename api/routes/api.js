@@ -4,6 +4,7 @@ var multer = require('multer');
 // const mime = require('mime');
 const nanoid = require('nanoid').nanoid;
 const diff = require("deep-object-diff").diff;
+let fs = require('fs')
 
 var stripe_creds = {};
 if (process.env.NODE_ENV === 'production') {
@@ -21,6 +22,7 @@ if (process.env.NODE_ENV === 'production') {
 const stripe = require('stripe')(stripe_creds.SECRET);
 
 const pdfform = require('pdfform.js')
+
 const jwt = require('express-jwt');
 const jwksRsa = require('jwks-rsa');
 var AWS = require('aws-sdk');
@@ -949,69 +951,26 @@ router.post('/importFileForIds', checkJwt, upload.single('file'), async function
 });
 
 router.post('/createSb08', checkJwt, upload.none(), async function(req, res, next) {
-  //START EDIT
-  res.json({ success: true })    
-  return
-  var out_buf = pdfform().transform(pdf_buf, fields);
-  var file = e.target.files[0];
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    // on_file(file.name, ev.target.result);
-    var pdf_buf; // load PDF into an ArrayBuffer, for example via XHR (see demo)
-    var fields = {
-      'fieldname': ['value for fieldname[0]', 'value for fieldname[1]']
-    };
-  
+  var file = fs.readFileSync('./files/sb0008a.pdf');
+  var fields = {
+    'Text1': ['1'],
+    'text2': ['2'],
+    'text3': ['3'],
+    'box109': [true]
   };
-  reader.readAsArrayBuffer(file);
+  var out_buf;
+  console.log(file)
+  try {
+    out_buf = pdfform().transform(file, fields);
 
-
-  //remove relatedAttyDocket from list of idssync, remove attyDocket from idssync in the relatedAttyDocket case
-  var idsMatterData = JSON.parse(req.body.idsMatterData)
-
-  var promiseArray = []
-
-  const idsQuery = datastore
-  .createQuery('clientMatter')
-  .filter('attyDocket', '=', idsMatterData.attyDocket)
-  .filter('firm', '=', idsMatterData.firm)
-  promiseArray.push(datastore.runQuery(idsQuery))
-
-  const relatedIdsQuery = datastore
-  .createQuery('clientMatter')
-  .filter('attyDocket', '=', req.body.relatedAttyDocket)
-  .filter('firm', '=', idsMatterData.firm)  
-  promiseArray.push(datastore.runQuery(relatedIdsQuery))
-
-  let results = await Promise.all(promiseArray)
-  //update current attydocket to add related matter to idssync and related idsData to currentAttydocket
-  var currentIdsData = results[0][0][0]
-  currentIdsData.idsSync = currentIdsData.idsSync.filter(e => e !== req.body.relatedAttyDocket)
-
-  var updatedMatterEntity = {
-    key: results[0][0][0][datastore.KEY],
-    data: currentIdsData,
-    excludeFromIndexes: ['idsData']
-  };
-  await datastore.upsert(updatedMatterEntity)
-
-  // update related docket to add current matter to idssync and add current matter idsData to related docket
-  var relatedIdsData = results[1][0][0]
-  // console.log(relatedIdsData)
-  relatedIdsData.idsSync = relatedIdsData.idsSync.filter(e => e !== idsMatterData.attyDocket)
-
-  updatedMatterEntity = {
-    key: results[1][0][0][datastore.KEY],
-    data: relatedIdsData,
-    excludeFromIndexes: ['idsData']
-  };
-  
-  await datastore.upsert(updatedMatterEntity)
-
-  var responseObj = {
-    attyDocket: results[0][0][0]
+  } catch (e) {
+    console.log('failed transform')
+    console.log(e)
   }
-  res.json(responseObj)
+
+  // res.contentType("application/pdf");
+  res.send(Buffer.from( new Uint8Array(out_buf) ))
+
 
 });
 module.exports = router;
